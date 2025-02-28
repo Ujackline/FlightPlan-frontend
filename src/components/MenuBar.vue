@@ -23,7 +23,7 @@
         </v-btn>
 
         <v-btn class="mx-2" @click="navigateTo('studentDashboard')">
-          Flight Plan
+          Student Dashboard
         </v-btn>
 
         <v-btn class="mx-2" @click="navigateTo('afterNest')">
