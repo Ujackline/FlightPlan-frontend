@@ -8,7 +8,7 @@
         <div class="max-w-2xl mx-auto">
           <!-- Greeting -->
           <h1 class="text-3xl font-bold text-gray-900 mb-6">
-           FLIGHT PLAN PAGE
+           Student Dashboard Page
           </h1>
   
           <!-- Fall 25 Progress -->
