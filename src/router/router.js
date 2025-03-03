@@ -4,6 +4,7 @@ import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import FlightPlan from "../views/FlightPlan.vue";
+import Experience from "../views/Experience.vue";
 
 
 const router = createRouter({
@@ -27,6 +28,12 @@ const router = createRouter({
       path: '/flightPlan',
       name: 'flightPlan',
       component: FlightPlan
+    },
+
+    {
+      path: '/Experience',
+      name: 'Experience',
+      component: Experience
     },
     {
       path: '/home',
