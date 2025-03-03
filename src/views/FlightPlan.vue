@@ -23,9 +23,9 @@
               <router-link to="/experience" class="text-blue-600 hover:text-blue-800">
                 Manage Experiences →
               </router-link>
-              <button @click="addExperience" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800">
+              <!-- <button @click="addExperience" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800">
                 + Add Experience
-              </button>
+              </button> -->
             </div>
           </div>
   
@@ -80,6 +80,7 @@
         </div>
       </div>
     </div>
+  </div>
   </template>
   
   <script>
