@@ -73,6 +73,8 @@
 <script>
 import { ref, onMounted } from 'vue';
 import userServices from '../services/userServices';
+import Utils from '../config/utils';
+
 
 export default {
   name: 'WelcomePage',
@@ -84,7 +86,12 @@ export default {
       try {
         // Get the user ID from your authentication store/session
         // This should be set when the user logs in
-        const userId = localStorage.getItem('userId'); 
+      
+        //const userId = localStorage.getItem('userId'); 
+        //const userId = localStorage.getItem('userId'); 
+
+        const userId = Utils.getStore('id'); // Use Utils.getStore instead of localStorage.getItem
+
         
         if (!userId) {
           console.error('No user ID found');
