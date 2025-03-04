@@ -72,7 +72,7 @@
           <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
           <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
           <div class="flex justify-end mt-4">
-            <button @click="selectedExperience = null" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Close</button>
+            <button @click="selectedExperience = null" class="bg-gray-600 text-black px-4 py-2 rounded hover:bg-gray-700">Close</button>
           </div>
         </div>
       </div>
