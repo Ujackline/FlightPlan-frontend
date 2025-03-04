@@ -1,9 +1,10 @@
+
 import { createRouter, createWebHistory } from "vue-router";
 import Utils from '../config/utils'; 
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import FlightPlan from "../views/FlightPlan.vue";
+import StudentDashboard from "../views/StudentDashbord.vue";
 
 
 const router = createRouter({
@@ -24,9 +25,9 @@ const router = createRouter({
       component: AfterNest
     },
     {
-      path: '/flightPlan',
-      name: 'flightPlan',
-      component: FlightPlan
+      path: '/studentDashboard',
+      name: 'studentDashboard',
+      component: StudentDashboard
     },
     {
       path: '/home',
