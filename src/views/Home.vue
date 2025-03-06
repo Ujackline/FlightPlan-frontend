@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-white">
+
+<div class="min-h-screen bg-white">
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-2xl mx-auto">
         <!-- Greeting -->
@@ -72,7 +73,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/userServices';
+import userServices from '../services/';
 
 export default {
   name: 'WelcomePage',
