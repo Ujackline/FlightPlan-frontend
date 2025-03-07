@@ -4,10 +4,10 @@ import Router from '../router/router.js'
 
 var baseurl = ''
 if (import.meta.env.DEV) {
-  baseurl = "http://localhost:3029/EaglesFlightPlan";
+  baseurl = "http://localhost:3029/flight-plan-t9";
 
 } else {
-  baseurl = "/EaglesFlightPlan/";
+  baseurl = "/flight-plan-t9/";
 }
 const apiClient = axios.create({
   baseURL: baseurl,
