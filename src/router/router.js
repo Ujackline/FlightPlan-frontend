@@ -3,7 +3,12 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
+<<<<<<< HEAD
 import StudentDashboard from "../views/StudentDashbord.vue";
+=======
+import FlightPlan from "../views/FlightPlan.vue";
+import Experience from "../views/Experience.vue";
+>>>>>>> e5ee80f386b0e571257ecd3539c267d2d14dff6b
 
 
 const router = createRouter({
@@ -27,6 +32,12 @@ const router = createRouter({
       path: '/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
+    },
+
+    {
+      path: '/Experience',
+      name: 'Experience',
+      component: Experience
     },
     {
       path: '/home',

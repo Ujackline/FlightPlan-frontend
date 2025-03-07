@@ -110,39 +110,34 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import userServices from "../services/userServices";
-import Utils from "../config/utils";
+import { ref, onMounted } from 'vue';
+import userServices from '../services/userServices';
 
 export default {
   name: "HomeDashboard",
   setup() {
-    const router = useRouter();
-    const firstName = ref("");
-    const progress = ref(40);
-    const points = ref(250);
-    const careerTasks = ref([
-      { id: 1, name: "Create Resume", completed: false },
-      { id: 2, name: "Create Cover Letter", completed: false },
-      { id: 3, name: "Attend Career Fair", completed: false },
-      { id: 4, name: "Mock Interview", completed: false },
-      { id: 5, name: "Resume Workshop", completed: false }
-    ]);
-    const experiences = ref([
-      { id: 1, name: "Leadership", details: ["Led a team project", "Organized events"] },
-      { id: 2, name: "Networking", details: ["Attended career fair", "Connected with professionals"] },
-      { id: 3, name: "Mentoring", details: ["Guided junior students", "Hosted study sessions"] },
-      { id: 4, name: "Volunteer Work", details: ["Participated in community service", "Helped at charity events"] }
-    ]);
-    const upcomingEvents = ref([
-      { id: 1, name: "Career Fair", date: "03/10/2025", deadline: "03/05/2025" },
-      { id: 2, name: "Resume Workshop", date: "03/15/2025", deadline: "03/12/2025" }
-    ]);
+    const firstName = ref('Guest');
+    const error = ref(null);
 
-    const saveChecklist = () => {
-      Utils.setStore("careerChecklist", careerTasks.value);
-      console.log("Checklist saved:", careerTasks.value);
+    const fetchUser = async () => {
+      try {
+        // Get the user ID from your authentication store/session
+        // This should be set when the user logs in
+        const userId = localStorage.getItem('userId'); 
+        
+        if (!userId) {
+          console.error('No user ID found');
+          return;
+        }
+
+        const response = await userServices.getOne(userId);
+        if (response.data && response.data.fName) {
+          firstName.value = response.data.fName;
+        }
+      } catch (err) {
+        error.value = 'Failed to load user.';
+        console.error('Error fetching user:', err);
+      }
     };
 
     onMounted(() => {});

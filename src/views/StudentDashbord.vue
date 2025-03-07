@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD:src/views/StudentDashbord.vue
     <div class="min-h-screen bg-white">
       
       
@@ -16,6 +17,35 @@
             <p class="text-sm text-gray-600 mb-2">Fall 25' Progress</p>
             <div class="h-2 bg-gray-200 rounded">
               <div class="h-full bg-blue-600 rounded" style="width: 20%;"></div> <!-- 20% Progress -->
+=======
+  <div class="min-h-screen bg-white">
+    <div class="container mx-auto px-4 py-8">
+      <div class="max-w-3xl mx-auto">
+        <!-- Greeting -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">
+          Eagle Flight Plan
+        </h1>
+
+        <!-- Progress Section -->
+        <div class="mb-8">
+          <p class="text-sm text-gray-600 mb-2">Flight Plan Progress</p>
+          <div class="h-2 bg-gray-200 rounded">
+            <div class="h-full bg-blue-600 rounded" :style="{ width: progress + '%' }"></div>
+          </div>
+        </div>
+
+        <!-- Experiences Section -->
+        <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Your Experiences</h2>
+            <div class="flex space-x-2">
+              <router-link to="/experience" class="text-blue-600 hover:text-blue-800">
+                Manage Experiences →
+              </router-link>
+              <!-- <button @click="addExperience" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800">
+                + Add Experience
+              </button> -->
+>>>>>>> e5ee80f386b0e571257ecd3539c267d2d14dff6b:src/views/FlightPlan.vue
             </div>
           </div>
   
@@ -70,6 +100,7 @@
         </div>
       </div>
     </div>
+  </div>
   </template>
   
   <script>
