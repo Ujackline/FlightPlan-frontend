@@ -27,6 +27,8 @@
             </button>
           </div>
           
+          
+          
           <div class="divide-y divide-gray-100">
             <div v-for="event in events" :key="event.id" class="p-4">
               <div class="text-sm text-gray-500 mb-1">{{ event.date }}, {{ event.time }}</div>
@@ -58,12 +60,18 @@
           
           <div>
             <button
-              @click="$emit('navigate', 'profile')"
+              @click="$emit('navigate', 'Admin')"
               class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
             >
               VIEW PROFILE
             </button>
-          </div>
+           </div>
+
+
+       
+
+
+
         </div>
       </div>
     </div>
