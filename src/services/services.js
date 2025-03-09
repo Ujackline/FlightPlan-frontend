@@ -1,6 +1,7 @@
 import axios from 'axios'
 import Utils from '../config/utils.js'
 import Router from '../router/router.js'
+import authServices from './authServices.js';
 
 var baseurl = ''
 if (import.meta.env.DEV) {
@@ -36,7 +37,7 @@ const apiClient = axios.create({
     //   localStorage.deleteItem("user");
     // }
     if (data.message !== undefined && data.message.includes('Unauthorized')) {
-      AuthServices.logoutUser(Utils.getStore('user'))
+      authServices.logoutUser(Utils.getStore('user'))
         .then(response => {
           console.log(response)
           Utils.removeItem('user')
