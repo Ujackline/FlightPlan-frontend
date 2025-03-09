@@ -4,6 +4,7 @@ import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import FlightPlan from "../views/FlightPlan.vue";
+import Task from "../views/task.vue"
 
 
 const router = createRouter({
@@ -29,11 +30,17 @@ const router = createRouter({
       component: FlightPlan
     },
     {
+      path: '/task',
+      name: 'task',
+      component: Task
+    },
+    {
       path: '/home',
       name: 'home',
       component: Home,
       meta: { requiresAuth: true }
     },
+    
   
   ],
 });
