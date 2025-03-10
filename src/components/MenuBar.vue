@@ -22,8 +22,8 @@
           Home
         </v-btn>
 
-        <v-btn class="mx-2" @click="navigateTo('flightPlan')">
-          Flight Plan
+        <v-btn class="mx-2" @click="navigateTo('studentDashboard')">
+          Student Dashboard
         </v-btn>
 
         <v-btn class="mx-2" @click="navigateTo('afterNest')">

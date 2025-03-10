@@ -3,6 +3,7 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
+import StudentDashboard from "../views/StudentDashbord.vue"
 import FlightPlan from "../views/FlightPlan.vue";
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
@@ -29,9 +30,9 @@ const router = createRouter({
       component: AfterNest
     },
     {
-      path: '/flightPlan',
-      name: 'flightPlan',
-      component: FlightPlan
+      path: '/studentDashboard',
+      name: 'studentDashboard',
+      component: StudentDashboard
     },
 
     {

@@ -1,4 +1,23 @@
 <template>
+<<<<<<< HEAD:src/views/StudentDashbord.vue
+    <div class="min-h-screen bg-white">
+      
+      
+  
+      <!-- Main Content -->
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+          <!-- Greeting -->
+          <h1 class="text-3xl font-bold text-gray-900 mb-6">
+           Student Dashboard Page
+          </h1>
+  
+          <!-- Fall 25 Progress -->
+          <div class="mb-8">
+            <p class="text-sm text-gray-600 mb-2">Fall 25' Progress</p>
+            <div class="h-2 bg-gray-200 rounded">
+              <div class="h-full bg-blue-600 rounded" style="width: 20%;"></div> <!-- 20% Progress -->
+=======
   <div class="min-h-screen bg-white">
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-3xl mx-auto">
@@ -26,6 +45,7 @@
               <!-- <button @click="addExperience" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800">
                 + Add Experience
               </button> -->
+>>>>>>> e5ee80f386b0e571257ecd3539c267d2d14dff6b:src/views/FlightPlan.vue
             </div>
           </div>
   
