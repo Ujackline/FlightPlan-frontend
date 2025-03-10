@@ -73,7 +73,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/';
+import userServices from '../services/userServices';
 
 export default {
   name: 'WelcomePage',
