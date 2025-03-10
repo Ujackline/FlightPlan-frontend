@@ -1,82 +1,62 @@
 <template>
-  <div class="min-h-screen bg-black py-8">
-    <div class="container mx-auto px-4">
-      <h1 class="text-3xl font-bold text-white mb-6 text-center bg-red-900 p-4">Career Services</h1>
+  <div class="experiences-page">
+    <h2>Experiences & Tasks</h2>
 
-      <!-- Add New Experience Button -->
-      <div class="text-center mb-6">
-        <button @click="toggleForm" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-md">
-          {{ showForm ? "Close Form" : "Add New Experience" }}
-        </button>
-      </div>
-
-      <!-- No Experiences Message -->
-      <div v-if="experiences.length === 0" class="text-center text-white mb-6">
-        <p class="text-xl">You have no experiences yet, add a new experience.</p>
-      </div>
-
-      <!-- Experience Form (Toggled on Button Click) -->
-      <div v-if="showForm" class="bg-white p-6 rounded-lg shadow-md mb-6 max-w-2xl mx-auto">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">
-          {{ editing ? "Edit Experience" : "Add New Experience" }}
-        </h2>
-        <form @submit.prevent="editing ? updateExperience() : addExperience()" class="space-y-4">
-          <div v-for="field in fields" :key="field.name" class="mb-4">
-            <label class="block text-red-700 font-medium">{{ field.label }}</label>
-            <input 
-              v-if="field.type !== 'textarea'" 
-              :type="field.type" 
-              v-model="experience[field.name]" 
-              class="w-full p-2 border rounded bg-gray-200" 
-              required 
-            />
-            <textarea 
-              v-else 
-              v-model="experience[field.name]" 
-              class="w-full p-2 border rounded bg-gray-200">
-            </textarea>
-          </div>
-          <div class="flex justify-between">
-            <button @click="resetForm" type="button" class="bg-gray-600 text-black px-6 py-2 rounded hover:bg-gray-700">
-              Cancel
-            </button>
-            <button type="submit" class="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700 shadow-md">
-              {{ editing ? "Update Experience" : "Add Experience" }}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Experience List -->
-      <div v-if="experiences.length > 0" class="max-w-3xl mx-auto bg-gray-100 p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Experiences</h2>
-        <ul class="space-y-4">
-          <li v-for="exp in experiences" :key="exp.id" class="flex justify-between items-center bg-white p-4 rounded-lg shadow">
-            <span class="text-lg font-medium">{{ exp.name }}</span>
-            <div class="space-x-2">
-              <button @click="viewExperience(exp)" class="bg-green-600 text-black px-4 py-1 rounded hover:bg-green-700 shadow">View</button>
-              <button @click="editExperience(exp)" class="bg-blue-600 text-black px-4 py-1 rounded hover:bg-blue-700 shadow">Edit</button>
-              <button @click="deleteExperience(exp.id)" class="bg-red-600 text-black px-4 py-1 rounded hover:bg-red-700 shadow">Delete</button>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Experience Details Modal -->
-      <div v-if="selectedExperience" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-          <h2 class="text-2xl font-semibold mb-4">{{ selectedExperience.name }}</h2>
-          <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
-          <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
-          <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
-          <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
-          <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
-          <div class="flex justify-end mt-4">
-            <button @click="selectedExperience = null" class="bg-gray-600 text-black px-4 py-2 rounded hover:bg-gray-700">Close</button>
-          </div>
+    <!-- Experience Form -->
+    <section v-if="showForm" class="form-section">
+      <h3>{{ editing ? "Edit Experience" : "Add New Experience" }}</h3>
+      <form @submit.prevent="editing ? updateExperience() : addExperience()">
+        <div class="form-group" v-for="field in fields" :key="field.name">
+          <label :for="field.name">{{ field.label }}:</label>
+          <input v-if="field.type !== 'textarea'" :type="field.type" :id="field.name" v-model="experience[field.name]" required />
+          <textarea v-else :id="field.name" v-model="experience[field.name]" required></textarea>
         </div>
-      </div>
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" @click="resetForm">Cancel</button>
+          <button type="submit" class="save-btn">{{ editing ? "Update Experience" : "Add Experience" }}</button>
+        </div>
+      </form>
+    </section>
 
+    <!-- Add New Experience Button -->
+    <div class="button-container">
+      <button @click="toggleForm" class="add-btn">
+        {{ showForm ? "Close Form" : "Add New Experience" }}
+      </button>
+    </div>
+
+    <!-- Experience List -->
+    <section v-if="experiences.length > 0" class="experience-list">
+      <h3>Experiences</h3>
+      <ul>
+        <li v-for="exp in experiences" :key="exp.id" class="experience-item">
+          <span>{{ exp.name }}</span>
+          <div class="actions">
+            <button @click="viewExperience(exp)" class="view-btn">View</button>
+            <button @click="editExperience(exp)" class="edit-btn">Edit</button>
+            <button @click="deleteExperience(exp.id)" class="delete-btn">Delete</button>
+          </div>
+          
+        </li>
+      </ul>
+    </section>
+
+    <!-- No Experiences Message -->
+    <div v-if="experiences.length === 0" class="no-experiences">
+      <p>You have no experiences yet. Add a new experience.</p>
+    </div>
+
+    <!-- Experience Details Modal -->
+    <div v-if="selectedExperience" class="modal-overlay">
+      <div class="modal">
+        <h3>{{ selectedExperience.name }}</h3>
+        <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
+        <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
+        <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
+        <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
+        <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+        <button @click="selectedExperience = null" class="close-btn">Close</button>
+      </div>
     </div>
   </div>
 </template>
@@ -98,10 +78,10 @@ export default {
         major: "",
       },
       editing: false,
-      selectedExperience: null, // Stores the experience to be viewed
-      showForm: false, // Controls form visibility
+      selectedExperience: null,
+      showForm: false,
       fields: [
-        { name: "name", label: "Name", type: "text" },
+        { name: "name", label: "Experience Name", type: "text" },
         { name: "category", label: "Category", type: "text" },
         { name: "description", label: "Description", type: "textarea" },
         { name: "type", label: "Type", type: "text" },
@@ -133,7 +113,7 @@ export default {
     editExperience(exp) {
       this.experience = { ...exp };
       this.editing = true;
-      this.showForm = true; // Show form when editing
+      this.showForm = true;
     },
     async updateExperience() {
       try {
@@ -171,7 +151,137 @@ export default {
 </script>
 
 <style scoped>
-button {
-  transition: background-color 0.3s;
+.experiences-page {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background-color: rgb(246, 244, 244);
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
 }
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.save-btn {
+  background: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #aaa;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.add-btn {
+  background: #27ae60;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.experience-list {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.experience-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+
+.actions {
+  display: flex;
+  gap: 10px; /* Adds space between buttons */
+}
+
+
+.view-btn  {
+  color: #27ae60; /* Green for View */
+}
+
+.edit-btn  {
+  color: #3498db; /* Blue for Edit */
+}
+
+.delete-btn  {
+  color: #e74c3c; /* Red for Delete */
+}
+
+.icon-btn:hover {
+  opacity: 0.7;
+}
+
+
+
 </style>

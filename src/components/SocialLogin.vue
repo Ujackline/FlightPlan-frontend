@@ -35,24 +35,23 @@ const handleCredentialResponse = async (response) => {
     };
     const loginResponse = await AuthServices.loginUser(token);
     
-    // Store user data with only essential information
-    user.value = {
-      ...loginResponse.data,
-      role: 'student' // Default role set to student
-    };
-
+    // Store user data with the role fetched from backend
+    user.value = loginResponse.data; // Ensure backend sends role (admin, student, student_worker)
+    
     Utils.setStore("user", user.value);
     fName.value = user.value.fName;
     lName.value = user.value.lName;
 
     console.log("Login successful:", user.value);
-    
-    // Simple redirect to home for all users
-    router.push({ name: "home" });
+
+    // Default redirect to student dashboard
+    router.push("/home");
   } catch (error) {
     console.log("error", error);
   }
 };
+
+
 
 onMounted(() => {
   loginWithGoogle();

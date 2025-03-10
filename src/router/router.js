@@ -3,12 +3,12 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-<<<<<<< HEAD
-import StudentDashboard from "../views/StudentDashbord.vue";
-=======
+import StudentDashboard from "../views/StudentDashbord.vue"
 import FlightPlan from "../views/FlightPlan.vue";
 import Experience from "../views/Experience.vue";
->>>>>>> e5ee80f386b0e571257ecd3539c267d2d14dff6b
+import Admin from "../views/Admin.vue";
+import Adminsettings from "../views/Adminsettings.vue";
+import ManageUser from "../views/ManageUser.vue";
 
 
 const router = createRouter({
@@ -39,6 +39,18 @@ const router = createRouter({
       name: 'Experience',
       component: Experience
     },
+
+    {
+      path:'/Admin',
+      name: 'Admin',
+      component: Admin
+    },
+
+    {
+      path:'/settings',
+      name: 'settings',
+      component: Adminsettings
+    },
     {
       path: '/home',
       name: 'home',
@@ -46,6 +58,11 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
   
+    {
+      path: '/manageusers',
+      name: 'manageusers',
+      component: ManageUser,
+    }, 
   ],
 });
 
