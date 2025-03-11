@@ -1,95 +1,104 @@
-import apiClient from "../services/services"; // Importing your configured API client
+import apiClient from "../services/services"; // Importing configured API client
 
-const API_BASE_URL = "http://localhost:3029/flight-plan-t9";
+const API_BASE_URL = "http://localhost:3029/flight-plan-t9/user"; // Updated to use only `/user`
 
 const adminService = {
-  async getAdminInfo() {
-    const response = await apiClient.get(`${API_BASE_URL}/info`);
-    return response.data;
+  // ✅ Get all users (Admin Only)
+  async getUsers() {
+    return apiClient.get(`${API_BASE_URL}/`);
+    
   },
 
+  // ✅ Get all admins (Admin Only)
+  async getAdmins() {
+    return apiClient.get(`${API_BASE_URL}/admin/list`);
+  },
+
+  // ✅ Add a new user
+  async addUser(userData) {
+    return apiClient.post(`${API_BASE_URL}/`, userData);
+  },
+
+  // ✅ Update user role (Admin Only)
+  async updateUserRole(userId, role) {
+    return apiClient.put(`${API_BASE_URL}/admin/${userId}`, { role });
+  },
+
+  // ✅ Delete a user (Admin Only)
+  async deleteUser(userId) {
+    return apiClient.delete(`${API_BASE_URL}/admin/${userId}`);
+  },
+
+  // ✅ Get notifications
   async getNotifications() {
-    const response = await apiClient.get(`${API_BASE_URL}/notifications`);
-    return response.data;
+    return apiClient.get(`${API_BASE_URL}/notifications`);
   },
 
+  // ✅ Get system statistics
   async getStats() {
-    const response = await apiClient.get(`${API_BASE_URL}/stats`);
-    return response.data;
+    return apiClient.get(`${API_BASE_URL}/stats`);
   },
 
+  // ✅ Get recent activities
   async getRecentActivities() {
-    const response = await apiClient.get(`${API_BASE_URL}/recent-activities`);
-    return response.data;
+    return apiClient.get(`${API_BASE_URL}/recent-activities`);
   },
 
+  // ✅ Get upcoming events
   async getUpcomingEvents() {
-    const response = await apiClient.get(`${API_BASE_URL}/upcoming-events`);
-    return response.data;
+    return apiClient.get(`${API_BASE_URL}/upcoming-events`);
   },
 
+  // ✅ Get all events
   async getEvents() {
-    const response = await apiClient.get(`${API_BASE_URL}/events`);
-    return response.data;
+    return apiClient.get(`${API_BASE_URL}/events`);
   },
 
+  // ✅ Create a new event
   async createEvent(eventData) {
-    const response = await apiClient.post(`${API_BASE_URL}/events`, eventData);
-    return response.data;
+    return apiClient.post(`${API_BASE_URL}/events`, eventData);
   },
 
+  // ✅ Update an existing event
   async updateEvent(eventId, eventData) {
-    const response = await apiClient.put(`${API_BASE_URL}/events/${eventId}`, eventData);
-    return response.data;
+    return apiClient.put(`${API_BASE_URL}/events/${eventId}`, eventData);
   },
 
+  // ✅ Delete an event
   async deleteEvent(eventId) {
     await apiClient.delete(`${API_BASE_URL}/events/${eventId}`);
   },
 
+  // ✅ Upload attendance file for an event
   async uploadAttendance(eventId, attendanceFile) {
     const formData = new FormData();
-    formData.append('file', attendanceFile);
+    formData.append("file", attendanceFile);
     return apiClient.post(`${API_BASE_URL}/events/${eventId}/upload-attendance`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        "Content-Type": "multipart/form-data",
+      },
     });
   },
 
+  // ✅ Fetch students
   async fetchStudents() {
     return apiClient.get(`${API_BASE_URL}/students`);
   },
 
+  // ✅ Fetch point redemptions
   async fetchPointRedemptions() {
     return apiClient.get(`${API_BASE_URL}/points`);
   },
 
+  // ✅ Update settings (Admin Only)
   async updateSettings(settingsData) {
     return apiClient.put(`${API_BASE_URL}/settings`, settingsData);
   },
 
+  // ✅ Logout user
   async logout() {
     return apiClient.post(`${API_BASE_URL}/logout`);
   },
-
-async getUsers() {
-  return apiClient.get(`${API_BASE_URL}/user`);
-},
-
-async updateUserRole(userId, role) {
-  return apiClient.put(`${API_BASE_URL}/users/${userId}/role`, { role });
-},
-
-async deleteUser(userId) {
-  return apiClient.delete(`${API_BASE_URL}/users/${userId}`);
-},
-
-async addUser(userData) {
-  return apiClient.post(`${API_BASE_URL}/users`, userData);
-},
-
-
-}
+};
 
 export default adminService;

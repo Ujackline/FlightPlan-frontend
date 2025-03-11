@@ -82,7 +82,7 @@
 import { ref, onMounted } from 'vue';
 import userServices from '../services/userServices';
 import Utils from '../config/utils';
-
+//import store from '../store/store';
 
 export default {
   name: 'WelcomePage',
@@ -91,34 +91,35 @@ export default {
     const error = ref(null);
 
     const fetchUser = async () => {
-      try {
-        // Get the user ID from your authentication store/session
-        // This should be set when the user logs in
-      
-        //const userId = localStorage.getItem('userId'); 
-        //const userId = localStorage.getItem('userId'); 
+  try {
+    // ✅ Get the user object from local storage
+    const storedUser = Utils.getStore("user"); // ✅ Ensure "user" is a string
 
-        const userId = Utils.getStore('id'); // Use Utils.getStore instead of localStorage.getItem
+    if (!storedUser || !storedUser.userId) {
+      console.error("❌ No user ID found in local storage:", storedUser);
+      return;
+    }
 
-        
-        if (!userId) {
-          console.error('No user ID found');
-          return;
-        }
+    console.log("✅ Found user in storage:", storedUser); // Debugging
 
-        const response = await userServices.getOne(userId);
-        if (response.data && response.data.fName) {
-          firstName.value = response.data.fName;
-        }
-      } catch (err) {
-        error.value = 'Failed to load user.';
-        console.error('Error fetching user:', err);
-      }
-    };
+    // ✅ Send API request to fetch user data
+    const response = await userServices.getOne(storedUser.userId); 
 
-    onMounted(() => {
-      fetchUser();
-    });
+    if (response.data && response.data.fName) {
+      firstName.value = response.data.fName;
+      console.log("✅ User fetched successfully:", response.data);
+    }
+  } catch (err) {
+    error.value = "Failed to load user.";
+    console.error("❌ Error fetching user:", err);
+  }
+};
+
+// Fetch user when the component is mounted
+onMounted(() => {
+  fetchUser();
+});
+
 
     return {
       firstName,

@@ -22,12 +22,20 @@
           Home
         </v-btn>
 
+        <!-- <v-btn class="mx-2" v-if="user?.role === 'Admin'" @click="navigateTo('AdminDashboard')">
+          <v-icon left>mdi-view-dashboard</v-icon></v-btn> -->
+
+
         <v-btn class="mx-2" @click="navigateTo('flightPlan')">
           Flight Plan
         </v-btn>
 
         <v-btn class="mx-2" @click="navigateTo('afterNest')">
           Life After Nest
+        </v-btn>
+
+        <v-btn class="mx-2" @click="navigateTo('AdminDashboard')">
+          Admin Dashboard
         </v-btn>
 
         <v-menu bottom min-width="200px" rounded offset-y>
@@ -52,15 +60,7 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
-                <v-divider class="my-3"></v-divider>
-                <v-btn class="mx-2" @click="navigateTo('manageusers')">
-
-                    Manage User
-                  </v-btn>
-
-
-
-
+              
               </div>
             </v-card-text>
           </v-card>
@@ -76,7 +76,7 @@ import { ref, onMounted } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter } from "vue-router";
-import Admin from "../views/Admin.vue";
+//import AdminDashboard from "../views/AdminDashboard.vue";
 //import adminService from "../services/adminServices";
 
 const router = useRouter();
