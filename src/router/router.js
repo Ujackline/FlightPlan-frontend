@@ -5,11 +5,11 @@ import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashbord.vue"
-import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
+
 
 
 const router = createRouter({
