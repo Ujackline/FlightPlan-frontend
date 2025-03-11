@@ -52,7 +52,7 @@
   
   <script>
   import { ref, onMounted } from 'vue';
-  import BadgeService from '@/services/BadgeService';
+  import BadgeService from '../services/badgeServices';
   
   export default {
     name: 'BadgesView',
