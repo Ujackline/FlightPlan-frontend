@@ -1,9 +1,11 @@
+
 import { createRouter, createWebHistory } from "vue-router";
 import Utils from '../config/utils'; 
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import FlightPlan from "../views/FlightPlan.vue";
+import StudentDashboard from "../views/StudentDashbord.vue"
+import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
@@ -29,9 +31,9 @@ const router = createRouter({
       component: AfterNest
     },
     {
-      path: '/flightPlan',
-      name: 'flightPlan',
-      component: FlightPlan
+      path: '/studentDashboard',
+      name: 'studentDashboard',
+      component: StudentDashboard
     },
 
     {
@@ -53,11 +55,17 @@ const router = createRouter({
       component: Adminsettings
     },
     {
+      path: '/task',
+      name: 'task',
+      component: Task
+    },
+    {
       path: '/home',
       name: 'home',
       component: Home,
       meta: { requiresAuth: true }
     },
+    
   
     {
       path: '/manageusers',
