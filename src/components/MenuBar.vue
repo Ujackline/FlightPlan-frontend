@@ -18,37 +18,47 @@
 
       <v-spacer></v-spacer>
 
-      <v-menu bottom min-width="200px" rounded offset-y>
-        <template v-slot:activator="{ props }">
-          <v-btn v-bind="props" icon>
-            <v-avatar color="secondary">
-              <span class="text-white">{{ initials }}</span>
-            </v-avatar>
-          </v-btn>
-        </template>
+      <!-- Toggle button for side navigation -->
+      <v-btn 
+        v-if="user" 
+        icon 
+        @click="toggleSideNav" 
+        class="mr-2"
+      >
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+      </v-btn>
 
-        <v-card>
-          <v-card-text>
-            <div class="mx-auto text-center">
+      <!-- User menu remains in the top bar -->
+      <div v-if="user">
+        <v-menu bottom min-width="200px" rounded offset-y>
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" icon>
               <v-avatar color="secondary">
                 <span class="text-white">{{ initials }}</span>
               </v-avatar>
-              <h3>{{ name }}</h3>
-              <p class="text-caption mt-1">
-                {{ user.email }}
-              </p>
-              <v-divider class="my-3"></v-divider>
-              <v-btn depressed rounded text @click="logout">
-                Logout
-              </v-btn>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-menu>
-
-    </v-app-bar> <!-- ✅ Correctly closed the v-app-bar here -->
-  </div> <!-- ✅ Correctly closed the outer div here -->
-
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <div class="mx-auto text-center">
+                <v-avatar color="secondary">
+                  <span class="text-white">{{ initials }}</span>
+                </v-avatar>
+                <h3>{{ name }}</h3>
+                <p class="text-caption mt-1">
+                  {{ user.email }}
+                </p>
+                <v-divider class="my-3"></v-divider>
+                <v-btn depressed rounded text @click="logout">
+                  Logout
+                </v-btn>
+                <v-divider class="my-3"></v-divider>
+                          </div>
+            </v-card-text>
+          </v-card>
+        </v-menu>
+      </div>
+    </v-app-bar>
 
     <!-- Right Side Navigation Panel -->
     <div 
@@ -75,14 +85,26 @@
           
           <v-list-item 
             @click="navigateTo('studentDashboard')"
-            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
-          >
+            :class="{ 'active-route': currentRoute === 'studentDashboard' }">
             <v-list-item-icon>
               <v-icon>mdi-view-dashboard</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
+
+          <v-list-item 
+            @click="navigateTo('AdminDashboard')"
+            :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
+            <v-list-item-icon>
+              <v-icon>mdi-view-dashboard</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Admin Dashboard</v-list-item-title>
+          </v-list-item>
+          
+          
+
+
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
@@ -118,11 +140,10 @@ import ocLogo from "/oc-logo-white.png";
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
-
-import { useRouter } from "vue-router";
-//import AdminDashboard from "../views/AdminDashboard.vue";
-
-//import adminService from "../services/adminServices";
+import { useRouter, useRoute } from "vue-router";
+//import { useRouter } from "vue-router";
+import AdminDashboard from "../views/AdminDashboard.vue";
+import adminService from "../services/adminServices";
 
 const router = useRouter();
 const route = useRoute();

@@ -114,10 +114,11 @@
 <script>
 import { ref, onMounted } from 'vue';
 import userServices from '../services/userServices';
+//import MenuBar from '../components/MenuBar.vue';
 
 import Utils from '../config/utils';
 export default {
-  name: "HomeDashboard",
+  //name: "HomeDashboard",
   setup() {
     const firstName = ref('Guest');
     const error = ref(null);
@@ -125,26 +126,26 @@ export default {
     const fetchUser = async () => {
 
   try {
-    // ✅ Get the user object from local storage
-    const storedUser = Utils.getStore("user"); // ✅ Ensure "user" is a string
+    // Get the user object from local storage
+    const storedUser = Utils.getStore("user"); //  Ensure "user" is a string
 
     if (!storedUser || !storedUser.userId) {
-      console.error("❌ No user ID found in local storage:", storedUser);
+      console.error(" No user ID found in local storage:", storedUser);
       return;
     }
 
-    console.log("✅ Found user in storage:", storedUser); // Debugging
+    console.log("Found user in storage:", storedUser); // Debugging
 
-    // ✅ Send API request to fetch user data
+    // Send API request to fetch user data
     const response = await userServices.getOne(storedUser.userId); 
 
     if (response.data && response.data.fName) {
       firstName.value = response.data.fName;
-      console.log("✅ User fetched successfully:", response.data);
+      console.log("User fetched successfully:", response.data);
     }
   } catch (err) {
     error.value = "Failed to load user.";
-    console.error("❌ Error fetching user:", err);
+    console.error(" Error fetching user:", err);
   }
 };
 
@@ -156,12 +157,12 @@ onMounted(() => {
 
     return {
       firstName,
-      progress,
-      points,
-      careerTasks,
-      experiences,
-      upcomingEvents,
-      saveChecklist
+      // progress,
+      // points,
+      // careerTasks,
+      // experiences,
+      // upcomingEvents,
+      // saveChecklist
     };
   }
 };
