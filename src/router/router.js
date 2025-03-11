@@ -5,13 +5,12 @@ import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashbord.vue"
-import FlightPlan from "../views/FlightPlan.vue";
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import Admin from "../views/Admin.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
-
+import Badges from "../views/Badges.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +39,11 @@ const router = createRouter({
       path: '/Experience',
       name: 'Experience',
       component: Experience
+    },
+    {
+      path: '/badges',
+      name: 'badges',
+      component: Badges
     },
 
     {
