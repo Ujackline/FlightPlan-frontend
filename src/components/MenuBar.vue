@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Small app bar with just logo and user menu -->
     <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
@@ -17,19 +18,18 @@
 
       <v-spacer></v-spacer>
 
+      <!-- Toggle button for side navigation -->
+      <v-btn 
+        v-if="user" 
+        icon 
+        @click="toggleSideNav" 
+        class="mr-2"
+      >
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+      </v-btn>
+
+      <!-- User menu remains in the top bar -->
       <div v-if="user">
-        <v-btn class="mx-2" @click="navigateTo('home')">
-          Home
-        </v-btn>
-
-        <v-btn class="mx-2" @click="navigateTo('studentDashboard')">
-          Student Dashboard
-        </v-btn>
-
-        <v-btn class="mx-2" @click="navigateTo('afterNest')">
-          Life After Nest
-        </v-btn>
-
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon>
@@ -67,24 +67,97 @@
         </v-menu>
       </div>
     </v-app-bar>
+
+    <!-- Right Side Navigation Panel -->
+    <div 
+      class="side-nav-panel" 
+      :class="{'side-nav-open': isSideNavOpen}"
+      v-if="user"
+    >
+      <div class="nav-panel-header">
+        <h3>Menu</h3>
+      </div>
+      
+      <!-- Navigation Items -->
+      <div class="nav-items">
+        <v-list nav>
+          <v-list-item 
+            @click="navigateTo('home')"
+            :class="{ 'active-route': currentRoute === 'home' }"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-home</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Home</v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item 
+            @click="navigateTo('studentDashboard')"
+            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-view-dashboard</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Student Dashboard</v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item 
+            @click="navigateTo('afterNest')"
+            :class="{ 'active-route': currentRoute === 'afterNest' }"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-paper-plane</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Life After Nest</v-list-item-title>
+          </v-list-item>
+         
+        </v-list>
+      </div>
+    </div>
+    
+    <!-- Overlay when sidebar is open on mobile -->
+    <div 
+      class="nav-overlay" 
+      v-if="isSideNavOpen" 
+      @click="toggleSideNav"
+    ></div>
   </div>
 </template>
 
 <script setup>
 import ocLogo from "/oc-logo-white.png";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import Admin from "../views/Admin.vue";
 //import adminService from "../services/adminServices";
 
 const router = useRouter();
+const route = useRoute();
 const user = ref(null);
 const title = ref("Career Services");
 const initials = ref("");
 const name = ref("");
 const logoURL = ref("");
+const isSideNavOpen = ref(false);
+
+// Track current route for highlighting active menu item
+const currentRoute = computed(() => {
+  return route.name;
+});
+
+// Toggle side navigation
+const toggleSideNav = () => {
+  isSideNavOpen.value = !isSideNavOpen.value;
+};
+
+// Close side nav when route changes (especially on mobile)
+watch(() => route.path, () => {
+  if (window.innerWidth < 960) {
+    isSideNavOpen.value = false;
+  }
+});
 
 const resetMenu = () => {
   user.value = Utils.getStore("user");
@@ -124,6 +197,14 @@ onMounted(() => {
       resetMenu();
     }
   });
+  
+  // Close side nav when clicking outside on mobile
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 960) {
+      // Optionally keep sidebar open on larger screens
+      // isSideNavOpen.value = true;
+    }
+  });
 });
 </script>
 
@@ -139,5 +220,63 @@ onMounted(() => {
 
 .v-avatar {
   cursor: pointer;
+}
+
+/* Side Navigation Panel Styles */
+.side-nav-panel {
+  position: fixed;
+  top: 64px; /* Height of app bar */
+  right: -300px; /* Start offscreen */
+  width: 300px;
+  height: calc(100vh - 64px);
+  background-color: white;
+  z-index: 100;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+}
+
+.side-nav-open {
+  right: 0;
+}
+
+.nav-panel-header {
+  padding: 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.nav-items {
+  padding: 10px 0;
+}
+
+.active-route {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-right: 3px solid #1976d2;
+}
+
+.nav-overlay {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  display: none;
+}
+
+/* Show overlay on mobile only */
+@media (max-width: 960px) {
+  .nav-overlay {
+    display: block;
+  }
+}
+
+/* Adjust for mobile screens */
+@media (max-width: 600px) {
+  .side-nav-panel {
+    width: 250px;
+    right: -250px;
+  }
 }
 </style>
