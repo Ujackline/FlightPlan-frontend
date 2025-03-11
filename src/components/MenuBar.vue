@@ -52,6 +52,15 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
+                <v-divider class="my-3"></v-divider>
+                <v-btn class="mx-2" @click="navigateTo('manageusers')">
+
+                    Manage User
+                  </v-btn>
+
+
+
+
               </div>
             </v-card-text>
           </v-card>
@@ -128,6 +137,8 @@ import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
+import Admin from "../views/Admin.vue";
+//import adminService from "../services/adminServices";
 
 const router = useRouter();
 const route = useRoute();
@@ -173,6 +184,7 @@ const logout = async () => {
     console.error("Logout error:", error);
   }
 };
+
 
 const navigateTo = (routeName) => {
   router.push({ name: routeName }).catch(err => {
