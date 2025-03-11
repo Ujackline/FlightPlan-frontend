@@ -1,4 +1,5 @@
 <template>
+
   <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
     <!-- Personalized Greeting with Eagle Flight Plan Title -->
     <div class="container mx-auto px-4 py-6 max-w-4xl text-center">
@@ -6,6 +7,7 @@
       <h2 class="text-4xl font-bold text-gray-900">Welcome, {{ firstName || 'Guest' }}!</h2>
       <p class="text-gray-600 text-lg">Stay on track with your Eagle Flight Plan</p>
     </div>
+
 
     <!-- Flight Plan Progress & Points System -->
     <div class="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-1 gap-6">
