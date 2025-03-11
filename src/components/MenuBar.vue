@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Small app bar with just logo and user menu -->
-    <v-app-bar app>
+    <v-app-bar location="top" elevation="1">
       <router-link :to="{ name: 'login' }">
         <v-img
           class="mx-2"
@@ -18,6 +18,18 @@
 
       <v-spacer></v-spacer>
 
+      <!-- Toggle button for side navigation -->
+      <v-btn 
+        v-if="user" 
+        icon 
+        @click="toggleSideNav" 
+        class="mr-2"
+      >
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+      </v-btn>
+
+      <!-- User menu remains in the top bar -->
+      <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon>
@@ -40,7 +52,6 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
-              
               </div>
             </v-card-text>
           </v-card>
@@ -65,9 +76,9 @@
             @click="navigateTo('home')"
             :class="{ 'active-route': currentRoute === 'home' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-home</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
           
@@ -75,9 +86,9 @@
             @click="navigateTo('studentDashboard')"
             :class="{ 'active-route': currentRoute === 'studentDashboard' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-view-dashboard</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
@@ -85,19 +96,14 @@
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-paper-plane</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
           
-          <!-- Additional menu items can be added here -->
-          <v-list-item @click="navigateTo('profile')">
-            <v-list-item-icon>
-              <v-icon>mdi-account</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>Profile</v-list-item-title>
-          </v-list-item>
+        
+        
         </v-list>
       </div>
     </div>
@@ -116,11 +122,7 @@ import ocLogo from "/oc-logo-white.png";
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
-
-import { useRouter } from "vue-router";
-//import AdminDashboard from "../views/AdminDashboard.vue";
-
-//import adminService from "../services/adminServices";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -166,7 +168,6 @@ const logout = async () => {
     console.error("Logout error:", error);
   }
 };
-
 
 const navigateTo = (routeName) => {
   router.push({ name: routeName }).catch(err => {
