@@ -13,7 +13,8 @@
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>First Name</th>
+              <th>Last Name</th>
               <th>Email</th>
               <th>Role</th>
               <th>Actions</th>
@@ -21,7 +22,8 @@
           </thead>
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id">
-              <td>{{ user.name }}</td>
+              <td>{{ user.fName }}</td>
+              <td>{{ user.lName }}</td>
               <td>{{ user.email }}</td>
               <td>
                 <select v-model="user.role" @change="updateUserRole(user)">
@@ -46,7 +48,8 @@
         <form @submit.prevent="addUser">
           <div class="form-group">
             <label>Name:</label>
-            <input type="text" v-model="newUser.name" required />
+            <input type="text" v-model="newUser.fName"  required />
+
           </div>
           <div class="form-group">
             <label>Email:</label>
@@ -74,13 +77,13 @@
       return {
         users: [],
         searchQuery: "",
-        newUser: { name: "", email: "", role: "student" },
+        newUser: { fName: "",lName:"", email: "", role: "Admin" },
       };
     },
     computed: {
       filteredUsers() {
         return this.users.filter(user =>
-          user.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          user.fName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
         );
       },
@@ -93,6 +96,9 @@
         try {
           const response = await adminServices.getUsers();
           this.users = response.data;
+          console.log(this.users);
+          console.log("Fetched Users:", response.data); // Check what data is coming
+
         } catch (error) {
           console.error("Error fetching users:", error);
         }
@@ -119,7 +125,7 @@
         try {
           const response = await adminServices.addUser(this.newUser);
           this.users.push(response.data);
-          this.newUser = { name: "", email: "", role: "student" };
+          this.newUser = { fName: "", lName: "", email: "", role: "student" };
         } catch (error) {
           console.error("Error adding user:", error);
         }

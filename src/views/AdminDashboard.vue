@@ -6,11 +6,11 @@
           <h1>Flight Plan</h1>
           <div class="admin-info">
             <div class="avatar">{{ getInitials() }}</div>
-            <div class="admin-name">{{ admin.fname }} {{ admin.lname }}</div>
+            <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
           </div>
         </div>
         <nav>
-          <router-link to="/admin/dashboard" class="nav-item" :class="{ active: currentRoute === 'dashboard' }">
+          <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
             <i class="fas fa-tachometer-alt"></i> Dashboard
           </router-link>
           <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
@@ -25,9 +25,14 @@
           <router-link to="/admin/points" class="nav-item" :class="{ active: currentRoute === 'points' }">
             <i class="fas fa-coins"></i> Point Redemption
           </router-link>
-          <router-link to="/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
+          <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
+
+          <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
+            <i class="fas fa-cog"></i> Manage Users
+          </router-link>
+
         </nav>
         <div class="sidebar-footer">
           <button @click="logout" class="logout-btn">
@@ -54,7 +59,7 @@
   
         <!-- Page Content -->
         <div class="page-content">
-          <div v-if="currentRoute === 'dashboard'" class="dashboard-content">
+          <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
             <h2>Admin Dashboard</h2>
             
             <!-- Stats Cards -->
@@ -387,8 +392,8 @@ export default {
     },
 
     getInitials() {
-    if (!this.admin.fname || !this.admin.lname) return '';
-    return `${this.admin.fname.charAt(0)}${this.admin.lname.charAt(0)}`.toUpperCase();
+    if (!this.admin.fName || !this.admin.lName) return '';
+    return `${this.admin.fName.charAt(0)}${this.admin.lName.charAt(0)}`.toUpperCase();
   },
     async fetchNotifications() {
       try {
