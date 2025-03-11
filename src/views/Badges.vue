@@ -65,8 +65,9 @@
         try {
           loading.value = true;
           error.value = null;
-          const data = await BadgeService.getAllBadges();
-          badges.value = data;
+          // Using the BadgeService directly and setting the returned data to badges.value
+          const response = await BadgeService.getAll();
+          badges.value = response.data || []; // Handle case where data might be undefined
         } catch (err) {
           error.value = err.message || 'Failed to load badges';
           console.error('Error in fetchBadges:', err);

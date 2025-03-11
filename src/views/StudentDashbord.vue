@@ -18,10 +18,22 @@
         <!-- Experiences Section -->
         <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Your Experiences</h2>
+            <h2 class="text-xl font-semibold">My Experiences</h2>
             <div class="flex space-x-2">
               <router-link to="/experience" class="text-blue-600 hover:text-blue-800">
                 Manage Experiences →
+              </router-link>
+            </div>
+          </div>
+        </div>
+
+          <!-- Badges Section -->
+          <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">My Badges</h2>
+            <div class="flex space-x-2">
+              <router-link to="/badge" class="text-blue-600 hover:text-blue-800">
+                View Badges →
               </router-link>
             </div>
           </div>

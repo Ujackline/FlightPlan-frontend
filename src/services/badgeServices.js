@@ -1,25 +1,33 @@
 import apiClient from "./services";
-var baseURL = "/flight-plan-t9/badge/";
+const baseURL = "/badge";
 
 export default {
+    // Fetch all badges
     getAll() {
         return apiClient.get(baseURL);
     },
-    getOne(badgeId) {
-        return apiClient.get(baseURL + `${badgeId}`);
+    // Get badges for a specific user
+    getUserBadges(userId) {
+        return apiClient.get(`${baseURL}user/${userId}`);
     },
+    // Get a single badge by ID
+    getOne(badgeId) {
+        return apiClient.get(`${baseURL}${badgeId}`);
+    },
+    // Create a new badge
     create(data) {
         return apiClient.post(baseURL, data);
     },
+    // Update a badge
     update(badgeId, data) {
-        return apiClient.put(baseURL + `${badgeId}`, data);
+        return apiClient.put(`${baseURL}${badgeId}`, data);
     },
+    // Delete a badge
     delete(badgeId) {
-        return apiClient.delete(baseURL + `${badgeId}`);
+        return apiClient.delete(`${baseURL}${badgeId}`);
     },
-
-    getUserBadges(userId) {
-    
-        return apiClient.get(`/flight-plan-t9/user/${userId}/badges`);
+    // Delete all badges
+    deleteAll() {
+        return apiClient.delete(baseURL);
     }
 };

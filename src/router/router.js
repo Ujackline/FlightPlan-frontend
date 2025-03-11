@@ -10,7 +10,7 @@ import Experience from "../views/Experience.vue";
 import Admin from "../views/Admin.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
-import Badges from "../views/Badges.vue";
+import Badge from "../views/Badges.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,9 +41,9 @@ const router = createRouter({
       component: Experience
     },
     {
-      path: '/badges',
-      name: 'badges',
-      component: Badges
+      path: '/badge',
+      name: 'badge',
+      component: Badge
     },
 
     {
