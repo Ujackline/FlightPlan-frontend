@@ -54,13 +54,8 @@
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
                 <v-btn class="mx-2" @click="navigateTo('manageusers')">
-
-                    Manage User
-                  </v-btn>
-
-
-
-
+                  Manage User
+                </v-btn>
               </div>
             </v-card-text>
           </v-card>
@@ -85,9 +80,9 @@
             @click="navigateTo('home')"
             :class="{ 'active-route': currentRoute === 'home' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-home</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
           
@@ -95,9 +90,9 @@
             @click="navigateTo('studentDashboard')"
             :class="{ 'active-route': currentRoute === 'studentDashboard' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-view-dashboard</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
@@ -105,9 +100,9 @@
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-paper-plane</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
          
