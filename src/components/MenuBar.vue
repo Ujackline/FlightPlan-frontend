@@ -18,18 +18,6 @@
 
       <v-spacer></v-spacer>
 
-      <!-- Toggle button for side navigation -->
-      <v-btn 
-        v-if="user" 
-        icon 
-        @click="toggleSideNav" 
-        class="mr-2"
-      >
-        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
-      </v-btn>
-
-      <!-- User menu remains in the top bar -->
-      <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon>
@@ -52,15 +40,7 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
-                <v-divider class="my-3"></v-divider>
-                <v-btn class="mx-2" @click="navigateTo('manageusers')">
-
-                    Manage User
-                  </v-btn>
-
-
-
-
+              
               </div>
             </v-card-text>
           </v-card>
@@ -136,8 +116,10 @@ import ocLogo from "/oc-logo-white.png";
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
-import { useRouter, useRoute } from "vue-router";
-import Admin from "../views/Admin.vue";
+
+import { useRouter } from "vue-router";
+//import AdminDashboard from "../views/AdminDashboard.vue";
+
 //import adminService from "../services/adminServices";
 
 const router = useRouter();

@@ -115,6 +115,7 @@
 import { ref, onMounted } from 'vue';
 import userServices from '../services/userServices';
 
+import Utils from '../config/utils';
 export default {
   name: "HomeDashboard",
   setup() {
@@ -122,27 +123,36 @@ export default {
     const error = ref(null);
 
     const fetchUser = async () => {
-      try {
-        // Get the user ID from your authentication store/session
-        // This should be set when the user logs in
-        const userId = localStorage.getItem('userId'); 
-        
-        if (!userId) {
-          console.error('No user ID found');
-          return;
-        }
 
-        const response = await userServices.getOne(userId);
-        if (response.data && response.data.fName) {
-          firstName.value = response.data.fName;
-        }
-      } catch (err) {
-        error.value = 'Failed to load user.';
-        console.error('Error fetching user:', err);
-      }
-    };
+  try {
+    // ✅ Get the user object from local storage
+    const storedUser = Utils.getStore("user"); // ✅ Ensure "user" is a string
 
-    onMounted(() => {});
+    if (!storedUser || !storedUser.userId) {
+      console.error("❌ No user ID found in local storage:", storedUser);
+      return;
+    }
+
+    console.log("✅ Found user in storage:", storedUser); // Debugging
+
+    // ✅ Send API request to fetch user data
+    const response = await userServices.getOne(storedUser.userId); 
+
+    if (response.data && response.data.fName) {
+      firstName.value = response.data.fName;
+      console.log("✅ User fetched successfully:", response.data);
+    }
+  } catch (err) {
+    error.value = "Failed to load user.";
+    console.error("❌ Error fetching user:", err);
+  }
+};
+
+
+// Fetch user when the component is mounted
+onMounted(() => {
+  fetchUser();
+});
 
     return {
       firstName,

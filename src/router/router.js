@@ -7,7 +7,7 @@ import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashbord.vue"
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
-import Admin from "../views/Admin.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 
@@ -19,6 +19,7 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
+
     {
       path: '/login',
       name: 'login',
@@ -42,13 +43,14 @@ const router = createRouter({
     },
 
     {
-      path:'/Admin',
-      name: 'Admin',
-      component: Admin
+      path:'/AdminDashboard',
+      name: 'AdminDashboard',
+      component: AdminDashboard,
+      // meta: { requiresAdmin: true }
     },
 
     {
-      path:'/settings',
+      path:'/admin/settings',
       name: 'settings',
       component: Adminsettings
     },
