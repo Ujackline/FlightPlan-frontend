@@ -27,6 +27,35 @@
       </div>
     </div>
 
+      <!-- Action Buttons -->
+        <div class="space-y-4 text-center">
+          <button
+            @click="$emit('navigate', 'dashboard')"
+            class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
+          >
+            GO TO DASHBOARD
+          </button>
+          <div class="home-container">
+    <h1>Welcome to the Task Manager</h1>
+    
+    <!-- Clickable Text that Navigates to Task Page -->
+    <router-link to="/task" class="task-link">
+      Go to Task Page
+    </router-link>
+  </div>
+          <div>
+            <button
+              @click="$emit('navigate', 'Admin')"
+              class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
+            >
+              VIEW PROFILE
+            </button>
+           </div>
+
+
+       
+
+
     <!-- Career Readiness Checklist & My Experiences in Two Tables -->
     <div class="container mx-auto px-4 py-8 max-w-6xl grid grid-cols-2 gap-6">
       <!-- Career Tasks Table -->
@@ -54,6 +83,7 @@
           <button @click="saveChecklist" class="p-2 bg-green-600 text-white rounded hover:bg-green-700">Save Checklist</button>
         </div>
       </div>
+
 
       <!-- My Experiences Table -->
       <div class="bg-white rounded-lg shadow-lg p-6">
@@ -154,6 +184,31 @@ onMounted(() => {
   fetchUser();
 });
 
+
+.text-blue-800 {
+  color: #2b6cb0;
+}
+
+.home-container {
+  text-align: center;
+  padding: 50px;
+}
+
+.task-link {
+  font-size: 20px;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.task-link:hover {
+  color: #0056b3;
+}
+
+</style>
+
     return {
       firstName,
       progress,
@@ -166,3 +221,4 @@ onMounted(() => {
   }
 };
 </script>
+
