@@ -57,7 +57,14 @@
           >
             GO TO DASHBOARD
           </button>
-          
+          <div class="home-container">
+    <h1>Welcome to the Task Manager</h1>
+    
+    <!-- Clickable Text that Navigates to Task Page -->
+    <router-link to="/task" class="task-link">
+      Go to Task Page
+    </router-link>
+  </div>
           <div>
             <button
               @click="$emit('navigate', 'Admin')"
@@ -168,4 +175,23 @@ export default {
 .text-blue-800 {
   color: #2b6cb0;
 }
+
+.home-container {
+  text-align: center;
+  padding: 50px;
+}
+
+.task-link {
+  font-size: 20px;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.task-link:hover {
+  color: #0056b3;
+}
+
 </style>
