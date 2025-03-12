@@ -28,4 +28,3 @@ export default {
     return apiClient.post("logout", token);
   },
 };
-
