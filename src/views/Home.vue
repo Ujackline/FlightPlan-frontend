@@ -111,7 +111,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/userServices';
+import userServices from '../services/services.js';
 
 export default {
   name: "HomeDashboard",
