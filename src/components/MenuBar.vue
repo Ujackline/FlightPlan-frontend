@@ -18,6 +18,18 @@
 
       <v-spacer></v-spacer>
 
+      <!-- Toggle button for side navigation -->
+      <v-btn 
+        v-if="user" 
+        icon 
+        @click="toggleSideNav" 
+        class="mr-2"
+      >
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+      </v-btn>
+
+      <!-- User menu remains in the top bar -->
+      <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon>
@@ -40,8 +52,8 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
-              
-              </div>
+                <v-divider class="my-3"></v-divider>
+                          </div>
             </v-card-text>
           </v-card>
         </v-menu>
@@ -73,14 +85,26 @@
           
           <v-list-item 
             @click="navigateTo('studentDashboard')"
-            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
-          >
+            :class="{ 'active-route': currentRoute === 'studentDashboard' }">
             <v-list-item-icon>
               <v-icon>mdi-view-dashboard</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
+
+          <v-list-item 
+            @click="navigateTo('AdminDashboard')"
+            :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
+            <v-list-item-icon>
+              <v-icon>mdi-view-dashboard</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Admin Dashboard</v-list-item-title>
+          </v-list-item>
+          
+          
+
+
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
@@ -116,11 +140,10 @@ import ocLogo from "/oc-logo-white.png";
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
-
-import { useRouter } from "vue-router";
-//import AdminDashboard from "../views/AdminDashboard.vue";
-
-//import adminService from "../services/adminServices";
+import { useRouter, useRoute } from "vue-router";
+//import { useRouter } from "vue-router";
+import AdminDashboard from "../views/AdminDashboard.vue";
+import adminService from "../services/adminServices";
 
 const router = useRouter();
 const route = useRoute();
