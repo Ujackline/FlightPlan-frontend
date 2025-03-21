@@ -226,7 +226,7 @@ onMounted(() => {
   height: calc(100vh - 64px);
   background-color: white;
   z-index: 100;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: -2px 0 10px rgba(215, 70, 70, 0.1);
   transition: right 0.3s ease;
   overflow-y: auto;
 }
