@@ -1,6 +1,5 @@
 import apiClient from "../services/services"; // Importing your configured API client
-
-   const API_BASE_URL = "http://localhost:3029/flight-plan-t9/experience";
+const API_BASE_URL = "http://localhost:3029/flight-plan-t9/experience";
 
 
 export default {
@@ -32,6 +31,20 @@ export default {
   async deleteAllExperiences() {
     await apiClient.delete(API_BASE_URL);
   },
+
+  // Mark an experience as complete (Student Action)
+  async markAsComplete(id) {
+    return apiClient.patch(`${API_BASE_URL}/${id}/mark-complete`, { status: "Pending" }).then(response => response.data);
+  },
+
+  // Approve an experience (Admin Action)
+  
+async approveExperience(id, adminName) {
+    return apiClient.patch(`${API_BASE_URL}/${id}/approve`, { approvedBy: adminName }).then(response => response.data);
+},
+async rejectExperience(id) {
+    return apiClient.patch(`${API_BASE_URL}/${id}/reject`).then(response => response.data);
+},
+
+
 };
-
-
