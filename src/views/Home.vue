@@ -143,8 +143,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/userServices';
-//import MenuBar from '../components/MenuBar.vue';
+import userServices from '../services/services.js';
 
 import Utils from '../config/utils';
 export default {

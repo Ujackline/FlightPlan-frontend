@@ -56,7 +56,7 @@
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Upcoming Events</h2>
             <button 
-              @click="$emit('navigate', 'events')"
+              @click="navigateToEvents"
               class="text-blue-600 hover:text-blue-800"
             >
               View All →
@@ -65,9 +65,10 @@
           
           <div class="space-y-4">
             <div v-for="event in events" :key="event.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
-              <div class="text-sm text-gray-600">{{ event.date }}, {{ event.time }}</div>
-              <div class="font-medium text-gray-800">{{ event.title }}</div>
+              <div class="text-sm text-gray-600">{{ formatDate(event.date) }}, {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</div>
+              <div class="font-medium text-gray-800">{{ event.name }}</div>
               <div class="text-sm text-gray-600">{{ event.location }}</div>
+              <div class="text-sm text-gray-600">{{ event.description }}</div>
             </div>
           </div>
 
@@ -84,7 +85,7 @@
         <!-- Action Buttons -->
         <div class="space-y-4 text-center">
           <button
-            @click="$emit('navigate', 'dashboard')"
+            @click="navigateToDashboard"
             class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
           >
             GO TO DASHBOARD
@@ -92,7 +93,7 @@
           
           <div>
             <button
-              @click="$emit('navigate', 'profile')"
+              @click="navigateToProfile"
               class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
             >
               VIEW PROFILE
@@ -105,7 +106,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import studentServices from "../services/studentServices"; // Import studentServices
+import axios from 'axios'; // Import axios
 
 export default {
   name: 'StudentDashboard',
@@ -115,9 +117,11 @@ export default {
       studentName: '',
       progressPercentage: 0,
       tasks: [],
-      events: [],
+      events: [], // List of events
       totalPoints: 0,
-      pointsBreakdown: { tasks: 0, events: 0, extras: 0 }
+      pointsBreakdown: { tasks: 0, events: 0, extras: 0 },
+      loading: false, // Loading state
+      error: null, // Error message
     };
   },
   async created() {
@@ -129,30 +133,84 @@ export default {
   methods: {
     async fetchStudentId() {
       try {
-        const response = await axios.get('/flight-plan-t9/student/me'); 
-        this.studentId = response.data.id; 
-        this.studentName = response.data.name || 'Student'; 
+        // Fetch the authenticated student's ID (e.g., from localStorage or a token)
+        const token = localStorage.getItem("authToken"); // Example
+        if (!token) {
+          throw new Error("No token found");
+        }
+
+        // Decode the token to get the student ID (if the token contains the ID)
+        const decodedToken = JSON.parse(atob(token.split(".")[1])); // Example
+        this.studentId = decodedToken.id; // Assuming the token contains the student ID
+
+        if (!this.studentId) {
+          throw new Error("Student ID not found in token");
+        }
       } catch (error) {
-        console.error('Error fetching student ID:', error);
+        console.error("Error fetching student ID:", error);
+        throw error;
       }
     },
     async fetchDashboardData() {
+      this.loading = true;
+      this.error = null;
       try {
-        const [progressRes, tasksRes, eventsRes, pointsRes] = await Promise.all([
-          axios.get(`/flight-plan-t9/student/progress/${this.studentId}`), 
+        // Fetch student data using studentServices
+        const studentRes = await studentServices.getStudentById(this.studentId);
+        this.studentName = studentRes.studentFirstName || 'Student';
+
+        // Fetch tasks and events (replace with your actual endpoints)
+        const [tasksRes, eventsRes] = await Promise.all([
           axios.get('/flight-plan-t9/task/'),
-          axios.get('/flight-plan-t9/event/'),
-          axios.get(`/flight-plan-t9/student/points/${this.studentId}`)
+          axios.get('/flight-plan-t9/event/')
         ]);
 
-        this.progressPercentage = progressRes.data.progress || 0;
         this.tasks = tasksRes.data;
         this.events = eventsRes.data;
-        this.totalPoints = pointsRes.data.total;
-        this.pointsBreakdown = pointsRes.data.breakdown;
+
+        console.log("Fetched Events:", this.events); // Debugging
+
+        // Calculate progress and points (frontend logic)
+        this.progressPercentage = this.calculateProgress();
+        this.totalPoints = this.calculateTotalPoints();
+        this.pointsBreakdown = this.calculatePointsBreakdown();
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        this.error = "Failed to fetch dashboard data. Please try again later.";
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        this.loading = false;
       }
+    },
+    calculateProgress() {
+      // Replace with your logic to calculate progress
+      return 50; // Example
+    },
+    calculateTotalPoints() {
+      // Replace with your logic to calculate total points
+      return 100; // Example
+    },
+    calculatePointsBreakdown() {
+      // Replace with your logic to calculate points breakdown
+      return { tasks: 50, events: 30, extras: 20 }; // Example
+    },
+    navigateToEvents() {
+      this.$router.push('/events'); // Navigate to the events page
+    },
+    navigateToDashboard() {
+      this.$router.push('/dashboard'); // Navigate to the dashboard page
+    },
+    navigateToProfile() {
+      this.$router.push('/profile'); // Navigate to the profile page
+    },
+    formatDate(dateString) {
+      // Format the date for display
+      const date = new Date(dateString);
+      return date.toLocaleDateString(); // Adjust formatting as needed
+    },
+    formatTime(dateString) {
+      // Format the time for display
+      const date = new Date(dateString);
+      return date.toLocaleTimeString(); // Adjust formatting as needed
     }
   }
 };
@@ -167,5 +225,8 @@ export default {
 }
 .text-blue-600 {
   color: #3182ce;
+}
+.error {
+  color: red;
 }
 </style>
