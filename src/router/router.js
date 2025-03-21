@@ -4,12 +4,15 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import StudentDashboard from "../views/StudentDashbord.vue"
+import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
+import Profile from "../views/profile.vue";
+import themeToggle from "../views/themeToggle.vue";
+import StudentSetup from "../views/StudentSetup.vue";
 
 
 const router = createRouter({
@@ -25,13 +28,19 @@ const router = createRouter({
       name: 'login',
       component: Login
     },
+
+    {
+      path: '/student/StudentSetup',
+      name: 'StudentSetup',
+      component: StudentSetup,
+    },
     {
       path: '/afternest',
       name: 'afterNest',
       component: AfterNest
     },
     {
-      path: '/studentDashboard',
+      path: '/student/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
     },
@@ -43,14 +52,14 @@ const router = createRouter({
     },
 
     {
-      path:'/AdminDashboard',
+      path:'/admin/AdminDashboard',
       name: 'AdminDashboard',
       component: AdminDashboard,
-      // meta: { requiresAdmin: true }
+       meta: { requiresAdmin: true }
     },
 
     {
-      path:'/admin/settings',
+      path:'/settings',
       name: 'settings',
       component: Adminsettings
     },
@@ -59,6 +68,13 @@ const router = createRouter({
       name: 'task',
       component: Task
     },
+
+    {
+      path: '/themeToggle',
+      name: 'themeToggle',
+      component: themeToggle
+    },
+
     {
       path: '/home',
       name: 'home',
@@ -72,6 +88,13 @@ const router = createRouter({
       name: 'manageusers',
       component: ManageUser,
     }, 
+
+    {
+      path: '/profile',
+      name: 'profile',
+      component: Profile,
+    }, 
+
   ],
 });
 
