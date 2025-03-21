@@ -185,6 +185,22 @@ onMounted(() => {
 });
 
 
+
+
+ return {
+      firstName,
+      // progress,
+      // points,
+      // careerTasks,
+      // experiences,
+      // upcomingEvents,
+      // saveChecklist
+    };
+  }
+};
+</script>
+
+<style>
 .text-blue-800 {
   color: #2b6cb0;
 }
@@ -209,16 +225,4 @@ onMounted(() => {
 
 </style>
 
-    return {
-      firstName,
-      // progress,
-      // points,
-      // careerTasks,
-      // experiences,
-      // upcomingEvents,
-      // saveChecklist
-    };
-  }
-};
-</script>
 
