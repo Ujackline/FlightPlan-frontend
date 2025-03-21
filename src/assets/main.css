@@ -1,35 +1,226 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 2rem;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+/* 🌞 Light Mode (Default) */
+.light-mode {
+--background-color: #ffffff;
+--text-color: #333;
+--button-background: #e0e0e0;
+--button-text: #000;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+/* 🌙 Dark Mode */
+.dark-mode {
+--background-color: #121212;
+--text-color: #ffffff;
+--button-background: #333;
+--button-text: #fff;
 }
 
-@media (min-width: 1024px) {
-  body {
+/* 🌍 Apply Theme Globally */
+body {
+background-color: var(--background-color);
+color: var(--text-color);
+transition: background-color 0.3s, color 0.3s;
+}
+
+.pending-approvals {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+.approve-btn {
+  background: green;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.reject-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.admin-dashboard {
     display: flex;
-    place-items: center;
-  }
+    height: 100vh;
+    background-color: #f4f4f4;
+    font-family: 'Arial', sans-serif;
+}
 
-  #app {
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #2b020b;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-header h1 {
+    font-size: 22px;
+    text-align: center;
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* .avatar {
+    width: 40px;
+    height: 40px;
+    background: #3498DB;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    margin-right: 10px;
+} */
+
+.nav-item {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background-color: #1A252F;
+}
+
+/* Main Content */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: white;
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #fff;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    padding-left: 10px;
+}
+
+/* Dashboard Stats */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    font-size: 24px;
+    color: #3498DB;
+}
+
+.stat-info h3 {
+    font-size: 22px;
+    margin: 0;
+}
+
+.stat-info p {
+    color: #666;
+    margin: 5px 0 0;
+}
+
+/* Recent Activity & Events */
+.dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+    gap: 20px;
+    margin-top: 20px;
 }
+
+.activity-item, .event-item {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.activity-icon {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.event-details h4 {
+    margin: 5px 0;
+}
+
+.success-message {
+    color: green;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+  }
+  
+  .close-btn {
+    margin-top: 15px;
+    background-color: #ccc;
+    padding: 6px 12px;
+  }
+  
