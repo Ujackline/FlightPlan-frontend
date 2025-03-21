@@ -30,6 +30,18 @@
 
       <!-- User menu remains in the top bar -->
       <div v-if="user">
+      <!-- Toggle button for side navigation -->
+      <v-btn 
+        v-if="user" 
+        icon 
+        @click="toggleSideNav" 
+        class="mr-2"
+      >
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+      </v-btn>
+
+      <!-- User menu remains in the top bar -->
+      <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" icon>
@@ -63,6 +75,8 @@
 
 
                </div>
+                <v-divider class="my-3"></v-divider>
+                          </div>
             </v-card-text>
           </v-card>
         </v-menu>
