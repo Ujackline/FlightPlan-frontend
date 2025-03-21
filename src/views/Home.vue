@@ -1,5 +1,4 @@
 <template>
-
   <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
     <!-- Personalized Greeting with Eagle Flight Plan Title -->
     <div class="container mx-auto px-4 py-6 max-w-4xl text-center">
@@ -7,7 +6,6 @@
       <h2 class="text-4xl font-bold text-gray-900">Welcome, {{ firstName || 'Guest' }}!</h2>
       <p class="text-gray-600 text-lg">Stay on track with your Eagle Flight Plan</p>
     </div>
-
 
     <!-- Flight Plan Progress & Points System -->
     <div class="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-1 gap-6">
@@ -27,34 +25,31 @@
       </div>
     </div>
 
-      <!-- Action Buttons -->
-        <div class="space-y-4 text-center">
-          <button
-            @click="$emit('navigate', 'dashboard')"
-            class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
-          >
-            GO TO DASHBOARD
-          </button>
-          <div class="home-container">
-    <h1>Welcome to the Task Manager</h1>
-    
-    <!-- Clickable Text that Navigates to Task Page -->
-    <router-link to="/task" class="task-link">
-      Go to Task Page
-    </router-link>
-  </div>
-          <div>
-            <button
-              @click="$emit('navigate', 'Admin')"
-              class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
-            >
-              VIEW PROFILE
-            </button>
-           </div>
-
-
-       
-
+    <!-- Action Buttons -->
+    <div class="space-y-4 text-center">
+      <button
+        @click="$emit('navigate', 'dashboard')"
+        class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
+      >
+        GO TO DASHBOARD
+      </button>
+      <div class="home-container">
+        <h1>Welcome to the Task Manager</h1>
+        
+        <!-- Clickable Text that Navigates to Task Page -->
+        <router-link to="/task" class="task-link">
+          Go to Task Page
+        </router-link>
+      </div>
+      <div>
+        <button
+          @click="$emit('navigate', 'Admin')"
+          class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
+        >
+          VIEW PROFILE
+        </button>
+      </div>
+    </div>
 
     <!-- Career Readiness Checklist & My Experiences in Two Tables -->
     <div class="container mx-auto px-4 py-8 max-w-6xl grid grid-cols-2 gap-6">
@@ -83,7 +78,6 @@
           <button @click="saveChecklist" class="p-2 bg-green-600 text-white rounded hover:bg-green-700">Save Checklist</button>
         </div>
       </div>
-
 
       <!-- My Experiences Table -->
       <div class="bg-white rounded-lg shadow-lg p-6">
@@ -144,49 +138,99 @@
 <script>
 import { ref, onMounted } from 'vue';
 import userServices from '../services/userServices';
-
 import Utils from '../config/utils';
+
 export default {
   name: "HomeDashboard",
   setup() {
     const firstName = ref('Guest');
     const error = ref(null);
+    const progress = ref(35); // Default progress value
+    const points = ref(250); // Default points value
+    
+    // Example career tasks
+    const careerTasks = ref([
+      { id: 1, name: 'Update Resume', completed: false },
+      { id: 2, name: 'Complete LinkedIn Profile', completed: false },
+      { id: 3, name: 'Mock Interview', completed: false },
+      { id: 4, name: 'Attend Career Fair', completed: false }
+    ]);
+    
+    // Example experiences
+    const experiences = ref([
+      { 
+        id: 1, 
+        name: 'Internship', 
+        details: ['Software Development', 'June-August 2024', 'Worked on web applications'] 
+      },
+      { 
+        id: 2, 
+        name: 'Volunteer', 
+        details: ['Community Service', 'March 2024', 'Mentored high school students'] 
+      }
+    ]);
+    
+    // Example upcoming events
+    const upcomingEvents = ref([
+      { id: 1, name: 'Career Fair', date: 'March 25, 2025', deadline: 'March 24, 2025' },
+      { id: 2, name: 'Resume Workshop', date: 'April 10, 2025', deadline: 'April 8, 2025' }
+    ]);
+    
+    const saveChecklist = () => {
+      console.log('Saving checklist...');
+      // Add implementation to save checklist
+    };
 
     const fetchUser = async () => {
+      try {
+        // Get the user object from local storage
+        const storedUser = Utils.getStore("user");
 
-  try {
-    // ✅ Get the user object from local storage
-    const storedUser = Utils.getStore("user"); // ✅ Ensure "user" is a string
+        if (!storedUser || !storedUser.userId) {
+          console.error("No user ID found in local storage:", storedUser);
+          return;
+        }
 
-    if (!storedUser || !storedUser.userId) {
-      console.error("❌ No user ID found in local storage:", storedUser);
-      return;
-    }
+        console.log("Found user in storage:", storedUser);
 
-    console.log("✅ Found user in storage:", storedUser); // Debugging
+        // Send API request to fetch user data
+        const response = await userServices.getOne(storedUser.userId); 
 
-    // ✅ Send API request to fetch user data
-    const response = await userServices.getOne(storedUser.userId); 
+        if (response.data && response.data.fName) {
+          firstName.value = response.data.fName;
+          console.log("User fetched successfully:", response.data);
+        }
+      } catch (err) {
+        error.value = "Failed to load user.";
+        console.error("Error fetching user:", err);
+      }
+    };
 
-    if (response.data && response.data.fName) {
-      firstName.value = response.data.fName;
-      console.log("✅ User fetched successfully:", response.data);
-    }
-  } catch (err) {
-    error.value = "Failed to load user.";
-    console.error("❌ Error fetching user:", err);
+    // Fetch user when the component is mounted
+    onMounted(() => {
+      fetchUser();
+    });
+
+    return {
+      firstName,
+      progress,
+      points,
+      careerTasks,
+      experiences,
+      upcomingEvents,
+      saveChecklist
+    };
   }
 };
+</script>
 
-
-// Fetch user when the component is mounted
-onMounted(() => {
-  fetchUser();
-});
-
-
+<style>
 .text-blue-800 {
   color: #2b6cb0;
+}
+
+.text-burgundy {
+  color: #800020;
 }
 
 .home-container {
@@ -206,19 +250,4 @@ onMounted(() => {
 .task-link:hover {
   color: #0056b3;
 }
-
 </style>
-
-    return {
-      firstName,
-      progress,
-      points,
-      careerTasks,
-      experiences,
-      upcomingEvents,
-      saveChecklist
-    };
-  }
-};
-</script>
-
