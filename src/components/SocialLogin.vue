@@ -49,13 +49,15 @@ const handleCredentialResponse = async (response) => {
     console.log("Login successful:", user.value);
 
     // Redirect based on role
-    if (user.value.role === 'admin' || user.value.isAdmin) {
-      console.log('Admin user detected, redirecting to home');
-      router.push({ name: "AdminDashboard" });
-    } else {
-      console.log('Regular user detected, redirecting to home');
-      router.push({ name: "home" });
-    }
+    if (user.value.role === 'student') {
+  if (user.value.needsProfile) {
+    router.push('/student/StudentSetup');
+  } else {
+    router.push('/student/StudentDashboard');
+  }
+} else if (user.value.role === 'admin') {
+  router.push('/admin/AdminDashboard');
+}
   } catch (error) {
     console.log("error", error);
   }

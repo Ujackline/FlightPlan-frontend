@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Small app bar with just logo and user menu -->
-    <v-app-bar location="top" elevation="1">
+    <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
           class="mx-2"
@@ -52,7 +52,17 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
-              </div>
+                <v-divider class="my-3"></v-divider>
+      
+                <!-- Theme Toggle -->
+      
+                <v-divider class="my-3"></v-divider>
+
+<!-- 🌗 Theme Toggle Component -->
+<themeToggle @toggle-theme="$emit('toggle-theme')" />
+
+
+               </div>
             </v-card-text>
           </v-card>
         </v-menu>
@@ -76,34 +86,48 @@
             @click="navigateTo('home')"
             :class="{ 'active-route': currentRoute === 'home' }"
           >
-            <template v-slot:prepend>
+            <v-list-item-icon>
               <v-icon>mdi-home</v-icon>
-            </template>
+            </v-list-item-icon>
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
           
           <v-list-item 
             @click="navigateTo('studentDashboard')"
-            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
-          >
-            <template v-slot:prepend>
+            :class="{ 'active-route': currentRoute === 'studentDashboard' } >
+
+            <v-list-item-icon>
               <v-icon>mdi-view-dashboard</v-icon>
-            </template>
+            </v-list-item-icon>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
+          <v-list-item
+              v-if="user?.role === 'admin'"
+              @click="navigateTo('AdminDashboard')"
+              :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
+              <v-list-item-icon>
+                <v-icon>mdi-view-dashboard</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Admin Dashboard</v-list-item-title>
+            </v-list-item>
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
-            <template v-slot:prepend>
+            <v-list-item-icon>
               <v-icon>mdi-paper-plane</v-icon>
-            </template>
+            </v-list-item-icon>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
           
-        
-        
+          <!-- Additional menu items can be added here -->
+          <v-list-item @click="navigateTo('profile')">
+            <v-list-item-icon>
+              <v-icon>mdi-account</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Profile</v-list-item-title>
+          </v-list-item>
         </v-list>
       </div>
     </div>
@@ -123,10 +147,14 @@ import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
+//import { useRouter } from "vue-router";
+import Admin from "../views/Admin.vue";
+import adminService from "../services/adminServices";
 
 const router = useRouter();
 const route = useRoute();
 const user = ref(null);
+
 const title = ref("Career Services");
 const initials = ref("");
 const name = ref("");
@@ -161,8 +189,8 @@ const resetMenu = () => {
 const logout = async () => {
   try {
     await AuthServices.logoutUser(user.value);
-    Utils.removeItem("user");
-    localStorage.removeItem('user');
+    //Utils.removeItem("user");
+    localStorage.removeItem("user");
     router.push({ name: "login" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -170,9 +198,9 @@ const logout = async () => {
 };
 
 const navigateTo = (routeName) => {
-  router.push({ name: routeName }).catch(err => {
-    if (err.name !== 'NavigationDuplicated') {
-      console.error('Navigation error:', err);
+  router.push({ name: routeName }).catch((err) => {
+    if (err.name !== "NavigationDuplicated") {
+      console.error("Navigation error:", err);
     }
   });
 };
@@ -180,16 +208,17 @@ const navigateTo = (routeName) => {
 onMounted(() => {
   logoURL.value = ocLogo;
   resetMenu();
-  
+
   // Add event listener for storage changes
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'user') {
+  window.addEventListener("storage", (e) => {
+    if (e.key === "user") {
       resetMenu();
     }
   });
   
   // Close side nav when clicking outside on mobile
   window.addEventListener('resize', () => {
+
     if (window.innerWidth > 960) {
       // Optionally keep sidebar open on larger screens
       // isSideNavOpen.value = true;
@@ -197,6 +226,7 @@ onMounted(() => {
   });
 });
 </script>
+
 
 <style scoped>
 .v-btn {
@@ -242,6 +272,7 @@ onMounted(() => {
 .active-route {
   background-color: rgba(0, 0, 0, 0.05);
   border-right: 3px solid #1976d2;
+
 }
 
 .nav-overlay {
@@ -269,4 +300,5 @@ onMounted(() => {
     right: -250px;
   }
 }
+
 </style>
