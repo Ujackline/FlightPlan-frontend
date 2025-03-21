@@ -30,6 +30,10 @@ const apiClient = axios.create({
     }
     return JSON.stringify(data)
   },
+
+
+
+  
   // Handle response data and errors
   transformResponse: function (data) {
     data = JSON.parse(data)

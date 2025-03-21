@@ -8,8 +8,17 @@
       <form @submit.prevent="editing ? updateExperience() : addExperience()">
         <div class="form-group" v-for="field in fields" :key="field.name">
           <label :for="field.name">{{ field.label }}:</label>
-          <input v-if="field.type !== 'textarea'" :type="field.type" :id="field.name" v-model="experience[field.name]" required />
-          <textarea v-else :id="field.name" v-model="experience[field.name]" required></textarea>
+          <input v-if="field.type !== 'textarea' && field.type !== 'checkbox'" 
+                 :type="field.type" 
+                 :id="field.name" 
+                 v-model="experience[field.name]" required />
+          <textarea v-else-if="field.type === 'textarea'" 
+                    :id="field.name" 
+                    v-model="experience[field.name]" required></textarea>
+          <input v-else-if="field.type === 'checkbox'" 
+                 type="checkbox" 
+                 :id="field.name" 
+                 v-model="experience[field.name]" />
         </div>
         <div class="form-actions">
           <button type="button" class="cancel-btn" @click="resetForm">Cancel</button>
@@ -28,15 +37,15 @@
     <!-- Experience List -->
     <section v-if="experiences.length > 0" class="experience-list">
       <h3>Experiences</h3>
-      <ul>
-        <li v-for="exp in experiences" :key="exp.id" class="experience-item">
-          <span>{{ exp.name }}</span>
+        <ul v-if="Array.isArray(experiences)">
+          <li v-for="exp in experiences" :key="exp.id" class="experience-item">
+                      <span>{{ exp.name }} ({{ exp.status }})</span>
           <div class="actions">
             <button @click="viewExperience(exp)" class="view-btn">View</button>
+            <button v-if="exp.status !== 'Approved'" @click="markAsComplete(exp)" class="complete-btn">Mark Complete</button>
             <button @click="editExperience(exp)" class="edit-btn">Edit</button>
             <button @click="deleteExperience(exp.id)" class="delete-btn">Delete</button>
           </div>
-          
         </li>
       </ul>
     </section>
@@ -55,6 +64,16 @@
         <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
         <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
         <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+        <p><strong>Reflection Required:</strong> {{ selectedExperience.reflectionRequired ? "Yes" : "No" }}</p>
+        <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
+        <p><strong>Badge:</strong> {{ selectedExperience.badge || "None" }}</p>
+        <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
+        <p><strong>Completion Date:</strong> {{ selectedExperience.completionDate || "N/A" }}</p>
+        <p v-if="selectedExperience.approvedBy"><strong>Approved By:</strong> {{ selectedExperience.approvedBy }}</p>
+        <div v-if="isAdmin">
+          <button v-if="selectedExperience.status === 'Pending'" @click="approveExperience(selectedExperience)" class="approve-btn">Approve</button>
+          <button v-if="selectedExperience.status === 'Pending'" @click="rejectExperience(selectedExperience)" class="reject-btn">Reject</button>
+        </div>
         <button @click="selectedExperience = null" class="close-btn">Close</button>
       </div>
     </div>
@@ -76,10 +95,17 @@ export default {
         type: "",
         cliftonStrength: "",
         major: "",
+        reflectionRequired: false,
+        points: 0,
+        badge: "",
+        status: "Incomplete",
+        approvedBy: "",
+        completionDate: null,
       },
       editing: false,
       selectedExperience: null,
       showForm: false,
+      isAdmin: false, // This should be dynamically set based on user role
       fields: [
         { name: "name", label: "Experience Name", type: "text" },
         { name: "category", label: "Category", type: "text" },
@@ -87,11 +113,15 @@ export default {
         { name: "type", label: "Type", type: "text" },
         { name: "cliftonStrength", label: "Clifton Strength", type: "text" },
         { name: "major", label: "Major", type: "text" },
+        { name: "reflectionRequired", label: "Reflection Required", type: "checkbox" },
+        { name: "points", label: "Points", type: "number" },
+        { name: "badge", label: "Badge", type: "text" },
       ],
     };
   },
   async mounted() {
     this.fetchExperiences();
+    this.isAdmin = this.checkAdmin(); // Implement this function based on authentication
   },
   methods: {
     async fetchExperiences() {
@@ -101,6 +131,13 @@ export default {
         console.error("Error fetching experiences:", error);
       }
     },
+    
+    checkAdmin() {
+        // Assuming user role is stored in localStorage or Vuex
+        const user = JSON.parse(localStorage.getItem("user")); 
+        return user && user.role === "admin"; // Returns true if admin
+    },
+
     async addExperience() {
       try {
         const response = await experienceServices.createExperience(this.experience);
@@ -110,6 +147,20 @@ export default {
         console.error("Error adding experience:", error);
       }
     },
+
+    viewExperience(exp) {
+      this.selectedExperience = exp;
+    },
+    toggleForm() {
+      this.showForm = !this.showForm;
+      if (!this.showForm) this.resetForm();
+    },
+    resetForm() {
+      this.experience = { id: null, name: "", category: "", description: "", type: "", cliftonStrength: "", major: "" };
+      this.editing = false;
+      this.showForm = false;
+    },
+
     editExperience(exp) {
       this.experience = { ...exp };
       this.editing = true;
@@ -134,21 +185,35 @@ export default {
         }
       }
     },
-    viewExperience(exp) {
-      this.selectedExperience = exp;
+
+    async markAsComplete(exp) {
+      try {
+        await experienceServices.markAsComplete(exp.id);
+        this.fetchExperiences();
+      } catch (error) {
+        console.error("Error marking experience as complete:", error);
+      }
     },
-    toggleForm() {
-      this.showForm = !this.showForm;
-      if (!this.showForm) this.resetForm();
+    async approveExperience(exp) {
+      try {
+        await experienceServices.approveExperience(exp.id, "Admin Name"); // Replace with actual admin name
+        this.fetchExperiences();
+      } catch (error) {
+        console.error("Error approving experience:", error);
+      }
     },
-    resetForm() {
-      this.experience = { id: null, name: "", category: "", description: "", type: "", cliftonStrength: "", major: "" };
-      this.editing = false;
-      this.showForm = false;
-    },
+    async rejectExperience(exp) {
+      try {
+        await experienceServices.rejectExperience(exp.id);
+        this.fetchExperiences();
+      } catch (error) {
+        console.error("Error rejecting experience:", error);
+      }
+    }
   },
 };
 </script>
+
 
 <style scoped>
 .experiences-page {
