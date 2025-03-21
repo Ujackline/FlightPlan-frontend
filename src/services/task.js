@@ -1,6 +1,6 @@
 import apiClient from "./services"; // Import your API client setup
 
-const TASK_API = "/flight-plan-t9/task";
+const TASK_API = "/task";
 
 const taskService = {
   // Create a new task
