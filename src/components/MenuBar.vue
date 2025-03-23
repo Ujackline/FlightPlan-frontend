@@ -124,19 +124,6 @@
               </v-list-item-icon>
               <v-list-item-title>Admin Dashboard</v-list-item-title>
             </v-list-item>
-          
-
-          <v-list-item 
-            @click="navigateTo('AdminDashboard')"
-            :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
-            <v-list-item-icon>
-              <v-icon>mdi-view-dashboard</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>Admin Dashboard</v-list-item-title>
-          </v-list-item>
-          
-          
-
 
           <v-list-item 
             @click="navigateTo('afterNest')"
@@ -170,27 +157,27 @@
 
 <script setup>
 import ocLogo from "/oc-logo-white.png";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch,defineProps } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
-//import { useRouter } from "vue-router";
-import Admin from "../views/Admin.vue";
-import adminService from "../services/adminServices";
-import { useRouter, useRoute } from "vue-router";
-//import { useRouter } from "vue-router";
-import AdminDashboard from "../views/AdminDashboard.vue";
-import adminService from "../services/adminServices";
+import themeToggle from "../views/themeToggle.vue";
+
+const user = ref(Utils.getStore('user'));
 
 const router = useRouter();
 const route = useRoute();
-const user = ref(null);
-
+//const user = ref(null);
 const title = ref("Career Services");
 const initials = ref("");
 const name = ref("");
 const logoURL = ref("");
 const isSideNavOpen = ref(false);
+
+//Theme Toggle State
+defineProps(["theme"]);
+
+
 
 // Track current route for highlighting active menu item
 const currentRoute = computed(() => {
@@ -246,10 +233,9 @@ onMounted(() => {
       resetMenu();
     }
   });
-  
-  // Close side nav when clicking outside on mobile
-  window.addEventListener('resize', () => {
 
+  // Close side nav when clicking outside on mobile
+  window.addEventListener("resize", () => {
     if (window.innerWidth > 960) {
       // Optionally keep sidebar open on larger screens
       // isSideNavOpen.value = true;
@@ -302,8 +288,7 @@ onMounted(() => {
 
 .active-route {
   background-color: rgba(0, 0, 0, 0.05);
-  border-right: 3px solid #1976d2;
-
+  border-right: 3px solid #121212;
 }
 
 .nav-overlay {
@@ -331,5 +316,7 @@ onMounted(() => {
     right: -250px;
   }
 }
+
+
 
 </style>
