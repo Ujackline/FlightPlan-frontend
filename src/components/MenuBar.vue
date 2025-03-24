@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Small app bar with just logo and user menu -->
+ 
     <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
@@ -18,7 +18,7 @@
 
       <v-spacer></v-spacer>
 
-      <!-- Toggle button for side navigation -->
+    
       <v-btn 
         v-if="user" 
         icon 
@@ -28,7 +28,7 @@
         <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
-      <!-- User menu remains in the top bar -->
+     
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
