@@ -16,7 +16,7 @@ const loginWithGoogle = () => {
   window.google.accounts.id.initialize({
     client_id: client,
     cancel_on_tap_outside: false,
-    auto_select: false,
+    auto_select: true,
     callback: window.handleCredentialResponse,
   });
   window.google.accounts.id.renderButton(document.getElementById("parent_id"), {
@@ -35,23 +35,33 @@ const handleCredentialResponse = async (response) => {
     };
     const loginResponse = await AuthServices.loginUser(token);
     
-    // Store user data with the role fetched from backend
-    user.value = loginResponse.data; // Ensure backend sends role (admin, student, student_worker)
-    
+    // Store complete user data including role and isAdmin
+    user.value = {
+      ...loginResponse.data,
+      role: loginResponse.data.role || 'student',
+      isAdmin: loginResponse.data.isAdmin || false
+    };
+
     Utils.setStore("user", user.value);
     fName.value = user.value.fName;
     lName.value = user.value.lName;
 
     console.log("Login successful:", user.value);
 
-    // Default redirect to student dashboard
-    router.push("/home");
+    // Redirect based on role
+    if (user.value.role === 'student') {
+  if (user.value.needsProfile) {
+    router.push('/student/StudentSetup');
+  } else {
+    router.push('/student/StudentDashboard');
+  }
+} else if (user.value.role === 'admin') {
+  router.push('/admin/AdminDashboard');
+}
   } catch (error) {
     console.log("error", error);
   }
 };
-
-
 
 onMounted(() => {
   loginWithGoogle();

@@ -6,9 +6,15 @@ import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashbord.vue"
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
-import Admin from "../views/Admin.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
+import StudentDashboard from "../views/StudentDashboard.vue";
+import Events from "../views/Events.vue";
+import Profile from "../views/profile.vue";
+import themeToggle from "../views/themeToggle.vue";
+import StudentSetup from "../views/StudentSetup.vue";
+
 
 
 const router = createRouter({
@@ -18,10 +24,17 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
+
     {
       path: '/login',
       name: 'login',
       component: Login
+    },
+
+    {
+      path: '/student/StudentSetup',
+      name: 'StudentSetup',
+      component: StudentSetup,
     },
     {
       path: '/afternest',
@@ -29,9 +42,14 @@ const router = createRouter({
       component: AfterNest
     },
     {
-      path: '/studentDashboard',
+      path: '/student/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
+    },
+    {
+      path: '/flightPlan',
+      name: 'flightPlan',
+      component: FlightPlan
     },
 
     {
@@ -41,9 +59,10 @@ const router = createRouter({
     },
 
     {
-      path:'/Admin',
-      name: 'Admin',
-      component: Admin
+      path:'/admin/AdminDashboard',
+      name: 'AdminDashboard',
+      component: AdminDashboard,
+       meta: { requiresAdmin: true }
     },
 
     {
@@ -56,19 +75,37 @@ const router = createRouter({
       name: 'task',
       component: Task
     },
+
+    {
+      path: '/themeToggle',
+      name: 'themeToggle',
+      component: themeToggle
+    },
+
     {
       path: '/home',
       name: 'home',
       component: Home,
       meta: { requiresAuth: true }
     },
-    
+    {
+      path: '/events',
+      name: 'Events',
+      component: Events,
+    },
   
     {
       path: '/manageusers',
       name: 'manageusers',
       component: ManageUser,
     }, 
+
+    {
+      path: '/profile',
+      name: 'profile',
+      component: Profile,
+    }, 
+
   ],
 });
 
