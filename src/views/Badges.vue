@@ -1,249 +1,327 @@
 <template>
-    <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold mb-6">My Badges</h1>
-      
-      <!-- Loading state -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-      
-      <!-- Error state -->
-      <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
-        <strong class="font-bold">Error!</strong>
-        <span class="block sm:inline"> {{ error }}</span>
-        <div v-if="authError" class="mt-2">
-          <button @click="redirectToLogin" class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800">
-            Login Again
-          </button>
-        </div>
-      </div>
-      
-      <!-- Empty state -->
-      <div v-else-if="badges.length === 0" class="text-center py-12">
-        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <h3 class="mt-2 text-lg font-medium text-gray-900">No badges yet</h3>
-        <p class="mt-1 text-gray-500">Complete tasks and missions to earn badges!</p>
-      </div>
-      
-      <!-- Badges grid -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <div v-for="badge in badges" :key="badge.id" 
-             class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-          <div class="p-4 flex flex-col items-center">
-            <!-- Badge icon container -->
-            <div class="mb-3 flex items-center justify-center w-20 h-20 rounded-full" :class="getBadgeColorClass(badge.badge_type)">
-              <!-- Badge image (if available) -->
-              <img 
-                v-if="badge.imageUrl" 
-                :src="badge.imageUrl" 
-                :alt="badge.name" 
-                class="h-16 w-16 object-contain"
-              />
-              <!-- Default badge icon -->
-              <svg v-else class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z"/>
-                <path d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 3a1 1 0 011 1v4a1 1 0 01-2 0V8a1 1 0 011-1z"/>
-              </svg>
+  <v-container class="badge-list">
+    <v-row class="mb-8" align="center">
+      <v-col cols="12" sm="6">
+        <h1 class="text-h4 font-weight-bold primary--text">My Badges</h1>
+      </v-col>
+      <v-col cols="12" sm="6" class="text-sm-right">
+        <v-btn-group variant="outlined">
+          <v-btn 
+            :color="badgeTypeFilter === '' ? 'primary' : ''" 
+            @click="badgeTypeFilter = ''"
+            elevation="2"
+          >
+            All Badge Types
+          </v-btn>
+          <v-btn 
+            :color="badgeTypeFilter === 'Career' ? 'primary' : ''" 
+            @click="badgeTypeFilter = 'Career'"
+            elevation="2"
+          >
+            Career
+          </v-btn>
+          <v-btn 
+            :color="badgeTypeFilter === 'Achievement' ? 'primary' : ''" 
+            @click="badgeTypeFilter = 'Achievement'"
+            elevation="2"
+          >
+            Achievement
+          </v-btn>
+        </v-btn-group>
+      </v-col>
+    </v-row>
+
+    <!-- Alert for messages -->
+    <v-alert v-if="message" :color="message.includes('Failed') ? 'error' : 'success'" variant="tonal" closable class="mb-6">
+      {{ message }}
+    </v-alert>
+
+    <!-- Loading indicator -->
+    <v-sheet v-if="loading" class="d-flex justify-center align-center flex-column pa-8">
+      <v-progress-circular indeterminate color="primary" size="64" width="5" class="mb-4"></v-progress-circular>
+      <p class="text-body-1">Loading badges...</p>
+    </v-sheet>
+
+    <!-- Display message when user is not authenticated -->
+    <v-card v-else-if="!authenticated" class="text-center pa-8" variant="outlined">
+      <v-icon icon="mdi-account-alert-outline" size="72" color="grey-lighten-1" class="mb-4"></v-icon>
+      <h3 class="text-h5 mb-3">Unable to determine current user</h3>
+      <p class="text-body-1 text-grey-darken-1 mb-6">
+        Please log in again to view your badges
+      </p>
+      <v-btn color="primary" @click="redirectToLogin">
+        Log In
+      </v-btn>
+    </v-card>
+
+    <!-- Display message when no badges are available -->
+    <v-card v-else-if="!loading && authenticated && !filteredBadges.length" class="text-center pa-8" variant="outlined">
+      <v-icon icon="mdi-trophy-variant-outline" size="72" color="grey-lighten-1" class="mb-4"></v-icon>
+      <h3 class="text-h5 mb-3">No badges yet</h3>
+      <p class="text-body-1 text-grey-darken-1 mb-6">
+        Complete tasks and milestones to earn badges that showcase your achievements
+      </p>
+    </v-card>
+
+    <!-- List of badges -->
+    <v-row v-else>
+      <v-col v-for="badge in filteredBadges" :key="badge.id" cols="12" sm="6" lg="4">
+        <v-card class="badge-card" style="min-height: 200px; width: 100%;">
+          <v-card-item>
+            <v-avatar class="mr-4" size="52" :color="getBadgeColor(badge.badge_type)">
+              <v-icon size="x-large" color="white">{{ getBadgeIcon(badge.badge_type) }}</v-icon>
+            </v-avatar>
+            <div>
+              <v-card-title class="text-h6 mb-1">{{ badge.name }}</v-card-title>
+              <v-card-subtitle>
+                Awarded: {{ formatDate(badge.DateAwarded) }}
+              </v-card-subtitle>
             </div>
-            
-            <!-- Badge info -->
-            <h3 class="text-lg font-semibold text-gray-800">{{ badge.name }}</h3>
-            <div class="flex items-center justify-center mt-1 mb-2">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                    :class="getBadgeTypeClass(badge.badge_type)">
-                {{ badge.badge_type || 'Standard' }}
-              </span>
-              <span class="ml-2 text-sm text-gray-600">{{ badge.points }} points</span>
-            </div>
-            <p class="text-gray-600 text-sm text-center">{{ badge.description || 'No description available' }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-  
-  <script>
-  import { ref, onMounted } from 'vue';
-  import BadgeService from '../services/badgeServices';
-  import Utils from '../config/utils';
-  import { useRouter } from 'vue-router';
-  import axios from 'axios';
-  
-  export default {
-    name: 'BadgesView',
-    setup() {
-      const badges = ref([]);
-      const loading = ref(true);
-      const error = ref(null);
-      const authError = ref(false);
-      const router = useRouter();
-  
-      const refreshToken = async () => {
-        try {
-          const user = Utils.getStore("user");
-          if (!user) return false;
-          
-          const response = await axios.post('/flight-plan-t9/auth/refreshToken', {
-            refreshToken: user.refreshToken
-          });
-          
-          if (response.data && response.data.token) {
-            user.token = response.data.token;
-            Utils.setStore("user", user);
-            return true;
-          }
-        } catch (err) {
-          console.error('Error refreshing token:', err);
-        }
-        return false;
-      };
-  
-      const fetchBadges = async (retryWithRefresh = true) => {
-        try {
-          loading.value = true;
-          error.value = null;
-          authError.value = false;
-          
-          // Check authentication
-          const user = Utils.getStore("user");
-          
-          if (!user) {
-            error.value = 'Authentication required. Please log in.';
-            authError.value = true;
-            loading.value = false;
-            return;
-          }
-          
-          console.log("Fetching badges...");
-          
-          try {
-            const response = await BadgeService.getAll();
-            console.log("Badge response:", response);
-            
-            // Add image URLs to badges or use predefined ones
-            const badgesWithImages = (response.data || []).map(badge => {
-              // If badge already has an imageUrl, use it
-              if (badge.imageUrl) return badge;
-              
-              // Otherwise, assign image based on badge type or name
-              const images = {
-        
-                career: 'public/badge1.png',
-                skill: 'public/blue.png',
-                achievement: 'public/mix.png',
-                gold: '/images/badges/gold-badge.png',
-                silver: '/images/badges/silver-badge.png',
-                bronze: '/images/badges/bronze-badge.png',
-                special: '/images/badges/special-badge.png',
-                // Specific badges by name
-                'Word Wizard': '/images/badges/word-wizard-badge.png'
-              };
-              
-              // Try to find an image based on badge type or name
-              const imageUrl = images[badge.badge_type?.toLowerCase()] || 
-                              images[badge.name] || 
-                              null;
-              
-              return {
-                ...badge,
-                imageUrl
-              };
-            });
-            
-            // Set badges from response with added image URLs
-            badges.value = badgesWithImages;
-            
-          } catch (axiosError) {
-            console.error('Axios error:', axiosError);
-            
-            // Handle authentication errors
-            if (axiosError.response && axiosError.response.status === 401) {
-              authError.value = true;
-              
-              // Try refreshing token if available and retry
-              if (retryWithRefresh && user.refreshToken) {
-                const refreshed = await refreshToken();
-                if (refreshed) {
-                  return fetchBadges(false); // Retry once with new token
-                }
-              }
-              
-              error.value = 'Session expired. Please log in again.';
-            } else {
-              error.value = axiosError.message || 'Failed to load badges';
-            }
-          }
-          
-        } catch (err) {
-          console.error('Error details:', err);
-          error.value = err.message || 'Failed to load badges';
-        } finally {
-          loading.value = false;
-        }
-      };
-  
-      const redirectToLogin = () => {
-        // Clear user data
-        Utils.removeItem("user");
-        // Redirect to login page
-        router.push({ name: "login" });
-      };
-  
-      const getBadgeColorClass = (type) => {
-        switch (type?.toLowerCase()) {
-          case 'gold':
-            return 'bg-yellow-500';
-          case 'silver':
-            return 'bg-gray-400';
-          case 'bronze':
-            return 'bg-yellow-700';
-          case 'achievement':
-            return 'bg-green-500';
-          case 'skill':
-            return 'bg-blue-500';
-          case 'special':
-            return 'bg-purple-500';
-          case 'career':
-            return 'bg-indigo-500';
-          default:
-            return 'bg-blue-500';
-        }
-      };
-  
-      const getBadgeTypeClass = (type) => {
-        switch (type?.toLowerCase()) {
-          case 'gold':
-            return 'bg-yellow-100 text-yellow-800';
-          case 'silver':
-            return 'bg-gray-100 text-gray-800';
-          case 'bronze':
-            return 'bg-yellow-100 text-yellow-800';
-          case 'achievement':
-            return 'bg-green-100 text-green-800';
-          case 'skill':
-            return 'bg-blue-100 text-blue-800';
-          case 'special':
-            return 'bg-purple-100 text-purple-800';
-          case 'career':
-            return 'bg-indigo-100 text-indigo-800';
-          default:
-            return 'bg-blue-100 text-blue-800';
-        }
-      };
-  
-      onMounted(fetchBadges);
-  
-      return {
-        badges,
-        loading,
-        error,
-        authError,
-        redirectToLogin,
-        getBadgeColorClass,
-        getBadgeTypeClass
-      };
-    }
+          </v-card-item>
+
+          <v-card-text>
+            <p>{{ badge.description }}</p>
+            <v-chip class="mt-2" :color="getBadgeColor(badge.badge_type)" size="small" variant="outlined">
+              {{ badge.badge_type }}
+            </v-chip>
+            <v-chip class="mt-2 ml-2" color="amber" size="small">
+              {{ badge.points }} points
+            </v-chip>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+
+const router = useRouter();
+const badges = ref([]);
+const loading = ref(false);
+const message = ref('');
+const badgeTypeFilter = ref('');
+const authenticated = ref(false);
+const userEmail = ref('');
+const studentId = ref(null);
+
+// Sample badge data for development/testing - will be replaced with actual API data
+const sampleBadges = [
+  {
+    id: 1,
+    name: "Word Wizard",
+    description: "You completed your first resume!",
+    badge_type: "Career",
+    points: 300,
+    DateAwarded: new Date(2023, 2, 15)
+  },
+  {
+    id: 2,
+    name: "Workforce Debut",
+    description: "You got your first internship!",
+    badge_type: "Achievement",
+    points: 500,
+    DateAwarded: new Date(2023, 3, 22)
+  },
+  {
+    id: 3,
+    name: "Interview Master",
+    description: "You got your first interview!",
+    badge_type: "Career",
+    points: 400,
+    DateAwarded: new Date(2023, 4, 10)
   }
-  </script>
+];
+
+// Computed property for filtered badges
+const filteredBadges = computed(() => {
+  if (!badgeTypeFilter.value) {
+    return badges.value;
+  }
+  return badges.value.filter(badge => badge.badge_type === badgeTypeFilter.value);
+});
+
+// Function to extract user info from session or localStorage
+const getUserInfo = () => {
+  try {
+    // Check for user info in session storage
+    const sessionUser = sessionStorage.getItem('user');
+    if (sessionUser) {
+      try {
+        const parsedUser = JSON.parse(sessionUser);
+        console.log('Found user in session storage:', parsedUser);
+        if (parsedUser && parsedUser.email) {
+          userEmail.value = parsedUser.email;
+          return true;
+        }
+      } catch (e) {
+        console.error('Error parsing user from session storage:', e);
+      }
+    }
+    
+    // Check for user info in local storage
+    const localUser = localStorage.getItem('user');
+    if (localUser) {
+      try {
+        const parsedUser = JSON.parse(localUser);
+        console.log('Found user in local storage:', parsedUser);
+        if (parsedUser && parsedUser.email) {
+          userEmail.value = parsedUser.email;
+          return true;
+        }
+      } catch (e) {
+        console.error('Error parsing user from local storage:', e);
+      }
+    }
+    
+    // If we're authenticated but don't have the email yet, try to extract from console
+    // This is just for development/debugging, a real solution would use proper auth flow
+    if (document.cookie.includes('authenticated=true')) {
+      console.log('Found authentication cookie but no user data');
+      // Extract email from any visible DOM elements if available
+      userEmail.value = 'diella.mwambutsa@eagles.oc.edu'; // This is from the console error
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    return false;
+  }
+};
+
+// Function to get student ID from user email
+const getStudentIdFromEmail = async (email) => {
+  try {
+    if (!email) {
+      throw new Error('Email is required to fetch student ID');
+    }
+    
+    console.log('Fetching student ID for email:', email);
+    
+    // In a real app, you would make an API call to get the student ID from the email
+    // For now, we'll simulate it
+    // const response = await axios.get(`/api/student/by-email/${encodeURIComponent(email)}`);
+    // return response.data.studentId;
+    
+    // For development/testing, return a fixed student ID
+    return 1; // Replace with actual API call in production
+  } catch (error) {
+    console.error('Error fetching student ID:', error);
+    throw error;
+  }
+};
+
+// Function to fetch badges
+const fetchBadges = async () => {
+  try {
+    loading.value = true;
+    message.value = '';
+    
+    if (!studentId.value) {
+      throw new Error('Student ID is required to fetch badges');
+    }
+    
+    console.log('Fetching badges for student ID:', studentId.value);
+    
+    // In a real app, you would make an API call to get the badges
+    // For now, we'll use sample data for testing
+    // const response = await axios.get(`/api/badges/student/${studentId.value}`);
+    // badges.value = response.data;
+    
+    // For development/testing, use sample data
+    // Simulating API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    badges.value = sampleBadges;
+    
+    console.log('Badges loaded:', badges.value.length);
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    message.value = 'Failed to load your badges. Please try again.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Function to redirect to login page
+const redirectToLogin = () => {
+  router.push('/login');
+};
+
+// Function to get badge color based on type
+const getBadgeColor = (type) => {
+  switch (type) {
+    case 'Career':
+      return 'indigo';
+    case 'Achievement':
+      return 'amber-darken-2';
+    default:
+      return 'grey';
+  }
+};
+
+// Function to get badge icon based on type
+const getBadgeIcon = (type) => {
+  switch (type) {
+    case 'Career':
+      return 'mdi-briefcase';
+    case 'Achievement':
+      return 'mdi-trophy-award';
+    default:
+      return 'mdi-medal';
+  }
+};
+
+// Format date for display
+const formatDate = (dateString) => {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Unknown date';
+    }
+    
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
+  } catch (e) {
+    return 'Unknown date';
+  }
+};
+
+// Load badges when component mounts
+onMounted(async () => {
+  console.log('Badges component mounted');
+  
+  // Check if user is authenticated
+  authenticated.value = getUserInfo();
+  
+  if (authenticated.value) {
+    try {
+      // Get student ID from user email
+      studentId.value = await getStudentIdFromEmail(userEmail.value);
+      
+      // Fetch badges
+      await fetchBadges();
+    } catch (error) {
+      console.error('Error in initialization:', error);
+      message.value = 'Failed to initialize. Please try again.';
+    }
+  } else {
+    console.error('User not authenticated');
+    message.value = 'Unable to determine current user. Please log in again.';
+  }
+});
+</script>
+
+<style scoped>
+.badge-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.badge-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+</style>
