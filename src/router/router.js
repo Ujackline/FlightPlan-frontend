@@ -1,15 +1,16 @@
-
 import { createRouter, createWebHistory } from "vue-router";
 import Utils from '../config/utils'; 
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import StudentDashboard from "../views/StudentDashboard.vue"
+import StudentDashboard from "../views/StudentDashbord.vue"
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
+import StudentDashboard from "../views/StudentDashboard.vue";
+import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/student/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
+    },
+    {
+      path: '/flightPlan',
+      name: 'flightPlan',
+      component: FlightPlan
     },
 
     {
@@ -82,7 +88,11 @@ const router = createRouter({
       component: Home,
       meta: { requiresAuth: true }
     },
-    
+    {
+      path: '/events',
+      name: 'Events',
+      component: Events,
+    },
   
     {
       path: '/manageusers',

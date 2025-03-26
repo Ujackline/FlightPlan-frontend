@@ -1,3 +1,4 @@
+
 <template>
 
   <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
@@ -140,8 +141,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/userServices';
-//import MenuBar from '../components/MenuBar.vue';
+import userServices from '../services/services.js';
 
 import Utils from '../config/utils';
 export default {
@@ -183,7 +183,8 @@ onMounted(() => {
 });
 
 
-    return {
+ return {
+
       firstName,
       // progress,
       // points,
@@ -197,8 +198,6 @@ onMounted(() => {
 </script>
 
 <style>
-
-
 .text-blue-800 {
   color: #2b6cb0;
 }
@@ -222,3 +221,4 @@ onMounted(() => {
 }
 
 </style>
+
