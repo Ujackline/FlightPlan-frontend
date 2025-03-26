@@ -4,9 +4,14 @@ const API_URL = "http://localhost:3029/flight-plan-t9/admin";
 const adminService = {
   // Fetch all users (Admin Only)
   async getUsers() {
-    return apiClient.get(`${API_URL}/user`);
+    const response = await apiClient.get(`${API_URL}/users`);
+    return response.data; // ✅ Only return the data array
   },
 
+  async addUser(data) {
+    return apiClient.post('/user', data);
+  },
+  
   // ✅ Fetch a single user by ID
   async getUserById(userId) {
     return apiClient.get(`${API_URL}/user/${userId}`);
