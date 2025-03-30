@@ -43,6 +43,11 @@
         <!-- Upcoming Tasks -->
         <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
           <h2 class="text-xl font-semibold mb-4">Upcoming Tasks</h2>
+          <div class="flex space-x-2">
+              <router-link to="/task" class="text-blue-600 hover:text-blue-800">
+                Manage Tasks →
+              </router-link>
+            </div>
           <ul class="mt-4 space-y-2">
             <li v-for="task in tasks" :key="task.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
               <p class="font-medium">{{ task.title }}</p>
