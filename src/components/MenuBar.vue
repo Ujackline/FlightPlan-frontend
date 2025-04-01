@@ -1,6 +1,5 @@
 <template>
   <div>
- 
     <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
@@ -19,16 +18,41 @@
       <v-spacer></v-spacer>
 
     
+      <div v-if="user" class="d-none d-sm-flex">
+        <!-- <v-btn 
+          text 
+          @click="navigateTo('home')"
+          :class="{ 'active-route': currentRoute === 'home' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-home</v-icon>
+          My Flight Plan
+        </v-btn> -->
+      
+        <v-btn 
+          text 
+          @click="navigateTo('studentDashboard')"
+          :class="{ 'active-route': currentRoute === 'studentDashboard' }"
+          class="mx-1"
+        >
+          
+          Student Dashboard
+        </v-btn>
+        
+       
+      </div>
+
+      <!-- Mobile menu button - only shows on small screens -->
       <v-btn 
         v-if="user" 
         icon 
-        @click="toggleSideNav" 
-        class="mr-2"
+        @click="toggleMobileMenu" 
+        class="d-sm-none mr-2"
       >
-        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+        <v-icon>{{ isMobileMenuOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
-     
+      <!-- User Profile Menu -->
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
@@ -63,18 +87,12 @@
       </div>
     </v-app-bar>
 
-    <!-- Right Side Navigation Panel -->
-    <div 
-      class="side-nav-panel" 
-      :class="{'side-nav-open': isSideNavOpen}"
-      v-if="user"
-    >
-      <div class="nav-panel-header">
-        <h3>Menu</h3>
-      </div>
-      
-      <!-- Navigation Items -->
-      <div class="nav-items">
+    <!-- Mobile Menu - Dropdown for small screens -->
+    <v-expand-transition>
+      <div 
+        v-if="isMobileMenuOpen && user" 
+        class="mobile-menu"
+      >
         <v-list nav>
           <v-list-item 
             @click="navigateTo('home')"
@@ -105,16 +123,15 @@
             </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
-         
         </v-list>
       </div>
-    </div>
+    </v-expand-transition>
     
-    <!-- Overlay when sidebar is open on mobile -->
+    <!-- Overlay for mobile menu -->
     <div 
       class="nav-overlay" 
-      v-if="isSideNavOpen" 
-      @click="toggleSideNav"
+      v-if="isMobileMenuOpen" 
+      @click="toggleMobileMenu"
     ></div>
   </div>
 </template>
@@ -131,27 +148,25 @@ import Admin from "../views/AdminDashboard.vue";
 const router = useRouter();
 const route = useRoute();
 const user = ref(null);
-const title = ref("Career Services");
+const title = ref("Eagle Flight Plan");
 const initials = ref("");
 const name = ref("");
 const logoURL = ref("");
-const isSideNavOpen = ref(false);
+const isMobileMenuOpen = ref(false);
 
 // Track current route for highlighting active menu item
 const currentRoute = computed(() => {
   return route.name;
 });
 
-// Toggle side navigation
-const toggleSideNav = () => {
-  isSideNavOpen.value = !isSideNavOpen.value;
+// Toggle mobile menu
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-// Close side nav when route changes (especially on mobile)
+// Close mobile menu when route changes
 watch(() => route.path, () => {
-  if (window.innerWidth < 960) {
-    isSideNavOpen.value = false;
-  }
+  isMobileMenuOpen.value = false;
 });
 
 const resetMenu = () => {
@@ -173,13 +188,16 @@ const logout = async () => {
   }
 };
 
-
 const navigateTo = (routeName) => {
   router.push({ name: routeName }).catch(err => {
     if (err.name !== 'NavigationDuplicated') {
       console.error('Navigation error:', err);
     }
   });
+  // Close mobile menu after navigation on mobile
+  if (window.innerWidth < 600) {
+    isMobileMenuOpen.value = false;
+  }
 };
 
 onMounted(() => {
@@ -193,11 +211,10 @@ onMounted(() => {
     }
   });
   
-  // Close side nav when clicking outside on mobile
+  // Handle window resize
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 960) {
-      // Optionally keep sidebar open on larger screens
-      // isSideNavOpen.value = true;
+    if (window.innerWidth > 600) {
+      isMobileMenuOpen.value = false;
     }
   });
 });
@@ -217,36 +234,21 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* Side Navigation Panel Styles */
-.side-nav-panel {
-  position: fixed;
-  top: 64px; /* Height of app bar */
-  right: -300px; /* Start offscreen */
-  width: 300px;
-  height: calc(100vh - 64px);
-  background-color: white;
-  z-index: 100;
-  box-shadow: -2px 0 10px rgba(215, 70, 70, 0.1);
-  transition: right 0.3s ease;
-  overflow-y: auto;
-}
-
-.side-nav-open {
-  right: 0;
-}
-
-.nav-panel-header {
-  padding: 20px;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.nav-items {
-  padding: 10px 0;
-}
-
+/* Active route styling */
 .active-route {
   background-color: rgba(0, 0, 0, 0.05);
-  border-right: 3px solid #1976d2;
+  border-bottom: 3px solid #1976d2;
+}
+
+/* Mobile menu styling */
+.mobile-menu {
+  position: absolute;
+  top: 64px; /* Height of app bar */
+  left: 0;
+  right: 0;
+  background-color: white;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-overlay {
@@ -257,21 +259,19 @@ onMounted(() => {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 99;
-  display: none;
 }
 
-/* Show overlay on mobile only */
-@media (max-width: 960px) {
-  .nav-overlay {
-    display: block;
-  }
+/* Mobile menu active route styling */
+.mobile-menu .active-route {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #1976d2;
+  border-bottom: none;
 }
 
 /* Adjust for mobile screens */
 @media (max-width: 600px) {
-  .side-nav-panel {
-    width: 250px;
-    right: -250px;
+  .nav-items {
+    display: none;
   }
 }
 </style>
