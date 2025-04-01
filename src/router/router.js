@@ -5,6 +5,7 @@ import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
+import Badge from "../views/Badge.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
@@ -69,6 +70,11 @@ const router = createRouter({
       path: '/task',
       name: 'task',
       component: Task
+    },
+    {
+      path: '/badge',
+      name: 'badge',
+      component: Badge
     },
 
     {
