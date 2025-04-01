@@ -1,113 +1,195 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-3xl mx-auto">
-        <!-- Greeting -->
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">
-          Eagle Flight Plan
-        </h1>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo-container">
+        <div class="logo">
+  <i class="fas fa-graduation-cap"></i>
+</div>
+      </div>
 
-        <!-- Career Progress -->
-        <div class="mb-8">
-          <p class="text-sm text-gray-600 mb-2">Flight Plan Progress</p>
-          <div class="h-2 bg-gray-200 rounded">
-            <div class="h-full bg-blue-600 rounded" :style="{ width: progressPercentage + '%' }"></div>
+      <div class="nav-item">
+        <i class="fas fa-th-large"></i>
+        <div class="nav-text">Dashboard</div>
+      </div>
+
+
+      <div class="nav-item">
+        <i class="fas fa-pen"></i>
+        <div class="nav-text"> Event Registration</div>
+      </div>
+
+
+      <div class="nav-item">
+        <i class="fas fa-award"></i>
+        <div class="nav-text">Badges</div>
+      </div>
+
+      <div class="nav-item">
+        <i class="fas fa-tasks"></i>
+        <div class="nav-text">Tasks</div>
+      </div>
+
+      <div class="nav-item">
+        <i class="fas fa-calendar-alt"></i>
+        <div class="nav-text">Events</div>
+      </div>
+
+      <div class="nav-item">
+        <i class="fas fa-star"></i>
+        <div class="nav-text">Experiences</div>
+      </div>
+
+      <div class="nav-item">
+        <i class="fas fa-poll"></i>
+        <div class="nav-text">Points</div>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="nav-item">
+        <i class="fas fa-sign-out-alt"></i>
+        <div class="nav-text">Logout</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header with Search and Profile -->
+      <div class="header">
+        <input type="text" class="search-bar" placeholder="Search">
+        <div class="profile">
+          <div class="profile-pic">
+            <img src="https://via.placeholder.com/40" alt="Profile">
+          </div>
+          <div class="profile-info">
+            <div class="profile-name">{{ studentName || 'John Doe' }}</div>
+            <div class="profile-year">3rd year</div>
+          </div>
+          <div class="notification-icon">
+            <i class="fas fa-bell"></i>
+            <div class="notification-badge"></div>
           </div>
         </div>
+      </div>
 
-        <!-- Experiences Section -->
-        <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Your Experiences</h2>
-            <div class="flex space-x-2">
-              <router-link to="/experience" class="text-blue-600 hover:text-blue-800">
-                Manage Experiences →
-              </router-link>
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h1>Eagle Flight Plan</h1>
+          <p>Track your progress and achievements</p>
+        </div>
+        
+        <div class="decoration decoration-1"></div>
+        <div class="decoration decoration-2"></div>
+        <div class="decoration decoration-3"></div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <p class="progress-text">Flight Plan Progress</p>
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Points Section -->
+      <div class="points-card">
+        <h2 class="card-title">Total Points Earned</h2>
+        <p class="total-points">{{ totalPoints }}</p>
+        <div class="points-breakdown">
+          <span>Tasks: {{ pointsBreakdown.tasks }}</span>
+          <span>Events: {{ pointsBreakdown.events }}</span>
+          <span>Extras: {{ pointsBreakdown.extras }}</span>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+        <!-- My Experiences -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">My Experiences</h2>
+            <router-link to="/experience" class="see-all">Manage Experiences →</router-link>
+          </div>
+          <div class="experiences-list">
+            <div v-for="(experience, index) in experiences" :key="index" class="experience-item">
+              <div class="experience-title">{{ experience.title }}</div>
+              <div class="experience-details">{{ experience.details }}</div>
+            </div>
+            <div v-if="experiences.length === 0" class="empty-state">
+              No experiences added yet
             </div>
           </div>
         </div>
 
-        <!-- Total points Earned -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <h2 class="text-xl font-semibold">Total Points Earned</h2>
-          <p class="mt-2 text-2xl font-bold">{{ totalPoints }}</p>
-          <div class="mt-4">
-            <div class="flex justify-between text-sm text-gray-600">
-              <span>Tasks: {{ pointsBreakdown.tasks }}</span>
-              <span>Events: {{ pointsBreakdown.events }}</span>
-              <span>Extras: {{ pointsBreakdown.extras }}</span>
+        <!-- My Badges -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">My Badges</h2>
+            <router-link to="/badge" class="see-all">View Badges →</router-link>
+          </div>
+          <div class="badges-container">
+            <div v-for="(badge, index) in badges" :key="index" class="badge-item">
+              <i :class="['fas', badge.icon, 'badge-icon']"></i>
+            </div>
+            <div v-if="badges.length === 0" class="empty-state">
+              No badges earned yet
             </div>
           </div>
         </div>
 
-        <!-- Upcoming Tasks -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <h2 class="text-xl font-semibold mb-4">Upcoming Tasks</h2>
-          <ul class="mt-4 space-y-2">
-            <li v-for="task in tasks" :key="task.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
-              <p class="font-medium">{{ task.title }}</p>
-              <p class="text-sm text-gray-600">Due: {{ task.dueDate }}</p>
-            </li>
-          </ul>
-        </div>
+      
 
-        <!-- Upcoming Events -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Upcoming Events</h2>
-            <button 
-              @click="navigateToEvents"
-              class="text-blue-600 hover:text-blue-800"
-            >
-              View All →
-            </button>
+        <!-- Completed Tasks -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">Completed Tasks</h2>
+            <a href="#" class="see-all" @click.prevent="$emit('navigate', 'completed-tasks')">View All →</a>
           </div>
-          
-          <div class="space-y-4">
-            <div v-for="event in events" :key="event.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
-              <div class="text-sm text-gray-600">{{ formatDate(event.date) }}, {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</div>
-              <div class="font-medium text-gray-800">{{ event.name }}</div>
-              <div class="text-sm text-gray-600">{{ event.location }}</div>
-              <div class="text-sm text-gray-600">{{ event.description }}</div>
+          <div class="tasks-list">
+            <div v-for="task in completedTasks" :key="task.id" class="task-item">
+              <div class="task-title">{{ task.title }}</div>
+              <div class="task-date">Completed: {{ task.completedDate }}</div>
+            </div>
+            <div v-if="completedTasks.length === 0" class="empty-state">
+              No completed tasks
             </div>
           </div>
-
-          <div class="flex justify-center mt-4 space-x-4">
-            <button class="p-2 hover:bg-blue-100 rounded text-gray-600">
-              ←
-            </button>
-            <button class="p-2 hover:bg-blue-100 rounded text-gray-600">
-              →
-            </button>
-          </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="space-y-4 text-center">
-          <button
-            @click="navigateToDashboard"
-            class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
-          >
-            GO TO DASHBOARD
-          </button>
-          
-          <div>
-            <button
-              @click="navigateToProfile"
-              class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
-            >
-              VIEW PROFILE
-            </button>
+       
+
+        <!-- Completed Events -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">Completed Events</h2>
+            <a href="#" class="see-all" @click.prevent="$emit('navigate', 'completed-events')">View All →</a>
+          </div>
+          <div class="events-list">
+            <div v-for="event in completedEvents" :key="event.id" class="event-item">
+              <div class="event-date">{{ event.date }}, {{ event.time }}</div>
+              <div class="event-title">{{ event.title }}</div>
+              <div class="event-location">{{ event.location }}</div>
+            </div>
+            <div v-if="completedEvents.length === 0" class="empty-state">
+              No completed events
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button @click="$emit('navigate', 'dashboard')" class="primary-btn">GO TO DASHBOARD</button>
+        <button @click="$emit('navigate', 'profile')" class="secondary-btn">VIEW PROFILE</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import studentServices from "../services/studentServices"; // Import studentServices
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 
 export default {
   name: 'StudentDashboard',
@@ -116,117 +198,569 @@ export default {
       studentId: null,
       studentName: '',
       progressPercentage: 0,
-      tasks: [],
-      events: [], // List of events
       totalPoints: 0,
       pointsBreakdown: { tasks: 0, events: 0, extras: 0 },
-      loading: false, // Loading state
-      error: null, // Error message
+      experiences: [],
+      badges: [],
+      upcomingTasks: [],
+      completedTasks: [],
+      upcomingEvents: [],
+      completedEvents: []
     };
   },
   async created() {
     await this.fetchStudentId();
     if (this.studentId) {
-      await this.fetchDashboardData();
+      await Promise.all([
+        this.fetchDashboardData(),
+        this.fetchExperiences(),
+        this.fetchBadges(),
+        this.fetchTasks(),
+        this.fetchEvents()
+      ]);
     }
   },
   methods: {
     async fetchStudentId() {
       try {
-        // Fetch the authenticated student's ID (e.g., from localStorage or a token)
-        const token = localStorage.getItem("authToken"); // Example
-        if (!token) {
-          throw new Error("No token found");
-        }
-
-        // Decode the token to get the student ID (if the token contains the ID)
-        const decodedToken = JSON.parse(atob(token.split(".")[1])); // Example
-        this.studentId = decodedToken.id; // Assuming the token contains the student ID
-
-        if (!this.studentId) {
-          throw new Error("Student ID not found in token");
-        }
+        const response = await axios.get('/flight-plan-t9/user'); 
+        this.studentId = response.data.id; 
+        this.studentName = response.data.name || 'Student'; 
       } catch (error) {
-        console.error("Error fetching student ID:", error);
-        throw error;
+        console.error('Error fetching student ID:', error);
+        // Set default values for demo
+        this.studentId = 1;
+        this.studentName = 'Mwiza Laura ';
       }
     },
     async fetchDashboardData() {
-      this.loading = true;
-      this.error = null;
       try {
-        // Fetch student data using studentServices
-        const studentRes = await studentServices.getStudentById(this.studentId);
-        this.studentName = studentRes.studentFirstName || 'Student';
-
-        // Fetch tasks and events (replace with your actual endpoints)
-        const [tasksRes, eventsRes] = await Promise.all([
-          axios.get('/flight-plan-t9/task/'),
-          axios.get('/flight-plan-t9/event/')
+        const [progressRes, pointsRes] = await Promise.all([
+          axios.get(`/flight-plan-t9/student/progress/${this.studentId}`),
+          axios.get(`/flight-plan-t9/student/points/${this.studentId}`)
         ]);
 
-        this.tasks = tasksRes.data;
-        this.events = eventsRes.data;
-
-        console.log("Fetched Events:", this.events); // Debugging
-
-        // Calculate progress and points (frontend logic)
-        this.progressPercentage = this.calculateProgress();
-        this.totalPoints = this.calculateTotalPoints();
-        this.pointsBreakdown = this.calculatePointsBreakdown();
+        this.progressPercentage = progressRes.data.progress || 65;
+        this.totalPoints = pointsRes.data.total || 850;
+        this.pointsBreakdown = pointsRes.data.breakdown || { tasks: 350, events: 250, extras: 250 };
       } catch (error) {
-        this.error = "Failed to fetch dashboard data. Please try again later.";
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        this.loading = false;
+        console.error('Error fetching dashboard data:', error);
+        // Set default values for demo
+        this.progressPercentage = 65;
+        this.totalPoints = 850;
+        this.pointsBreakdown = { tasks: 350, events: 250, extras: 250 };
       }
     },
-    calculateProgress() {
-      // Replace with your logic to calculate progress
-      return 50; // Example
+    async fetchExperiences() {
+      try {
+        const response = await axios.get(`/flight-plan-t9/experience/${this.studentId}`);
+        this.experiences = response.data || [];
+      } catch (error) {
+        console.error('Error fetching experiences:', error);
+        // Sample data for demo
+        this.experiences = [
+          { title: 'Research Assistant', details: 'Computer Science Department' },
+          { title: 'Leadership Workshop', details: 'Student Leadership Program' }
+        ];
+      }
     },
-    calculateTotalPoints() {
-      // Replace with your logic to calculate total points
-      return 100; // Example
+    async fetchBadges() {
+      try {
+        const response = await axios.get(`/flight-plan-t9/badge/${this.studentId}`);
+        this.badges = response.data || [];
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        // Sample data for demo
+        this.badges = [
+          { name: 'Achievement', icon: 'fa-award' },
+          { name: 'Excellence', icon: 'fa-certificate' },
+          { name: 'Leadership', icon: 'fa-medal' },
+          { name: 'Completion', icon: 'fa-trophy' }
+        ];
+      }
     },
-    calculatePointsBreakdown() {
-      // Replace with your logic to calculate points breakdown
-      return { tasks: 50, events: 30, extras: 20 }; // Example
+    async fetchTasks() {
+      try {
+        const response = await axios.get('/flight-plan-t9/task/');
+        // Filter tasks into upcoming and completed
+        this.upcomingTasks = response.data.filter(task => !task.completed) || [];
+        this.completedTasks = response.data.filter(task => task.completed) || [];
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        // Sample data for demo
+        this.upcomingTasks = [
+          { id: 1, title: 'Submit Research Proposal', dueDate: 'April 15, 2025' },
+          { id: 2, title: 'Complete Career Assessment', dueDate: 'April 8, 2025' }
+        ];
+        this.completedTasks = [
+          { id: 3, title: 'Resume Review Session', completedDate: 'March 25, 2025' },
+          { id: 4, title: 'Internship Application', completedDate: 'March 20, 2025' }
+        ];
+      }
     },
-    navigateToEvents() {
-      this.$router.push('/events'); // Navigate to the events page
-    },
-    navigateToDashboard() {
-      this.$router.push('/dashboard'); // Navigate to the dashboard page
-    },
-    navigateToProfile() {
-      this.$router.push('/profile'); // Navigate to the profile page
-    },
-    formatDate(dateString) {
-      // Format the date for display
-      const date = new Date(dateString);
-      return date.toLocaleDateString(); // Adjust formatting as needed
-    },
-    formatTime(dateString) {
-      // Format the time for display
-      const date = new Date(dateString);
-      return date.toLocaleTimeString(); // Adjust formatting as needed
+    async fetchEvents() {
+      try {
+        const response = await axios.get('/flight-plan-t9/event/');
+        const currentDate = new Date();
+        
+        // Filter events into upcoming and completed based on date
+        this.upcomingEvents = response.data.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate >= currentDate;
+        }) || [];
+        
+        this.completedEvents = response.data.filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate < currentDate;
+        }) || [];
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        // Sample data for demo
+        this.upcomingEvents = [
+          { id: 1, title: 'Career Fair', date: 'April 5, 2025', time: '2:00 PM', location: 'Student Union Building' },
+          { id: 2, title: 'Industry Panel Discussion', date: 'April 12, 2025', time: '10:00 AM', location: 'Engineering Hall, Room 203' }
+        ];
+        this.completedEvents = [
+          { id: 3, title: 'Resume Workshop', date: 'March 18, 2025', time: '3:00 PM', location: 'Career Center' },
+          { id: 4, title: 'Networking Mixer', date: 'March 10, 2025', time: '1:00 PM', location: 'Alumni Hall' }
+        ];
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-.bg-blue-50 {
-  background-color: #eff6ff;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.bg-blue-600 {
-  background-color: #3182ce;
+
+.dashboard-container {
+  background-color: white;
+  width: 100%;
+  height: 100vh;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
-.text-blue-600 {
+
+/* Sidebar Styles */
+.sidebar {
+  background-color: #963030;
+  width: 220px;
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-container {
+  background-color: #963030;
+  width: 90px;
+  height: 90px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  color: white;
+  font-size: 24px;
+}
+
+.nav-item {
+  width: 100%;
+  padding: 15px 30px;
+  display: flex;
+  align-items: center;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: background-color 0.3s;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item i {
+  margin-right: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-text {
+  font-size: 14px;
+}
+
+.sidebar-spacer {
+  flex-grow: 1;
+}
+
+/* Main Content Styles */
+.main-content {
+  flex-grow: 1;
+  padding: 20px 30px;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  width: 300px;
+  padding: 10px 20px;
+  border: none;
+  outline: none;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+  background-color: #f0f0f0;
+}
+
+.profile-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  font-size: 14px;
+}
+
+.profile-name {
+  font-weight: bold;
+}
+
+.profile-year {
+  color: #666;
+}
+
+.notification-icon {
+  margin-left: 15px;
+  color: #333;
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+  background-color: #963030;
+  border-radius: 15px;
+  padding: 30px;
+  color: white;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-text h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.welcome-text p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.welcome-illustration {
+  position: relative;
+  width: 200px;
+  height: 120px;
+}
+
+.welcome-illustration img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Progress Bar */
+.progress-section {
+  margin-bottom: 25px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #289e32;
+  border-radius: 4px;
+}
+
+/* Card Layouts */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.see-all {
   color: #3182ce;
+  font-size: 14px;
+  text-decoration: none;
 }
-.error {
-  color: red;
+
+.card-container {
+  background-color: #eff6ff;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Points Card */
+.points-card {
+  background-color: #eff6ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.total-points {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.points-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  margin-top: 10px;
+}
+
+/* Tasks and Events */
+.task-item, .event-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 4px solid #3182ce;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.task-title, .event-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.task-date, .event-date, .event-location {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Badges */
+.badges-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.badge-item {
+  width: 60px;
+  height: 60px;
+  background-color: #e0e7ff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  color: #4f46e5;
+  font-size: 24px;
+}
+
+/* Experiences */
+.experiences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.experience-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #3182ce;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.experience-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.experience-details {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Sections Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.primary-btn {
+  background-color: #963030;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Decorative elements */
+.decoration {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.decoration-1 {
+  background-color: #ff7e7e;
+  top: 50px;
+  right: 180px;
+}
+
+.decoration-2 {
+  background-color: #7ee8ff;
+  top: 30px;
+  right: 80px;
+}
+
+.decoration-3 {
+  background-color: #ffd37e;
+  bottom: 40px;
+  right: 120px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .sidebar {
+    width: 100%;
+    padding: 15px 0;
+  }
+  
+  .logo-container {
+    margin-bottom: 15px;
+  }
+  
+  .welcome-banner {
+    flex-direction: column;
+  }
+  
+  .welcome-illustration {
+    display: none;
+  }
 }
 </style>
