@@ -139,7 +139,6 @@
           </div>
         </div>
 
-      
 
         <!-- Completed Tasks -->
         <div class="card-container">
