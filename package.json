@@ -13,7 +13,9 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@mdi/font": "^7.4.47",
+    "@syncfusion/ej2-vue-notifications": "^28.2.3",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "lucide-vue-next": "^0.475.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
