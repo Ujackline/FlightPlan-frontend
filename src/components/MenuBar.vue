@@ -142,7 +142,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
-import Admin from "../views/AdminDashboard.vue";
+//import Admin from "../views/AdminDashboard.vue";
 //import adminService from "../services/adminServices";
 
 const router = useRouter();
