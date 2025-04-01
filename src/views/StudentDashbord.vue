@@ -10,7 +10,7 @@
 
       <div class="nav-item">
         <i class="fas fa-th-large"></i>
-        <div class="nav-text">Dashboard</div>
+        <div class="nav-text">Dashboard Here</div>
       </div>
 
 
