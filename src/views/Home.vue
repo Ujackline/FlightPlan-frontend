@@ -1,3 +1,4 @@
+
 <template>
 
   <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
@@ -52,11 +53,7 @@
             </button>
            </div>
 
-
-       
-
-
-    <!-- Career Readiness Checklist & My Experiences in Two Tables -->
+          <!-- Career Readiness Checklist & My Experiences in Two Tables -->
     <div class="container mx-auto px-4 py-8 max-w-6xl grid grid-cols-2 gap-6">
       <!-- Career Tasks Table -->
       <div class="bg-white rounded-lg shadow-lg p-6">
@@ -139,6 +136,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script>
@@ -185,9 +183,8 @@ onMounted(() => {
 });
 
 
-
-
  return {
+
       firstName,
       // progress,
       // points,
@@ -224,5 +221,4 @@ onMounted(() => {
 }
 
 </style>
-
 
