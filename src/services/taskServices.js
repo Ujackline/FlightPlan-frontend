@@ -31,6 +31,21 @@ const taskService = {
   // Delete all tasks
   deleteAllTasks() {
     return apiClient.delete(TASK_API);
+  },
+
+  // ✅ Mark a task as complete (submitted for review)
+  markComplete(taskId) {
+    return apiClient.patch(`${TASK_API}/${taskId}/markComplete`);
+  },
+
+  // ✅ Approve a task (admin)
+  approveTask(taskId, approvedBy = "Admin") {
+    return apiClient.patch(`${TASK_API}/${taskId}/approve`, { approvedBy });
+  },
+
+  // ✅ Reject a task (admin)
+  rejectTask(taskId) {
+    return apiClient.patch(`${TASK_API}/${taskId}/reject`);
   }
 };
 

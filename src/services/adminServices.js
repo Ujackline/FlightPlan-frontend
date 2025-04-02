@@ -43,13 +43,15 @@ const adminService = {
   // Fetch Notifications
   async getNotifications() {
     console.log(API_URL)
-    return apiClient.get(`${API_URL}/notifications`).then(response => response.data);
+    return apiClient.get(`${API_URL}/notifications`)
+    .then(response => response.data);
   },
 
 
   //  Delete a notification
   async deleteNotification(id) {
-    return apiClient.delete(`${API_URL}/notifications/${id}`).then(response => response.data);
+    return apiClient.delete(`${API_URL}/notifications/${id}`)
+    .then(response => response.data);
   },
 
   //  Fetch Students
