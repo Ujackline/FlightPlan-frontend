@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Small app bar with just logo and user menu -->
     <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
@@ -17,42 +18,19 @@
 
       <v-spacer></v-spacer>
 
-    
-      <div v-if="user" class="d-none d-sm-flex">
-        <!-- <v-btn 
-          text 
-          @click="navigateTo('home')"
-          :class="{ 'active-route': currentRoute === 'home' }"
-          class="mx-1"
-        >
-          <v-icon class="mr-1">mdi-home</v-icon>
-          My Flight Plan
-        </v-btn> -->
-      
-        <v-btn 
-          text 
-          @click="navigateTo('studentDashboard')"
-          :class="{ 'active-route': currentRoute === 'studentDashboard' }"
-          class="mx-1"
-        >
-          
-          Student Dashboard
-        </v-btn>
-        
-       
-      </div>
-
-      <!-- Mobile menu button - only shows on small screens -->
+      <!-- Toggle button for side navigation -->
       <v-btn 
         v-if="user" 
         icon 
-        @click="toggleMobileMenu" 
-        class="d-sm-none mr-2"
+        @click="toggleSideNav" 
+        class="mr-2"
       >
-        <v-icon>{{ isMobileMenuOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
-      <!-- User Profile Menu -->
+      <div v-if="user">
+    
+      <!-- User menu remains in the top bar -->
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
@@ -77,96 +55,139 @@
                   Logout
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-                <v-btn class="mx-2" @click="navigateTo('manageusers')">
-                  Manage User
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-menu>
-      </div>
-    </v-app-bar>
+      
+                      <!-- 🌗 Theme Toggle Component -->
+            <themeToggle @toggle-theme="$emit('toggle-theme')" />
 
-    <!-- Mobile Menu - Dropdown for small screens -->
-    <v-expand-transition>
-      <div 
-        v-if="isMobileMenuOpen && user" 
-        class="mobile-menu"
-      >
+</div>
+</v-card-text>
+</v-card>
+</v-menu>
+</div>
+</div>
+</v-app-bar>
+
+    <!-- Right Side Navigation Panel -->
+    <div 
+      class="side-nav-panel" 
+      :class="{'side-nav-open': isSideNavOpen}"
+      v-if="user"
+    >
+      <div class="nav-panel-header">
+        <h3>Menu</h3>
+      </div>
+      
+      <!-- Navigation Items -->
+      <div class="nav-items">
         <v-list nav>
           <v-list-item 
-            @click="navigateTo('home')"
-            :class="{ 'active-route': currentRoute === 'home' }"
+            @click="navigateTo('FlightPlan')"
+            :class="{ 'active-route': currentRoute === 'FlightPlan' }"
           >
-            <template v-slot:prepend>
+            <v-list-item-icon>
               <v-icon>mdi-home</v-icon>
-            </template>
-            <v-list-item-title>Home</v-list-item-title>
+            </v-list-item-icon>
+            <v-list-item-title>FlightPlan</v-list-item-title>
           </v-list-item>
           
           <v-list-item 
             @click="navigateTo('studentDashboard')"
-            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
-          >
-            <template v-slot:prepend>
+            :class="{ 'active-route': currentRoute === 'studentDashboard' }">
+            <v-list-item-icon>
               <v-icon>mdi-view-dashboard</v-icon>
-            </template>
+            </v-list-item-icon>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
           
+          <v-list-item
+              v-if="user?.role === 'admin'"
+              @click="navigateTo('AdminDashboard')"
+              :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
+              <v-list-item-icon>
+                <v-icon>mdi-view-dashboard</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Admin Dashboard</v-list-item-title>
+            </v-list-item>
+
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
-            <template v-slot:prepend>
+            <v-list-item-icon>
               <v-icon>mdi-paper-plane</v-icon>
-            </template>
+            </v-list-item-icon>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
+          
+          <!-- Additional menu items can be added here -->
+          <v-list-item @click="navigateTo('profile')">
+            <v-list-item-icon>
+              <v-icon>mdi-account</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Profile</v-list-item-title>
+          </v-list-item>
+
+
+          <v-list-item @click="navigateTo('task')">
+            <v-list-item-icon>
+              <v-icon>mdi-account</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>task</v-list-item-title>
+          </v-list-item>
+
+
         </v-list>
       </div>
-    </v-expand-transition>
+    </div>
     
-    <!-- Overlay for mobile menu -->
+    <!-- Overlay when sidebar is open on mobile -->
     <div 
       class="nav-overlay" 
-      v-if="isMobileMenuOpen" 
-      @click="toggleMobileMenu"
+      v-if="isSideNavOpen" 
+      @click="toggleSideNav"
     ></div>
   </div>
 </template>
 
 <script setup>
 import ocLogo from "/oc-logo-white.png";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch,defineProps } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
-//import Admin from "../views/AdminDashboard.vue";
-//import adminService from "../services/adminServices";
+import themeToggle from "../views/themeToggle.vue";
+
+const user = ref(Utils.getStore('user'));
 
 const router = useRouter();
 const route = useRoute();
-const user = ref(null);
-const title = ref("Eagle Flight Plan");
+//const user = ref(null);
+const title = ref("Career Services");
 const initials = ref("");
 const name = ref("");
 const logoURL = ref("");
-const isMobileMenuOpen = ref(false);
+const isSideNavOpen = ref(false);
+
+//Theme Toggle State
+defineProps(["theme"]);
+
+
 
 // Track current route for highlighting active menu item
 const currentRoute = computed(() => {
   return route.name;
 });
 
-// Toggle mobile menu
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+// Toggle side navigation
+const toggleSideNav = () => {
+  isSideNavOpen.value = !isSideNavOpen.value;
 };
 
-// Close mobile menu when route changes
+// Close side nav when route changes (especially on mobile)
 watch(() => route.path, () => {
-  isMobileMenuOpen.value = false;
+  if (window.innerWidth < 960) {
+    isSideNavOpen.value = false;
+  }
 });
 
 const resetMenu = () => {
@@ -180,8 +201,8 @@ const resetMenu = () => {
 const logout = async () => {
   try {
     await AuthServices.logoutUser(user.value);
-    Utils.removeItem("user");
-    localStorage.removeItem('user');
+    //Utils.removeItem("user");
+    localStorage.removeItem("user");
     router.push({ name: "login" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -189,36 +210,34 @@ const logout = async () => {
 };
 
 const navigateTo = (routeName) => {
-  router.push({ name: routeName }).catch(err => {
-    if (err.name !== 'NavigationDuplicated') {
-      console.error('Navigation error:', err);
+  router.push({ name: routeName }).catch((err) => {
+    if (err.name !== "NavigationDuplicated") {
+      console.error("Navigation error:", err);
     }
   });
-  // Close mobile menu after navigation on mobile
-  if (window.innerWidth < 600) {
-    isMobileMenuOpen.value = false;
-  }
 };
 
 onMounted(() => {
   logoURL.value = ocLogo;
   resetMenu();
-  
+
   // Add event listener for storage changes
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'user') {
+  window.addEventListener("storage", (e) => {
+    if (e.key === "user") {
       resetMenu();
     }
   });
-  
-  // Handle window resize
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 600) {
-      isMobileMenuOpen.value = false;
+
+  // Close side nav when clicking outside on mobile
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 960) {
+      // Optionally keep sidebar open on larger screens
+      // isSideNavOpen.value = true;
     }
   });
 });
 </script>
+
 
 <style scoped>
 .v-btn {
@@ -234,21 +253,36 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* Active route styling */
-.active-route {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-bottom: 3px solid #1976d2;
-}
-
-/* Mobile menu styling */
-.mobile-menu {
-  position: absolute;
+/* Side Navigation Panel Styles */
+.side-nav-panel {
+  position: fixed;
   top: 64px; /* Height of app bar */
-  left: 0;
-  right: 0;
+  right: -300px; /* Start offscreen */
+  width: 300px;
+  height: calc(100vh - 64px);
   background-color: white;
   z-index: 100;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+}
+
+.side-nav-open {
+  right: 0;
+}
+
+.nav-panel-header {
+  padding: 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.nav-items {
+  padding: 10px 0;
+}
+
+.active-route {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-right: 3px solid #121212;
 }
 
 .nav-overlay {
@@ -259,19 +293,24 @@ onMounted(() => {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 99;
+  display: none;
 }
 
-/* Mobile menu active route styling */
-.mobile-menu .active-route {
-  background-color: rgba(0, 0, 0, 0.05);
-  border-left: 3px solid #1976d2;
-  border-bottom: none;
+/* Show overlay on mobile only */
+@media (max-width: 960px) {
+  .nav-overlay {
+    display: block;
+  }
 }
 
 /* Adjust for mobile screens */
 @media (max-width: 600px) {
-  .nav-items {
-    display: none;
+  .side-nav-panel {
+    width: 250px;
+    right: -250px;
   }
 }
+
+
+
 </style>
