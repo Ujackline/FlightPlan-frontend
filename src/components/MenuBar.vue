@@ -19,15 +19,7 @@
 
     
       <div v-if="user" class="d-none d-sm-flex">
-        <!-- <v-btn 
-          text 
-          @click="navigateTo('home')"
-          :class="{ 'active-route': currentRoute === 'home' }"
-          class="mx-1"
-        >
-          <v-icon class="mr-1">mdi-home</v-icon>
-          My Flight Plan
-        </v-btn> -->
+       
       
         <v-btn 
           text 
@@ -38,6 +30,7 @@
           
           Student Dashboard
         </v-btn>
+        
         
        
       </div>
