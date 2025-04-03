@@ -45,8 +45,10 @@
           <div class="profile-pic">
             <img src="https://via.placeholder.com/40" alt="Profile">
           </div>
+          
           <div class="profile-info">
-            <div class="profile-name">{{  }}</div>
+            <div class="profile-name">{{ firstName}} {{ lastName }}</div>
+         
             <div class="profile-year">{{ studentYear || '3rd year' }}</div>
           </div>
           <div class="notification-icon">
@@ -208,11 +210,7 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button @click="refreshDashboard" class="primary-btn">REFRESH DASHBOARD</button>
-        <button @click="$router.push('/profile')" class="secondary-btn">VIEW PROFILE</button>
-      </div>
+    
     </div>
   </div>
 </template>
@@ -224,6 +222,7 @@ import taskService from '../services/task';
 import badgeServices from '../services/badgeServices';
 import experienceServices from '../services/experienceServices';
 import eventServices from '../services/eventServices';
+import Utils from '../config/utils';
 
 export default {
   name: 'StudentDashboard',
@@ -242,6 +241,9 @@ export default {
     const tasks = ref([]);
     const registeredEvents = ref([]);
     const notifications = ref(0);
+    var firstName = ref(null);
+    var lastName = ref(null);
+    const error = ref(null);
     
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
@@ -290,7 +292,28 @@ export default {
         // router.push('/login');
       }
     };
-    
+   
+
+    const fetchUser = async () => {
+      try {
+    // Get the user object from local storage
+    const storedUser = Utils.getStore("user"); //  Ensure "user" is a string
+
+    if (!storedUser || !storedUser.userId) 
+    {
+      console.error(" No user ID found in local storage:", storedUser);
+      return;
+    }
+
+    console.log("Found user in storage:", storedUser); // Debugging
+    firstName.value = storedUser.fName;
+    lastName.value= storedUser.lName;
+
+    }catch (err) {
+    console.error("Error fetching user:", err);
+    error.value = "Failed to fetch user data.";
+  }
+};
     const fetchExperiences = async () => {
       try {
         const response = await experienceServices.getExperiences();
@@ -394,6 +417,7 @@ export default {
     
     const refreshDashboard = async () => {
       await Promise.all([
+        fetchUser(),
         fetchExperiences(),
         fetchBadges(),
         fetchTasks(),
@@ -415,6 +439,8 @@ export default {
     
     return {
       studentId,
+      firstName,
+      lastName,
       studentName,
       studentYear,
       progressPercentage,

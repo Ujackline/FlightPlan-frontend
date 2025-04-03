@@ -70,9 +70,7 @@
                   Logout
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-                <v-btn class="mx-2" @click="navigateTo('manageusers')">
-                  Manage User
-                </v-btn>
+                
               </div>
             </v-card-text>
           </v-card>
