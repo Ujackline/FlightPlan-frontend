@@ -25,7 +25,7 @@
    
       <div class="nav-item">
         <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
-        <router-link to="/event" class="nav-text" style="color: white; text-decoration: none;">Event Registration</router-link>
+        <router-link to="/events" class="nav-text" style="color: white; text-decoration: none;">Event Registration</router-link>
       </div>
 
       <div class="sidebar-spacer"></div>
@@ -49,25 +49,13 @@
           <div class="profile-info">
             <div class="profile-name">{{ firstName}} {{ lastName }}</div>
          
-            <div class="profile-year">{{ studentYear || '3rd year' }}</div>
+            <div class="profile-year">{{ studentYear || 'Senior' }}</div>
           </div>
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
             <div v-if="notifications > 0" class="notification-badge"></div>
           </div>
         </div>
-      </div>
-
-      <!-- Welcome Banner -->
-      <div class="welcome-banner">
-        <div class="welcome-text">
-          <h1>Eagle Flight Plan</h1>
-          <p>Track your progress and achievements</p>
-        </div>
-        
-        <div class="decoration decoration-1"></div>
-        <div class="decoration decoration-2"></div>
-        <div class="decoration decoration-3"></div>
       </div>
 
       <!-- Progress Bar -->
@@ -90,7 +78,7 @@
         </div>
       </div>
 
-      <!-- Dashboard Grid -->
+    
       <div class="dashboard-grid">
         <!-- My Experiences -->
         <div class="card-container">
@@ -537,11 +525,13 @@ export default {
   flex-grow: 1;
 }
 
-/* Main Content Styles */
+
 .main-content {
   flex-grow: 1;
   padding: 20px 30px;
   overflow-y: auto;
+  margin-top: 30px; 
+  padding-top: 20px;
 }
 
 .header {
@@ -631,7 +621,7 @@ export default {
   opacity: 0.9;
 }
 
-/* Progress Bar */
+
 .progress-section {
   margin-bottom: 25px;
 }
@@ -713,7 +703,7 @@ export default {
   margin-top: 10px;
 }
 
-/* Tasks and Events */
+
 .task-item, .event-item {
   background-color: white;
   border-radius: 8px;
@@ -733,7 +723,7 @@ export default {
   color: #666;
 }
 
-/* Badges */
+
 .badge-count {
   font-size: 12px;
   color: #666;

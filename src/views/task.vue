@@ -204,7 +204,7 @@ export default {
 
 .loading {
   font-size: 18px;
-  color: #007bff;
+  color: #ff007bf4;
 }
 
 .error {
