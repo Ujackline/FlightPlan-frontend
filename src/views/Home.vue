@@ -73,7 +73,7 @@
               <div class="event-category" v-if="event.category">{{ event.category }}</div>
             </div>
           </div>
-          <button class="view-button" @click="$router.push('/event')">View All Events</button>
+          <button class="view-button" @click="$router.push('/events')">View All Events</button>
         </div>
       </div>
     </div>

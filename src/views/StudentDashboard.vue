@@ -232,6 +232,8 @@ export default {
     var firstName = ref(null);
     var lastName = ref(null);
     const error = ref(null);
+    const loading = ref(true);
+    const message = ref('');
     
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
@@ -321,27 +323,35 @@ export default {
       }
     };
     
-    const fetchBadges = async () => {
-      try {
-        if (studentId.value) {
-          const response = await badgeServices.getAllUserBadges(studentId.value);
-          
-          if (response && response.data) {
-            badges.value = response.data.map(badge => ({
-              ...badge,
-              badge_type: badge.badge_type || 'Achievement', // Default to Achievement if missing
-            }));
-            console.log('Badges loaded:', badges.value);
-          } else {
-            badges.value = [];
-            console.warn('No badge data received from server');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching badges:', error);
-        badges.value = [];
-      }
-    };
+   // Function to fetch badges
+const fetchBadges = async () => {
+  try {
+    loading.value = true;
+    message.value = '';
+    
+    console.log('Fetching badges for user:', user.id);
+    const response = await badgeServices.getAllUserBadges(user.id);
+    
+    if (response && response.data) {
+      // Ensure all badge objects have the necessary properties
+      badges.value = response.data.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || 'Achievement', 
+      }));
+      
+      console.log('Badges loaded:', badges.value);
+    } else {
+      badges.value = [];
+      message.value = 'No badge data received from server';
+    }
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    message.value = 'Failed to load your badges. Please try again.';
+    badges.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
     
     const fetchTasks = async () => {
       try {
@@ -369,8 +379,7 @@ export default {
           registeredEvents.value = response.data || [];
           console.log('Registered events loaded:', registeredEvents.value);
           
-          // Calculate points from events
-          const eventPoints = registeredEvents.value.length * 75; // Assuming each event is worth 75 points
+          const eventPoints = registeredEvents.value.length * 75; 
           
           pointsBreakdown.value.events = eventPoints;
           updateTotalPoints();
@@ -414,8 +423,7 @@ export default {
     };
     
     const logout = () => {
-      // Clear user data from store
-      store.commit('setUser', null);
+      store.commit('setUser', null);// Clear user data from store
       // Redirect to login page
       window.location.href = '/login';
     };
