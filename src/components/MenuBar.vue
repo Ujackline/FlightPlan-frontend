@@ -28,18 +28,8 @@
         <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
-      <!-- User menu remains in the top bar -->
       <div v-if="user">
-      <!-- Toggle button for side navigation -->
-      <v-btn 
-        v-if="user" 
-        icon 
-        @click="toggleSideNav" 
-        class="mr-2"
-      >
-        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
-      </v-btn>
-
+    
       <!-- User menu remains in the top bar -->
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
@@ -66,22 +56,16 @@
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
       
-                <!-- Theme Toggle -->
-      
-                <v-divider class="my-3"></v-divider>
+                      <!-- 🌗 Theme Toggle Component -->
+            <themeToggle @toggle-theme="$emit('toggle-theme')" />
 
-<!-- 🌗 Theme Toggle Component -->
-<themeToggle @toggle-theme="$emit('toggle-theme')" />
-
-
-               </div>
-                <v-divider class="my-3"></v-divider>
-                          </div>
-            </v-card-text>
-          </v-card>
-        </v-menu>
-      </div>
-    </v-app-bar>
+</div>
+</v-card-text>
+</v-card>
+</v-menu>
+</div>
+</div>
+</v-app-bar>
 
     <!-- Right Side Navigation Panel -->
     <div 
@@ -97,13 +81,13 @@
       <div class="nav-items">
         <v-list nav>
           <v-list-item 
-            @click="navigateTo('home')"
-            :class="{ 'active-route': currentRoute === 'home' }"
+            @click="navigateTo('FlightPlan')"
+            :class="{ 'active-route': currentRoute === 'FlightPlan' }"
           >
             <v-list-item-icon>
               <v-icon>mdi-home</v-icon>
             </v-list-item-icon>
-            <v-list-item-title>Home</v-list-item-title>
+            <v-list-item-title>FlightPlan</v-list-item-title>
           </v-list-item>
           
           <v-list-item 
@@ -142,6 +126,16 @@
             </v-list-item-icon>
             <v-list-item-title>Profile</v-list-item-title>
           </v-list-item>
+
+
+          <v-list-item @click="navigateTo('task')">
+            <v-list-item-icon>
+              <v-icon>mdi-account</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>task</v-list-item-title>
+          </v-list-item>
+
+
         </v-list>
       </div>
     </div>

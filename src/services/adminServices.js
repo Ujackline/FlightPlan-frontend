@@ -4,9 +4,14 @@ const API_URL = "http://localhost:3029/flight-plan-t9/admin";
 const adminService = {
   // Fetch all users (Admin Only)
   async getUsers() {
-    return apiClient.get(`${API_URL}/user`);
+    const response = await apiClient.get(`${API_URL}/users`);
+    return response.data; // ✅ Only return the data array
   },
 
+  async addUser(data) {
+    return apiClient.post('/user', data);
+  },
+  
   // ✅ Fetch a single user by ID
   async getUserById(userId) {
     return apiClient.get(`${API_URL}/user/${userId}`);
@@ -38,13 +43,15 @@ const adminService = {
   // Fetch Notifications
   async getNotifications() {
     console.log(API_URL)
-    return apiClient.get(`${API_URL}/notifications`).then(response => response.data);
+    return apiClient.get(`${API_URL}/notifications`)
+    .then(response => response.data);
   },
 
 
   //  Delete a notification
   async deleteNotification(id) {
-    return apiClient.delete(`${API_URL}/notifications/${id}`).then(response => response.data);
+    return apiClient.delete(`${API_URL}/notifications/${id}`)
+    .then(response => response.data);
   },
 
   //  Fetch Students
