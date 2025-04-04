@@ -30,10 +30,7 @@
 
       <div class="sidebar-spacer"></div>
 
-      <div class="nav-item" @click="logout">
-        <v-icon color="white" class="nav-icon">mdi-logout</v-icon>
-        <div class="nav-text">Logout</div>
-      </div>
+    
     </div>
 
     <!-- Main Content -->
@@ -422,11 +419,7 @@ const fetchBadges = async () => {
       ]);
     };
     
-    const logout = () => {
-      store.commit('setUser', null);// Clear user data from store
-      // Redirect to login page
-      window.location.href = '/login';
-    };
+   
     
     onMounted(() => {
       setUserFromStore();
@@ -452,7 +445,7 @@ const fetchBadges = async () => {
       formatDate,
       formatTime,
       refreshDashboard,
-      logout
+      
     };
   }
 };
