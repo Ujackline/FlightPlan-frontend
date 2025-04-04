@@ -3,7 +3,7 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import FlightPlan from "../views/FlightPlan.vue";
+import FlightPlan from "../views/Home.vue";
 import Task from "../views/task.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/AdminDashboard.vue";
@@ -14,6 +14,7 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
+import AdminEvents from "../views/AdminEvents.vue";
 
 
 
@@ -35,6 +36,11 @@ const router = createRouter({
       path: '/student/StudentSetup',
       name: 'StudentSetup',
       component: StudentSetup,
+    },
+    {
+      path: '/admin/AdminEvents',
+      name: 'AdminEvents',
+      component: AdminEvents,
     },
     {
       path: '/afternest',
