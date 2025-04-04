@@ -14,6 +14,7 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
+import PointRedemption from "../views/pointRedemption.vue";
 
 
 
@@ -25,6 +26,12 @@ const router = createRouter({
       redirect: '/login'  
     },
 
+    { 
+      path: '/pointRedemption', 
+      name: 'pointRedemption',  
+      component: PointRedemption 
+    },
+    
     {
       path: '/login',
       name: 'login',

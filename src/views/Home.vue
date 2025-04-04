@@ -29,7 +29,7 @@
           
           <p class="points-subtitle">Total earned points</p>
       <center>
-        <router-link to="/task" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
+        <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
       </center>
 
      
