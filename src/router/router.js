@@ -14,6 +14,7 @@ import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue"; 
 import StudentSetup from "../views/StudentSetup.vue";
 import PointRedemption from "../views/pointRedemption.vue";
+import Shop from "../views/Shop.vue";
 
 
 
@@ -26,8 +27,13 @@ const router = createRouter({
     },
     { 
       path: '/pointRedemption', 
-      name: 'pointRedemption',  // ✅ Fixed Name (removed leading `/`) 
+      name: 'pointRedemption',
       component: PointRedemption 
+    },
+    {
+      path: '/shop',
+      name: 'shop',
+      component: Shop
     },
     
     {
@@ -105,8 +111,7 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: Profile,
-    }, 
-
+    }
   ],
 });
 

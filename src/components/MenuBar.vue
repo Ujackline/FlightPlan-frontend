@@ -39,7 +39,15 @@
           Student Dashboard
         </v-btn>
         
-       
+        <v-btn 
+          text 
+          @click="navigateTo('shop')"
+          :class="{ 'active-route': currentRoute === 'shop' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-store</v-icon>
+          Shop
+        </v-btn>
       </div>
 
       <!-- Mobile menu button - only shows on small screens -->
@@ -112,6 +120,16 @@
               <v-icon>mdi-view-dashboard</v-icon>
             </template>
             <v-list-item-title>Student Dashboard</v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item 
+            @click="navigateTo('shop')"
+            :class="{ 'active-route': currentRoute === 'shop' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-store</v-icon>
+            </template>
+            <v-list-item-title>Shop</v-list-item-title>
           </v-list-item>
           
           <v-list-item 

@@ -1,11 +1,11 @@
 import apiClient from "../services/services"; // Import your configured API client
 
-const API_BASE_URL = "http://localhost:3029/flight-plan-t9/student";
+const API_ENDPOINT = "student";
 
 export default {
   async getStudentById(studentId) {
     try {
-      const response = await apiClient.get(`${API_BASE_URL}/${studentId}`);
+      const response = await apiClient.get(`${API_ENDPOINT}/${studentId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -14,7 +14,7 @@ export default {
   },
   async getStudents() {
     try {
-      const response = await apiClient.get(API_BASE_URL);
+      const response = await apiClient.get(API_ENDPOINT);
       return response.data;
     } catch (error) {
       console.error("Error fetching students:", error);
