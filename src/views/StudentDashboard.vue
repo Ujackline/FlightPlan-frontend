@@ -7,6 +7,10 @@
           <v-icon color="white" size="x-large">mdi-school</v-icon>
         </div>
       </div>
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
+      </div>
 
       <div class="nav-item">
         <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
@@ -29,15 +33,14 @@
       </div>
 
       <div class="sidebar-spacer"></div>
-
-    
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
+      
       <!-- Header with Search and Profile -->
       <div class="header">
-        <input type="text" class="search-bar" placeholder="Search">
+        <input type="text" placeholder="">
         <div class="profile">
           <div class="profile-pic">
             <img src="https://via.placeholder.com/40" alt="Profile">
@@ -55,14 +58,14 @@
         </div>
       </div>
 
-      <!-- Progress Bar -->
+      <!-- Progress Bar
       <div class="progress-section">
         <p class="progress-text">Flight Plan Progress</p>
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
         </div>
         <p class="progress-percentage">{{ progressPercentage }}% complete</p>
-      </div>
+      </div> -->
 
       <!-- Points Section -->
       <div class="points-card">
@@ -194,8 +197,6 @@
           </div>
         </div>
       </div>
-
-    
     </div>
   </div>
 </template>
@@ -205,6 +206,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import taskService from '../services/task';
 import badgeServices from '../services/badgeServices';
+import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
 import eventServices from '../services/eventServices';
 import Utils from '../config/utils';
@@ -226,11 +228,13 @@ export default {
     const tasks = ref([]);
     const registeredEvents = ref([]);
     const notifications = ref(0);
-    var firstName = ref(null);
-    var lastName = ref(null);
+    const firstName = ref(null);
+    const lastName = ref(null);
     const error = ref(null);
     const loading = ref(true);
     const message = ref('');
+    const currentUser = ref(null);
+
     
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
@@ -280,27 +284,53 @@ export default {
       }
     };
    
-
-    const fetchUser = async () => {
+    // Comprehensive function to get current user from all available sources
+    const getCurrentUser = async () => {
       try {
-    // Get the user object from local storage
-    const storedUser = Utils.getStore("user"); //  Ensure "user" is a string
+        // Try to get from store first
+        const storeUser = store.getters.getLoginUserInfo;
+        
+        if (storeUser && storeUser.id) {
+          console.log('User found in store:', storeUser.id);
+          currentUser.value = storeUser;
+          firstName.value = storeUser.fName || storeUser.firstName;
+          lastName.value = storeUser.lName || storeUser.lastName;
+          return storeUser;
+        }
+        
+        // If not in store, try localStorage
+        const storedUser = Utils.getStore("user");
+        if (storedUser && (storedUser.id || storedUser.userId)) {
+          console.log('User found in localStorage:', storedUser);
+          currentUser.value = storedUser;
+          firstName.value = storedUser.fName || storedUser.firstName;
+          lastName.value = storedUser.lName || storedUser.lastName;
+          return storedUser;
+        }
+        
+        // If not in localStorage, try API
+        console.log('User not found in store or localStorage, attempting to fetch from API');
+        message.value = 'Retrieving user data...';
+        
+        const response = await studentServices.getStudentById();
+        
+        if (response && response.id) {
+          console.log('User fetched from API:', response.id);
+          currentUser.value = response;
+          firstName.value = response.fName || response.firstName;
+          lastName.value = response.lName || response.lastName;
+          return response;
+        } else {
+          throw new Error('Could not retrieve user information');
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+        message.value = 'Unable to determine current user. Please log in again.';
+        loading.value = false;
+        return null;
+      }
+    };
 
-    if (!storedUser || !storedUser.userId) 
-    {
-      console.error(" No user ID found in local storage:", storedUser);
-      return;
-    }
-
-    console.log("Found user in storage:", storedUser); // Debugging
-    firstName.value = storedUser.fName;
-    lastName.value= storedUser.lName;
-
-    }catch (err) {
-    console.error("Error fetching user:", err);
-    error.value = "Failed to fetch user data.";
-  }
-};
     const fetchExperiences = async () => {
       try {
         const response = await experienceServices.getExperiences();
@@ -320,35 +350,73 @@ export default {
       }
     };
     
-   // Function to fetch badges
-const fetchBadges = async () => {
-  try {
-    loading.value = true;
-    message.value = '';
-    
-    console.log('Fetching badges for user:', user.id);
-    const response = await badgeServices.getAllUserBadges(user.id);
-    
-    if (response && response.data) {
-      // Ensure all badge objects have the necessary properties
-      badges.value = response.data.map(badge => ({
-        ...badge,
-        badge_type: badge.badge_type || 'Achievement', 
-      }));
-      
-      console.log('Badges loaded:', badges.value);
-    } else {
-      badges.value = [];
-      message.value = 'No badge data received from server';
-    }
-  } catch (error) {
-    console.error('Error fetching badges:', error);
-    message.value = 'Failed to load your badges. Please try again.';
-    badges.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
+    // Function to fetch badges
+    const fetchBadges = async () => {
+      try {
+        loading.value = true;
+        message.value = '';
+        
+        const user = currentUser.value || await getCurrentUser();
+        
+        if (!user || !user.id) {
+          message.value = 'User not found. Please log in again.';
+          loading.value = false;
+          return;
+        }
+        
+        console.log('Fetching badges for user:', user.id);
+        const response = await badgeServices.getAllUserBadges(user.id);
+        
+        console.log('Badge API response:', response);
+        
+        // Handle different possible data structures
+        if (Array.isArray(response)) {
+          // If response is directly an array
+          badges.value = response.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && Array.isArray(response.data)) {
+          // If response has a data array property
+          badges.value = response.data.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && typeof response === 'object') {
+          // If response is a single object or has a different structure
+          // Try to extract badges if they exist in the response
+          const badgeData = response.data || response;
+          
+          if (Array.isArray(badgeData)) {
+            badges.value = badgeData.map(badge => ({
+              ...badge,
+              badge_type: badge.badge_type || badge.type || 'Achievement'
+            }));
+          } else {
+            // If it's a single badge object
+            badges.value = [{ 
+              ...badgeData,
+              badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+            }];
+          }
+        } else {
+          badges.value = [];
+          message.value = 'No badges found for this user.';
+        }
+        
+        console.log('Processed badges:', badges.value);
+        
+        if (badges.value.length === 0) {
+          message.value = 'No badges found for this user.';
+        }
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        message.value = 'Failed to load your badges. Please try again.';
+        badges.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
     
     const fetchTasks = async () => {
       try {
@@ -410,8 +478,9 @@ const fetchBadges = async () => {
     };
     
     const refreshDashboard = async () => {
+      await getCurrentUser(); // Get user data first
+      
       await Promise.all([
-        fetchUser(),
         fetchExperiences(),
         fetchBadges(),
         fetchTasks(),
@@ -419,10 +488,7 @@ const fetchBadges = async () => {
       ]);
     };
     
-   
-    
     onMounted(() => {
-      setUserFromStore();
       refreshDashboard();
     });
     
@@ -445,7 +511,6 @@ const fetchBadges = async () => {
       formatDate,
       formatTime,
       refreshDashboard,
-      
     };
   }
 };
@@ -542,14 +607,6 @@ const fetchBadges = async () => {
   margin-bottom: 20px;
 }
 
-.search-bar {
-  background-color: #f5f5f5;
-  border-radius: 20px;
-  width: 300px;
-  padding: 10px 20px;
-  border: none;
-  outline: none;
-}
 
 .profile {
   display: flex;
@@ -848,5 +905,4 @@ const fetchBadges = async () => {
   font-style: italic;
   font-size: 14px;
 }
-
 </style>

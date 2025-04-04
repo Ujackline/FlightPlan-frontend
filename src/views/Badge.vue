@@ -80,13 +80,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import badgeServices from '../services/badgeServices';
+import studentServices from '../services/studentServices';
 import store from '../store/store';
 
 const badges = ref([]);
 const loading = ref(true);
 const message = ref('');
 const activeFilter = ref('ALL BADGE TYPES');
-const user = store.getters.getLoginUserInfo;
+const currentUser = ref(null);
 
 const filteredBadges = computed(() => {
   if (activeFilter.value === 'ALL BADGE TYPES') {
@@ -95,26 +96,99 @@ const filteredBadges = computed(() => {
   return badges.value.filter(badge => badge.badge_type === activeFilter.value);
 });
 
+// Function to get current user
+const getCurrentUser = async () => {
+  try {
+    // Try to get from store first
+    const user = store.getters.getLoginUserInfo;
+    
+    if (user && user.id) {
+      console.log('User found in store:', user.id);
+      currentUser.value = user;
+      return user;
+    } else {
+      // If not in store, try to fetch from API
+      console.log('User not found in store, attempting to fetch from API');
+      message.value = 'Retrieving user data...';
+      
+      // You might need a different endpoint for getting the current user
+      // This is just a placeholder based on your current code
+      const response = await studentServices.getStudentById();
+      
+      if (response && response.id) {
+        console.log('User fetched from API:', response.id);
+        currentUser.value = response;
+        return response;
+      } else {
+        throw new Error('Could not retrieve user information');
+      }
+    }
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    message.value = 'Unable to determine current user. Please log in again.';
+    loading.value = false;
+    return null;
+  }
+};
+
 // Function to fetch badges
 const fetchBadges = async () => {
   try {
     loading.value = true;
     message.value = '';
     
+    const user = currentUser.value || await getCurrentUser();
+    
+    if (!user || !user.id) {
+      message.value = 'User not found. Please log in again.';
+      loading.value = false;
+      return;
+    }
+    
     console.log('Fetching badges for user:', user.id);
     const response = await badgeServices.getAllUserBadges(user.id);
     
-    if (response && response.data) {
-      // Ensure all badge objects have the necessary properties
+    console.log('Badge API response:', response);
+    
+    // Handle different possible data structures
+    if (Array.isArray(response)) {
+      // If response is directly an array
+      badges.value = response.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || badge.type || 'Achievement'
+      }));
+    } else if (response && Array.isArray(response.data)) {
+      // If response has a data array property
       badges.value = response.data.map(badge => ({
         ...badge,
-        badge_type: badge.badge_type || 'Achievement', // Default to Achievement if missing
+        badge_type: badge.badge_type || badge.type || 'Achievement'
       }));
+    } else if (response && typeof response === 'object') {
+      // If response is a single object or has a different structure
+      // Try to extract badges if they exist in the response
+      const badgeData = response.data || response;
       
-      console.log('Badges loaded:', badges.value);
+      if (Array.isArray(badgeData)) {
+        badges.value = badgeData.map(badge => ({
+          ...badge,
+          badge_type: badge.badge_type || badge.type || 'Achievement'
+        }));
+      } else {
+        // If it's a single badge object
+        badges.value = [{ 
+          ...badgeData,
+          badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+        }];
+      }
     } else {
       badges.value = [];
-      message.value = 'No badge data received from server';
+      message.value = 'No badges found for this user.';
+    }
+    
+    console.log('Processed badges:', badges.value);
+    
+    if (badges.value.length === 0) {
+      message.value = 'No badges found for this user.';
     }
   } catch (error) {
     console.error('Error fetching badges:', error);
@@ -141,18 +215,13 @@ const formatDate = (dateString) => {
 };
 
 // Load badges when component mounts
-onMounted(() => {
+onMounted(async () => {
   console.log('Badges component mounted');
-  if (user && user.id) {
-    console.log('User found, fetching badges');
-    fetchBadges();
-  } else {
-    console.error('User not found in store');
-    message.value = 'Unable to determine current user. Please log in again.';
-    loading.value = false;
-  }
+  await fetchBadges();
 });
 </script>
+
+
 <style scoped>
 .container {
   max-width: 1200px;
