@@ -12,8 +12,10 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue"; 
 import StudentSetup from "../views/StudentSetup.vue";
+import AdminEvents from "../views/AdminEvents.vue";
 import adminDashboard from "../views/adminDashboard.vue";
 import PointRedemption from "../views/pointRedemption.vue";
+
 
 
 
@@ -40,6 +42,11 @@ const router = createRouter({
       path: '/student/StudentSetup',
       name: 'StudentSetup',
       component: StudentSetup,
+    },
+    {
+      path: '/admin/AdminEvents',
+      name: 'AdminEvents',
+      component: AdminEvents,
     },
     {
       path: '/afternest',
