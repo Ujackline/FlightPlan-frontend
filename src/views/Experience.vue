@@ -64,6 +64,7 @@
         <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
         <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
         <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+        <p><strong>Semester:</strong> {{ selectedExperience.semester }}</p>
         <p><strong>Reflection Required:</strong> {{ selectedExperience.reflectionRequired ? "Yes" : "No" }}</p>
         <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
         <p><strong>Badge:</strong> {{ selectedExperience.badge || "None" }}</p>
@@ -95,6 +96,7 @@ export default {
         type: "",
         cliftonStrength: "",
         major: "",
+        semester:"",
         reflectionRequired: false,
         points: 0,
         badge: "",
@@ -113,6 +115,7 @@ export default {
         { name: "type", label: "Type", type: "text" },
         { name: "cliftonStrength", label: "Clifton Strength", type: "text" },
         { name: "major", label: "Major", type: "text" },
+        { name: "semester", label: "Semester", type: "text" },
         { name: "reflectionRequired", label: "Reflection Required", type: "checkbox" },
         { name: "points", label: "Points", type: "number" },
         { name: "badge", label: "Badge", type: "text" },

@@ -15,7 +15,7 @@ import StudentSetup from "../views/StudentSetup.vue";
 import AdminEvents from "../views/AdminEvents.vue";
 import adminDashboard from "../views/adminDashboard.vue";
 import PointRedemption from "../views/pointRedemption.vue";
-
+import Badges from "../views/Badges.vue";
 
 
 
@@ -100,6 +100,12 @@ const router = createRouter({
       path: '/events',
       name: 'Events',
       component: Events,
+    },
+
+    {
+      path: '/badges',
+      name: 'Badges',
+      component: Badges,
     },
   
     {

@@ -8,49 +8,48 @@
 </div>
       </div>
 
-      <div class="nav-item">
+            <router-link to="/dashboard" class="nav-item">
         <i class="fas fa-th-large"></i>
         <div class="nav-text">Dashboard</div>
-      </div>
+      </router-link>
 
-
-      <div class="nav-item">
+      <router-link to="/events" class="nav-item">
         <i class="fas fa-pen"></i>
-        <div class="nav-text"> Event Registration</div>
-      </div>
+        <div class="nav-text">Event Registration</div>
+      </router-link>
 
-
-      <div class="nav-item">
+      <router-link to="/badges" class="nav-item">
         <i class="fas fa-award"></i>
         <div class="nav-text">Badges</div>
-      </div>
+      </router-link>
 
-      <div class="nav-item">
+      <router-link to="/task" class="nav-item">
         <i class="fas fa-tasks"></i>
         <div class="nav-text">Tasks</div>
-      </div>
+      </router-link>
 
-      <div class="nav-item">
+      <router-link to="/events" class="nav-item">
         <i class="fas fa-calendar-alt"></i>
         <div class="nav-text">Events</div>
-      </div>
+      </router-link>
 
-      <div class="nav-item">
+      <router-link to="/experience" class="nav-item">
         <i class="fas fa-star"></i>
         <div class="nav-text">Experiences</div>
-      </div>
+      </router-link>
 
-      <div class="nav-item">
+      <router-link to="/points" class="nav-item">
         <i class="fas fa-poll"></i>
         <div class="nav-text">Points</div>
-      </div>
+      </router-link>
+
 
       <div class="sidebar-spacer"></div>
 
-      <div class="nav-item">
+      <router-link to="/logout" class="nav-item">
         <i class="fas fa-sign-out-alt"></i>
         <div class="nav-text">Logout</div>
-      </div>
+      </router-link>
     </div>
 
     <!-- Main Content -->
@@ -63,8 +62,7 @@
             <img src="https://via.placeholder.com/40" alt="Profile">
           </div>
           <div class="profile-info">
-            <div class="profile-name">{{ studentName || 'John Doe' }}</div>
-            <div class="profile-year">3rd year</div>
+            <div class="profile-name">{{ studentName || '' }}</div>
           </div>
           <div class="notification-icon">
             <i class="fas fa-bell"></i>
@@ -144,7 +142,8 @@
         <div class="card-container">
           <div class="card-header">
             <h2 class="card-title">Completed Tasks</h2>
-            <a href="#" class="see-all" @click.prevent="$emit('navigate', 'completed-tasks')">View All →</a>
+            <router-link to="/task" class="see-all">View All →</router-link>
+            <!-- <a href="#" class="see-all" @click.prevent="$emit('navigate', 'task')">View All →</a> -->
           </div>
           <div class="tasks-list">
             <div v-for="task in completedTasks" :key="task.id" class="task-item">
@@ -163,7 +162,8 @@
         <div class="card-container">
           <div class="card-header">
             <h2 class="card-title">Completed Events</h2>
-            <a href="#" class="see-all" @click.prevent="$emit('navigate', 'completed-events')">View All →</a>
+            <router-link to="/events" class="see-all">View All →</router-link>
+
           </div>
           <div class="events-list">
             <div v-for="event in completedEvents" :key="event.id" class="event-item">
@@ -180,15 +180,21 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button @click="$emit('navigate', 'dashboard')" class="primary-btn">GO TO DASHBOARD</button>
-        <button @click="$emit('navigate', 'profile')" class="secondary-btn">VIEW PROFILE</button>
-      </div>
+  <button @click="$router.push({ name: 'studentDashboard' })" class="primary-btn">GO TO DASHBOARD</button>
+  <button @click="$router.push({ name: 'profile' })" class="secondary-btn">VIEW PROFILE</button>
+</div>
+
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import Utils from '../config/utils';
+import taskServices from '../services/taskServices';
+import experienceServices from '../services/experienceServices';
+import eventServices from '../services/eventServices';
+import studentServices from '../services/studentServices';
+import badgeServices from '../services/badgeServices';
 
 export default {
   name: 'StudentDashboard',
@@ -210,124 +216,59 @@ export default {
   async created() {
     await this.fetchStudentId();
     if (this.studentId) {
-      await Promise.all([
-        this.fetchDashboardData(),
-        this.fetchExperiences(),
-        this.fetchBadges(),
-        this.fetchTasks(),
-        this.fetchEvents()
-      ]);
+      await this.fetchAllData();
     }
   },
   methods: {
     async fetchStudentId() {
       try {
-        const response = await axios.get('/flight-plan-t9/user'); 
-        this.studentId = response.data.id; 
-        this.studentName = response.data.name || 'Student'; 
+        const storedUser = Utils.getStore("user");
+        this.studentId = storedUser?.id;
+        this.studentName = `${storedUser?.fName || ''} ${storedUser?.lName || ''}`.trim();
       } catch (error) {
-        console.error('Error fetching student ID:', error);
-        // Set default values for demo
-        this.studentId = 1;
-        this.studentName = 'Mwiza Laura ';
+        console.error("Error fetching student from local storage:", error);
+        this.studentId = null;
+        this.studentName = "Unknown Student";
       }
     },
-    async fetchDashboardData() {
+    
+
+    async fetchAllData() {
       try {
-        const [progressRes, pointsRes] = await Promise.all([
-          axios.get(`/flight-plan-t9/student/progress/${this.studentId}`),
-          axios.get(`/flight-plan-t9/student/points/${this.studentId}`)
+        const [taskRes, expRes, eventRes, pointsRes, progressRes, badgeRes] = await Promise.all([
+          taskServices.getAllTasks(),
+          experienceServices.getExperiences(),
+          eventServices.getAll(),
+          studentServices.getStudentPoints(this.studentId),
+          studentServices.getProgress(this.studentId),
+          badgeServices.getBadges(this.studentId)
         ]);
 
-        this.progressPercentage = progressRes.data.progress || 65;
-        this.totalPoints = pointsRes.data.total || 850;
-        this.pointsBreakdown = pointsRes.data.breakdown || { tasks: 350, events: 250, extras: 250 };
+        const currentDate = new Date();
+
+        this.progressPercentage = progressRes.data?.progress || 65;
+        this.totalPoints = pointsRes.data?.total || 850;
+        this.pointsBreakdown = pointsRes.data?.breakdown || { tasks: 350, events: 250, extras: 250 };
+
+        this.experiences = expRes || [];
+
+        this.badges = badgeRes.data || [];
+
+        this.upcomingTasks = taskRes.data?.filter(task => !task.completed) || [];
+        this.completedTasks = taskRes.data?.filter(task => task.completed) || [];
+
+        this.upcomingEvents = eventRes.data?.filter(event => new Date(event.date) >= currentDate) || [];
+        this.completedEvents = eventRes.data?.filter(event => new Date(event.date) < currentDate) || [];
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        // Set default values for demo
-        this.progressPercentage = 65;
-        this.totalPoints = 850;
-        this.pointsBreakdown = { tasks: 350, events: 250, extras: 250 };
-      }
-    },
-    async fetchExperiences() {
-      try {
-        const response = await axios.get(`/flight-plan-t9/experience/${this.studentId}`);
-        this.experiences = response.data || [];
-      } catch (error) {
-        console.error('Error fetching experiences:', error);
-        // Sample data for demo
-        this.experiences = [
-          { title: 'Research Assistant', details: 'Computer Science Department' },
-          { title: 'Leadership Workshop', details: 'Student Leadership Program' }
-        ];
-      }
-    },
-    async fetchBadges() {
-      try {
-        const response = await axios.get(`/flight-plan-t9/badge/${this.studentId}`);
-        this.badges = response.data || [];
-      } catch (error) {
-        console.error('Error fetching badges:', error);
-        // Sample data for demo
-        this.badges = [
-          { name: 'Achievement', icon: 'fa-award' },
-          { name: 'Excellence', icon: 'fa-certificate' },
-          { name: 'Leadership', icon: 'fa-medal' },
-          { name: 'Completion', icon: 'fa-trophy' }
-        ];
-      }
-    },
-    async fetchTasks() {
-      try {
-        const response = await axios.get('/flight-plan-t9/task/');
-        // Filter tasks into upcoming and completed
-        this.upcomingTasks = response.data.filter(task => !task.completed) || [];
-        this.completedTasks = response.data.filter(task => task.completed) || [];
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        // Sample data for demo
-        this.upcomingTasks = [
-          { id: 1, title: 'Submit Research Proposal', dueDate: 'April 15, 2025' },
-          { id: 2, title: 'Complete Career Assessment', dueDate: 'April 8, 2025' }
-        ];
-        this.completedTasks = [
-          { id: 3, title: 'Resume Review Session', completedDate: 'March 25, 2025' },
-          { id: 4, title: 'Internship Application', completedDate: 'March 20, 2025' }
-        ];
-      }
-    },
-    async fetchEvents() {
-      try {
-        const response = await axios.get('/flight-plan-t9/event/');
-        const currentDate = new Date();
-        
-        // Filter events into upcoming and completed based on date
-        this.upcomingEvents = response.data.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate >= currentDate;
-        }) || [];
-        
-        this.completedEvents = response.data.filter(event => {
-          const eventDate = new Date(event.date);
-          return eventDate < currentDate;
-        }) || [];
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        // Sample data for demo
-        this.upcomingEvents = [
-          { id: 1, title: 'Career Fair', date: 'April 5, 2025', time: '2:00 PM', location: 'Student Union Building' },
-          { id: 2, title: 'Industry Panel Discussion', date: 'April 12, 2025', time: '10:00 AM', location: 'Engineering Hall, Room 203' }
-        ];
-        this.completedEvents = [
-          { id: 3, title: 'Resume Workshop', date: 'March 18, 2025', time: '3:00 PM', location: 'Career Center' },
-          { id: 4, title: 'Networking Mixer', date: 'March 10, 2025', time: '1:00 PM', location: 'Alumni Hall' }
-        ];
+        // You could assign sample or fallback data here if desired
       }
     }
   }
 };
 </script>
+
 
 <style scoped>
 * {
@@ -349,7 +290,7 @@ export default {
 
 /* Sidebar Styles */
 .sidebar {
-  background-color: #963030;
+  background-color: #4a0d0d;
   width: 220px;
   padding: 30px 0;
   display: flex;
@@ -358,7 +299,7 @@ export default {
 }
 
 .logo-container {
-  background-color: #963030;
+  background-color: #4a0d0d;
   width: 90px;
   height: 90px;
   border-radius: 15px;
@@ -471,13 +412,13 @@ export default {
   right: -5px;
   width: 10px;
   height: 10px;
-  background-color: red;
+  background-color: 4a0d0d;
   border-radius: 50%;
 }
 
 /* Welcome Banner */
 .welcome-banner {
-  background-color: #963030;
+  background-color: #4a0d0d;
   border-radius: 15px;
   padding: 30px;
   color: white;
