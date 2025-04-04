@@ -93,8 +93,8 @@ export default {
   },
   setup() {
     const firstName = ref('');
-    const progress = ref(65);
-    const points = ref(63);
+    const progress = ref(10);
+    const points = ref(24);
     
     const tasks = ref([]);
     
