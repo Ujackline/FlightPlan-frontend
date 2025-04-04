@@ -28,7 +28,11 @@
           </div>
           
           <p class="points-subtitle">Total earned points</p>
-          <button class="redeem-button">Redeem Rewards</button>
+      <center>
+        <router-link to="/task" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
+      </center>
+
+     
         </div>
         
       </div>
