@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Section to display available events -->
-    <div v-if="!showMyEvents">
+    <div v-if="!showMyEvents && !showCompletedEvents">
       <h2>Available Career Events</h2>
       <ul>
         <li v-for="event in events" :key="event.id">
@@ -12,6 +12,7 @@
           <p>End Time: {{ formatTime(event.end_time) }}</p>
           <p>Location: {{ event.location }}</p>
           <p>Major: {{ event.major }}</p>
+          <p v-if="isEventComplete(event.id)" class="completed-tag">✓ Completed ({{getEventPoints(event.id)}} points earned)</p>
           <button 
             @click="registerForEvent(event.id)" 
             :disabled="isRegistered(event.id)"
@@ -21,11 +22,14 @@
           </button>
         </li>
       </ul>
-      <button @click="showMyEvents = true">View My Events</button>
+      <div class="button-group main-buttons">
+        <button @click="showMyEvents = true">View My Events</button>
+        <button @click="showCompletedEvents = true">View Completed Events</button>
+      </div>
     </div>
 
     <!-- Section to display registered events -->
-    <div v-else>
+    <div v-else-if="showMyEvents && !showCompletedEvents">
       <h2>Registered Events</h2>
       <p v-if="registeredEvents.length === 0">You haven't registered for any events yet.</p>
       <ul v-else>
@@ -36,20 +40,48 @@
           <p>End Time: {{ formatTime(event.end_time) }}</p>
           <p>Location: {{ event.location }}</p>
           <p>Major: {{ event.major }}</p>
+          <p v-if="isEventComplete(event.id)" class="completed-tag">✓ Completed ({{getEventPoints(event.id)}} points earned)</p>
           <div class="button-group">
-            <button @click="cancelRegistration(event.id)" class="cancel-button">
+            <button v-if="!isEventComplete(event.id) && isEventInPast(event)" @click="markAsAttended(event)" class="complete-button">
+              Mark as Attended
+            </button>
+            <button v-if="!isEventComplete(event.id)" @click="cancelRegistration(event.id)" class="cancel-button">
               Cancel Registration
             </button>
             <button @click="addToGoogleCalendar(event)" class="calendar-button">
               Add to Google Calendar
             </button>
-            <button @click="setNotification(event)" class="notification-button">
+            <button v-if="!isEventInPast(event)" @click="setNotification(event)" class="notification-button">
               Set Reminder
             </button>
           </div>
         </li>
       </ul>
-      <button @click="showMyEvents = false">Back to All Events</button>
+      <div class="button-group main-buttons">
+        <button @click="showMyEvents = false">Back to All Events</button>
+        <button @click="showCompletedEvents = true; showMyEvents = false">View Completed Events</button>
+      </div>
+    </div>
+    
+    <!-- Section to display completed events -->
+    <div v-else>
+      <h2>Completed Events</h2>
+      <p v-if="completedEvents.length === 0">You haven't completed any events yet.</p>
+      <ul v-else>
+        <li v-for="event in completedEvents" :key="event.id" class="completed-event">
+          <h3>{{ event.name }}</h3>
+          <p>Date: {{ formatDate(event.date) }}</p>
+          <p>Time: {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</p>
+          <p>Location: {{ event.location }}</p>
+          <p>Major: {{ event.major }}</p>
+          <p class="points-earned">Points Earned: {{getEventPoints(event.id)}}</p>
+          <p class="completion-date">Completed on: {{formatDate(getCompletionDate(event.id))}}</p>
+        </li>
+      </ul>
+      <div class="button-group main-buttons">
+        <button @click="showCompletedEvents = false">Back to All Events</button>
+        <button v-if="!showMyEvents" @click="showMyEvents = true; showCompletedEvents = false">View My Events</button>
+      </div>
     </div>
 
     <!-- Notification Settings Modal -->
@@ -80,6 +112,22 @@
         </div>
       </div>
     </div>
+    
+    <!-- Attendance verification modal -->
+    <div v-if="showAttendanceModal" class="modal-overlay">
+      <div class="modal">
+        <h3>Verify Event Attendance</h3>
+        <p>Enter the attendance code provided at the event:</p>
+        <div class="form-group">
+          <input type="text" v-model="attendanceCode" placeholder="Attendance Code" class="attendance-input" />
+        </div>
+        <p class="small-text">If you don't have an attendance code, ask the event coordinator for verification.</p>
+        <div class="button-group">
+          <button @click="closeAttendanceModal" class="cancel-button">Cancel</button>
+          <button @click="verifyAttendance" class="save-button">Verify Attendance</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Confirmation or error message -->
     <div v-if="message" :class="['message', messageType]">
@@ -96,20 +144,26 @@ export default {
     return {
       events: [], 
       registeredEvents: [], 
-      showMyEvents: false, 
+      showMyEvents: false,
+      showCompletedEvents: false,
       message: '', 
       messageType: 'success', 
       localRegistrations: [],
       showNotificationModal: false,
+      showAttendanceModal: false,
       selectedEvent: null,
       notificationTime: '60',  // Default: 1 hour before
       notificationType: 'email',
       eventNotifications: [],  // Stores user's notification preferences
+      completedEvents: [],     // Store completed events
+      eventCompletions: [],    // Stores completion data (id, date, points)
+      attendanceCode: '',      // For event attendance verification
     };
   },
   async created() {
     this.loadLocalRegistrations();
     this.loadNotificationPreferences();
+    this.loadEventCompletions();
     
     console.log("User from Vuex store:", this.$store.state.user); 
     
@@ -123,6 +177,15 @@ export default {
     // Check if we need to request notification permissions
     if (this.isNotificationSupported()) {
       this.requestNotificationPermission();
+    }
+    
+    // Populate completed events
+    this.updateCompletedEventsList();
+  },
+  computed: {
+    // Get total points from completed events
+    totalPointsEarned() {
+      return this.eventCompletions.reduce((total, completion) => total + completion.points, 0);
     }
   },
   methods: {
@@ -160,6 +223,33 @@ export default {
     // Save notification preferences
     saveNotificationPreferences() {
       localStorage.setItem('eventNotifications', JSON.stringify(this.eventNotifications));
+    },
+    
+    // Load event completions data
+    loadEventCompletions() {
+      const stored = localStorage.getItem('eventCompletions');
+      if (stored) {
+        this.eventCompletions = JSON.parse(stored);
+      }
+    },
+    
+    // Save event completions data
+    saveEventCompletions() {
+      localStorage.setItem('eventCompletions', JSON.stringify(this.eventCompletions));
+      
+      // Also update points in the store if available
+      if (this.$store && this.$store.commit) {
+        this.$store.commit('updatePoints', this.totalPointsEarned);
+      }
+    },
+    
+    // Update the completedEvents list
+    updateCompletedEventsList() {
+      // Get IDs of completed events
+      const completedIds = this.eventCompletions.map(completion => completion.eventId);
+      
+      // Filter events to get completed ones
+      this.completedEvents = this.events.filter(event => completedIds.includes(event.id));
     },
 
     // Fetch events registered by the user
@@ -229,6 +319,108 @@ export default {
         console.error('Error canceling registration:', error);
         this.showMessage('Failed to cancel registration.', 'error');
       }
+    },
+    
+    // Open the attendance verification modal
+    markAsAttended(event) {
+      this.selectedEvent = event;
+      this.attendanceCode = '';
+      this.showAttendanceModal = true;
+    },
+    
+    // Close the attendance modal
+    closeAttendanceModal() {
+      this.showAttendanceModal = false;
+      this.selectedEvent = null;
+      this.attendanceCode = '';
+    },
+    
+    // Verify attendance code and mark event as completed
+    async verifyAttendance() {
+      if (!this.selectedEvent) return;
+      
+      try {
+        const userId = this.$store.state.user?.id;
+        const eventId = this.selectedEvent.id;
+        
+        // In a real app, you would verify the code with your backend
+        // Here we'll simulate validation (any non-empty code works)
+        if (this.attendanceCode.trim() === '') {
+          this.showMessage('Please enter a valid attendance code', 'error');
+          return;
+        }
+        
+        // Calculate points based on event (could be dynamic based on event type)
+        const pointsEarned = 50; // Default points value
+        
+        if (userId) {
+          // If backend is available, mark as completed on server
+          try {
+            // This is a placeholder for your API call
+            await eventServices.markAttendance(eventId, userId, this.attendanceCode);
+            
+            // Update points on the server
+            await this.$axios.post('/flight-plan-t9/points/add', {
+              userId: userId,
+              points: pointsEarned,
+              source: `Event: ${this.selectedEvent.name}`
+            });
+          } catch (error) {
+            console.error('Server error, falling back to local storage', error);
+          }
+        }
+        
+        // Always update local storage as fallback
+        const completionDate = new Date().toISOString();
+        
+        // Check if event is already marked as completed
+        if (!this.eventCompletions.some(completion => completion.eventId === eventId)) {
+          this.eventCompletions.push({
+            eventId: eventId,
+            completionDate: completionDate,
+            points: pointsEarned
+          });
+          this.saveEventCompletions();
+        }
+        
+        // Update completed events list
+        this.updateCompletedEventsList();
+        
+        // Close modal and show success message
+        this.closeAttendanceModal();
+        this.showMessage(`Attendance verified! You earned ${pointsEarned} points.`, 'success');
+      } catch (error) {
+        console.error('Error verifying attendance:', error);
+        this.showMessage('Failed to verify attendance. Please try again.', 'error');
+      }
+    },
+    
+    // Check if an event is marked as completed
+    isEventComplete(eventId) {
+      return this.eventCompletions.some(completion => completion.eventId === eventId);
+    },
+    
+    // Get points earned for a completed event
+    getEventPoints(eventId) {
+      const completion = this.eventCompletions.find(completion => completion.eventId === eventId);
+      return completion ? completion.points : 0;
+    },
+    
+    // Get completion date for an event
+    getCompletionDate(eventId) {
+      const completion = this.eventCompletions.find(completion => completion.eventId === eventId);
+      return completion ? completion.completionDate : null;
+    },
+    
+    // Check if event date is in the past
+    isEventInPast(event) {
+      const eventDate = new Date(event.date);
+      const startTime = new Date(event.start_time);
+      
+      eventDate.setHours(startTime.getHours());
+      eventDate.setMinutes(startTime.getMinutes());
+      
+      return eventDate < new Date();
     },
 
     // Check if the user is already registered for an event
@@ -412,6 +604,15 @@ export default {
       }, 3000);
     },
   },
+  watch: {
+    // Watch for changes in events to update completed events list
+    events: {
+      handler() {
+        this.updateCompletedEventsList();
+      },
+      deep: true
+    }
+  }
 };
 </script>
 
@@ -452,6 +653,10 @@ button {
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+.main-buttons {
+  justify-content: center;
+  margin: 15px 0;
 }
 /* Green register button */
 .register-button {
@@ -506,6 +711,15 @@ button {
 .save-button:hover {
   background-color: #218838;
 }
+/* Complete button styling */
+.complete-button {
+  background-color: #17a2b8;
+  color: white;
+  border-color: #17a2b8;
+}
+.complete-button:hover {
+  background-color: #138496;
+}
 button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -539,10 +753,41 @@ label {
   margin-bottom: 5px;
   font-weight: bold;
 }
-select {
+select, input {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+.completed-tag {
+  background-color: #28a745;
+  color: white;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+.completed-event {
+  border-left: 4px solid #28a745;
+}
+.points-earned {
+  font-weight: bold;
+  color: #28a745;
+}
+.completion-date {
+  font-style: italic;
+  color: #666;
+  font-size: 0.9em;
+}
+.small-text {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+}
+.attendance-input {
+  font-size: 1.2em;
+  text-align: center;
+  letter-spacing: 2px;
 }
 </style>

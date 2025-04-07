@@ -1,36 +1,39 @@
 <template>
-    <div class="profile-container">
-      <h2>Profile</h2>
-  
-      <div v-if="loading">Loading user data...</div>
-      <div v-else-if="error">{{ error }}</div>
+  <div class="profile-wrapper">
+    <div class="profile-card">
+      <h2 class="text-3xl font-bold text-blue-800 mb-6 text-center">My Profile</h2>
+
+      <div v-if="loading" class="text-center text-gray-500">Loading your profile...</div>
+      <div v-else-if="error" class="text-red-600 text-center">{{ error }}</div>
       <div v-else>
-        <form @submit.prevent="updateProfile">
+        <form @submit.prevent="updateProfile" class="space-y-4">
           <div class="form-group">
-            <label>First Name:</label>
-            <input type="text" v-model="user.fName" required />
+            <label for="fName">First Name</label>
+            <input id="fName" type="text" v-model="user.fName" required />
           </div>
-  
+
           <div class="form-group">
-            <label>Last Name:</label>
-            <input type="text" v-model="user.lName" required />
+            <label for="lName">Last Name</label>
+            <input id="lName" type="text" v-model="user.lName" required />
           </div>
-  
+
           <div class="form-group">
-            <label>Email:</label>
-            <input type="email" v-model="user.email" disabled />
+            <label for="email">Email</label>
+            <input id="email" type="email" v-model="user.email" disabled />
           </div>
-  
+
           <div class="form-group">
-            <label>Role:</label>
-            <input type="text" v-model="user.role" disabled />
+            <label for="role">Role</label>
+            <input id="role" type="text" v-model="user.role" disabled />
           </div>
-  
-          <button type="submit" class="update-btn">Update Profile</button>
+
+          <button type="submit" class="update-btn w-full">Update Profile</button>
         </form>
       </div>
     </div>
-  </template>
+  </div>
+</template>
+
   
   <script>
   import userServices from "../services/userServices"; // Import user services
@@ -47,11 +50,11 @@
       const fetchUserProfile = async () => {
         try {
           const storedUser = Utils.getStore("user"); // Get user from local storage
-          if (!storedUser || !storedUser.userId) {
+          if (!storedUser || !storedUser.id) {
             throw new Error("No user ID found. Please log in.");
           }
   
-          const userData = await userServices.getOne(storedUser.userId);
+          const userData = await userServices.getOne(storedUser.id);
           user.value = userData;
         } catch (err) {
           error.value = err.message;
@@ -64,11 +67,12 @@
       const updateProfile = async () => {
         try {
           const storedUser = Utils.getStore("user");
-          if (!storedUser || !storedUser.userId) {
+          if (!storedUser || !storedUser.id) {
             throw new Error("No user ID found.");
           }
   
-          await userServices.update(storedUser.userId, user.value);
+          await userServices.update(storedUser.id, user.value);
+          
           alert("Profile updated successfully!");
         } catch (err) {
           error.value = "Error updating profile.";
@@ -86,44 +90,68 @@
   };
   </script>
   
-  <style scoped>
-  .profile-container {
+  <style>
+  .profile-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background: linear-gradient(to bottom, #f0f4ff, #ffffff);
+    padding: 2rem;
+  }
+  
+  .profile-card {
+    width: 100%;
     max-width: 500px;
-    margin: auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .profile-card:hover {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
   }
   
   .form-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
   }
   
   label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
   }
   
   input {
-    width: 100%;
-    padding: 8px;
+    padding: 10px 12px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 8px;
+    transition: border-color 0.3s;
+    font-size: 1rem;
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: #560608;
+    box-shadow: 0 0 0 2px rgba(51, 2, 2, 0.2);
   }
   
   .update-btn {
     background: #3498db;
     color: white;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background 0.3s;
   }
   
   .update-btn:hover {
-    background: #2980b9;
+    background: #2c80b4;
   }
-  </style>
   
+  </style>
