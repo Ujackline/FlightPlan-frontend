@@ -70,10 +70,11 @@
                   Logout
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-                
+
                           <!-- 🌗 Theme Toggle Component -->
             <themeToggle @toggle-theme="$emit('toggle-theme')" />
                 
+
               </div>
             </v-card-text>
           </v-card>

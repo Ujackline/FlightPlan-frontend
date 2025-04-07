@@ -387,6 +387,30 @@ export default {
   color: white;
 }
 
+=======
+
+/* Badges list */
+.badges-list {
+  margin-bottom: 16px;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  color: white;
+}
 .badge-icon.career {
   background-color: #4169E1;
 }
@@ -443,3 +467,4 @@ export default {
   }
 }
 </style>
+

@@ -1,6 +1,6 @@
 <template>
   <div class="experiences-page">
-    <h2>Experiences & Tasks</h2>
+    <h2>Experiences</h2>
 
     <!-- Experience Form -->
     <section v-if="showForm" class="form-section">
