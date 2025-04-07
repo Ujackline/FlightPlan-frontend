@@ -1,21 +1,20 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Utils from '../config/utils'; 
 import Login from "../views/Login.vue";
-import FlightPlan from "../views/FlightPlan.vue"
+import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
+import Badge from "../views/Badge.vue"
 import Experience from "../views/Experience.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
-import themeToggle from "../views/themeToggle.vue"; 
+import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
-import AdminEvents from "../views/AdminEvents.vue";
-import adminDashboard from "../views/adminDashboard.vue";
 import PointRedemption from "../views/pointRedemption.vue";
-import Badges from "../views/Badges.vue";
 
 
 
@@ -26,9 +25,10 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
+
     { 
       path: '/pointRedemption', 
-      name: 'pointRedemption',  // ✅ Fixed Name (removed leading `/`) 
+      name: 'pointRedemption',  
       component: PointRedemption 
     },
     
@@ -44,11 +44,6 @@ const router = createRouter({
       component: StudentSetup,
     },
     {
-      path: '/admin/AdminEvents',
-      name: 'AdminEvents',
-      component: AdminEvents,
-    },
-    {
       path: '/afternest',
       name: 'afterNest',
       component: AfterNest
@@ -58,13 +53,7 @@ const router = createRouter({
       name: 'studentDashboard',
       component: StudentDashboard
     },
-    
-    {
-      path: '/flightPlan',
-      name: 'FlightPlan',
-      component: FlightPlan
-    },
-
+   
 
     {
       path: '/Experience',
@@ -75,7 +64,7 @@ const router = createRouter({
     {
       path:'/admin/AdminDashboard',
       name: 'AdminDashboard',
-      component: adminDashboard,
+      component: AdminDashboard,
        meta: { requiresAdmin: true }
     },
 
@@ -89,6 +78,11 @@ const router = createRouter({
       name: 'task',
       component: Task
     },
+    {
+      path: '/badge',
+      name: 'badge',
+      component: Badge
+    },
 
     {
       path: '/themeToggle',
@@ -96,16 +90,16 @@ const router = createRouter({
       component: themeToggle
     },
 
-     {
+    {
+      path: '/home',
+      name: 'home',
+      component: Home,
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/events',
       name: 'Events',
       component: Events,
-    },
-
-    {
-      path: '/badges',
-      name: 'Badges',
-      component: Badges,
     },
   
     {
@@ -129,7 +123,7 @@ router.beforeEach((to, from, next) => {
   
   // If trying to access login when already logged in, redirect to home
   if (to.name === 'login' && user) {
-    next({ name: 'FlightPlan' });
+    next({ name: 'home' });
     return;
   }
   
@@ -141,7 +135,7 @@ router.beforeEach((to, from, next) => {
   
   // If trying to access admin routes without admin role
   if (to.meta.requiresAdmin && user?.role !== 'admin') {
-    next({ name: 'FlightPlan' });
+    next({ name: 'home' });
     return;
   }
   
