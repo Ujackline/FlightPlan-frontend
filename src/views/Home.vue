@@ -89,7 +89,7 @@ import { ref, onMounted } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
 import eventServices from '../services/eventServices';
-import task from '../services/task.js';
+import task from '../services/taskServices';
 
 export default {
   components: {

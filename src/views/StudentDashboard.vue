@@ -205,7 +205,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
-import taskService from '../services/task';
+import taskService from '../services/taskServices';
 import badgeServices from '../services/badgeServices';
 import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
@@ -355,7 +355,7 @@ export default {
     const fetchBadges = async () => {
       try {
 
-        const response = await axios.get('/flight-plan-t9/event');
+        //const response = await axios.get('/flight-plan-t9/event');
         this.badges = response.data || [];
 
         loading.value = true;
@@ -912,4 +912,3 @@ export default {
   font-size: 14px;
 }
 </style>
-

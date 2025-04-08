@@ -15,6 +15,7 @@ import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
 import PointRedemption from "../views/pointRedemption.vue";
+import AdminEvents from "../views/AdminEvents.vue";
 
 
 
@@ -96,6 +97,13 @@ const router = createRouter({
       component: Home,
       meta: { requiresAuth: true }
     },
+ {
+    path: '/admin/AdminEvents',
+    name: 'AdminEvents', 
+    component: AdminEvents, 
+    meta: { requiresAdmin: true }  // Added protection }, // Add this additional route to catch the lowercase version { path: '/admin/events', redirect: { name:'AdminEvents' }  // Redirect to the main route },
+ },
+
     {
       path: '/events',
       name: 'Events',

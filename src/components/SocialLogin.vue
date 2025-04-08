@@ -49,17 +49,21 @@ const handleCredentialResponse = async (response) => {
     console.log("Login successful:", user.value);
 
    
+    // Redirect based on role
     if (user.value.role === 'student') {
   if (user.value.needsProfile) {
     router.push('/student/StudentSetup');
   } else {
-    router.push({ name: 'home' }); 
+    router.push('/student/home');
   }
-    }
+} else if (user.value.role === 'admin') {
+  router.push('/admin/AdminDashboard');
+}
   } catch (error) {
     console.log("error", error);
   }
 };
+
 
 onMounted(() => {
   loginWithGoogle();
