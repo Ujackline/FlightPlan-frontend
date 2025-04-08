@@ -151,7 +151,7 @@ export default {
 
 <script>
 import { ref, onMounted } from "vue";
-import task from "../services/task";
+import task from "../services/taskServices";
 
 export default {
   setup() {
@@ -204,7 +204,7 @@ export default {
 
 .loading {
   font-size: 18px;
-  color: #007bff;
+  color: #ff007bf4;
 }
 
 .error {

@@ -98,12 +98,8 @@
     methods: {
       async fetchUsers() {
         try {
-          //const response = await adminServices.getUsers();
-
           const users = await adminServices.getUsers(); // calls /user now
-          this.users = Array.isArray(users) ? users : [users]; // ✅ make sure it’s always an array
-
-          //this.users = response.data;
+          this.users = Array.isArray(users) ? users : [users]; //  make sure it’s always an array
           console.log(this.users);
           //    console.log("Fetched Users:", response.data); // Check what data is coming
 

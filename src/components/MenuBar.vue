@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Small app bar with just logo and user menu -->
     <v-app-bar app>
       <router-link :to="{ name: 'login' }">
         <v-img
@@ -18,29 +17,57 @@
 
       <v-spacer></v-spacer>
 
-      <!-- Toggle button for side navigation -->
+      <div v-if="user" class="d-none d-sm-flex">
+        <v-btn 
+          text 
+          @click="navigateTo('studentDashboard')"
+          :class="{ 'active-route': currentRoute === 'studentDashboard' }"
+          class="mx-1"
+        >
+          Student Dashboard
+        </v-btn>
+
+        <v-btn 
+          text 
+          @click="navigateTo('shop')"
+          :class="{ 'active-route': currentRoute === 'shop' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-store</v-icon>
+          Shop
+        </v-btn>
+
+        <v-btn 
+          text 
+          @click="navigateTo('documents')"
+          :class="{ 'active-route': currentRoute === 'documents' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-file-document</v-icon>
+          Documents
+        </v-btn>
+
+        <v-btn 
+          v-if="isAdmin"
+          text 
+          @click="navigateTo('adminDashboard')"
+          :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-view-dashboard</v-icon>
+          Admin Dashboard
+        </v-btn>
+      </div>
+
       <v-btn 
         v-if="user" 
         icon 
-        @click="toggleSideNav" 
-        class="mr-2"
+        @click="toggleMobileMenu" 
+        class="d-sm-none mr-2"
       >
-        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
+        <v-icon>{{ isMobileMenuOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
-      <!-- User menu remains in the top bar -->
-      <div v-if="user">
-      <!-- Toggle button for side navigation -->
-      <v-btn 
-        v-if="user" 
-        icon 
-        @click="toggleSideNav" 
-        class="mr-2"
-      >
-        <v-icon>{{ isSideNavOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
-      </v-btn>
-
-      <!-- User menu remains in the top bar -->
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
@@ -65,135 +92,116 @@
                   Logout
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-      
-                <!-- Theme Toggle -->
-      
-                <v-divider class="my-3"></v-divider>
-
-<!-- 🌗 Theme Toggle Component -->
-<themeToggle @toggle-theme="$emit('toggle-theme')" />
-
-
-               </div>
-                <v-divider class="my-3"></v-divider>
-                          </div>
+                <themeToggle @toggle-theme="$emit('toggle-theme')" />
+              </div>
             </v-card-text>
           </v-card>
         </v-menu>
       </div>
     </v-app-bar>
 
-    <!-- Right Side Navigation Panel -->
-    <div 
-      class="side-nav-panel" 
-      :class="{'side-nav-open': isSideNavOpen}"
-      v-if="user"
-    >
-      <div class="nav-panel-header">
-        <h3>Menu</h3>
-      </div>
-      
-      <!-- Navigation Items -->
-      <div class="nav-items">
+    <v-expand-transition>
+      <div 
+        v-if="isMobileMenuOpen && user" 
+        class="mobile-menu"
+      >
         <v-list nav>
           <v-list-item 
             @click="navigateTo('home')"
             :class="{ 'active-route': currentRoute === 'home' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-home</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
-          
+
           <v-list-item 
             @click="navigateTo('studentDashboard')"
-            :class="{ 'active-route': currentRoute === 'studentDashboard' }">
-            <v-list-item-icon>
+            :class="{ 'active-route': currentRoute === 'studentDashboard' }"
+          >
+            <template v-slot:prepend>
               <v-icon>mdi-view-dashboard</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
-          
-          <v-list-item
-              v-if="user?.role === 'admin'"
-              @click="navigateTo('AdminDashboard')"
-              :class="{ 'active-route': currentRoute === 'AdminDashboard' }">
-              <v-list-item-icon>
-                <v-icon>mdi-view-dashboard</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>Admin Dashboard</v-list-item-title>
-            </v-list-item>
+
+          <v-list-item 
+            @click="navigateTo('shop')"
+            :class="{ 'active-route': currentRoute === 'shop' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-store</v-icon>
+            </template>
+            <v-list-item-title>Shop</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item 
+            @click="navigateTo('documents')"
+            :class="{ 'active-route': currentRoute === 'documents' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-file-document</v-icon>
+            </template>
+            <v-list-item-title>Documents</v-list-item-title>
+          </v-list-item>
 
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
-            <v-list-item-icon>
+            <template v-slot:prepend>
               <v-icon>mdi-paper-plane</v-icon>
-            </v-list-item-icon>
+            </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
-          
-          <!-- Additional menu items can be added here -->
-          <v-list-item @click="navigateTo('profile')">
-            <v-list-item-icon>
-              <v-icon>mdi-account</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>Profile</v-list-item-title>
+
+          <v-list-item 
+            v-if="isAdmin"
+            @click="navigateTo('adminDashboard')"
+            :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-view-dashboard</v-icon>
+            </template>
+            <v-list-item-title>Admin Dashboard</v-list-item-title>
           </v-list-item>
         </v-list>
       </div>
-    </div>
-    
-    <!-- Overlay when sidebar is open on mobile -->
+    </v-expand-transition>
+
     <div 
       class="nav-overlay" 
-      v-if="isSideNavOpen" 
-      @click="toggleSideNav"
+      v-if="isMobileMenuOpen" 
+      @click="toggleMobileMenu"
     ></div>
   </div>
 </template>
 
 <script setup>
 import ocLogo from "/oc-logo-white.png";
-import { ref, onMounted, computed, watch,defineProps } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
-import themeToggle from "../views/themeToggle.vue";
-
-const user = ref(Utils.getStore('user'));
 
 const router = useRouter();
 const route = useRoute();
-//const user = ref(null);
-const title = ref("Career Services");
+const user = ref(null);
+const title = ref("Eagle Flight Plan");
 const initials = ref("");
 const name = ref("");
 const logoURL = ref("");
-const isSideNavOpen = ref(false);
+const isMobileMenuOpen = ref(false);
 
-//Theme Toggle State
-defineProps(["theme"]);
+const currentRoute = computed(() => route.name);
 
-
-
-// Track current route for highlighting active menu item
-const currentRoute = computed(() => {
-  return route.name;
-});
-
-// Toggle side navigation
-const toggleSideNav = () => {
-  isSideNavOpen.value = !isSideNavOpen.value;
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-// Close side nav when route changes (especially on mobile)
 watch(() => route.path, () => {
-  if (window.innerWidth < 960) {
-    isSideNavOpen.value = false;
-  }
+  isMobileMenuOpen.value = false;
 });
 
 const resetMenu = () => {
@@ -207,7 +215,7 @@ const resetMenu = () => {
 const logout = async () => {
   try {
     await AuthServices.logoutUser(user.value);
-    //Utils.removeItem("user");
+    Utils.removeItem("user");
     localStorage.removeItem("user");
     router.push({ name: "login" });
   } catch (error) {
@@ -221,29 +229,32 @@ const navigateTo = (routeName) => {
       console.error("Navigation error:", err);
     }
   });
+  if (window.innerWidth < 600) {
+    isMobileMenuOpen.value = false;
+  }
 };
+
+const isAdmin = computed(() => {
+  return user.value && user.value.role === "admin";
+});
 
 onMounted(() => {
   logoURL.value = ocLogo;
   resetMenu();
 
-  // Add event listener for storage changes
   window.addEventListener("storage", (e) => {
     if (e.key === "user") {
       resetMenu();
     }
   });
 
-  // Close side nav when clicking outside on mobile
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 960) {
-      // Optionally keep sidebar open on larger screens
-      // isSideNavOpen.value = true;
+    if (window.innerWidth > 600) {
+      isMobileMenuOpen.value = false;
     }
   });
 });
 </script>
-
 
 <style scoped>
 .v-btn {
@@ -259,36 +270,19 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* Side Navigation Panel Styles */
-.side-nav-panel {
-  position: fixed;
-  top: 64px; /* Height of app bar */
-  right: -300px; /* Start offscreen */
-  width: 300px;
-  height: calc(100vh - 64px);
-  background-color: white;
-  z-index: 100;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: right 0.3s ease;
-  overflow-y: auto;
-}
-
-.side-nav-open {
-  right: 0;
-}
-
-.nav-panel-header {
-  padding: 20px;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.nav-items {
-  padding: 10px 0;
-}
-
 .active-route {
   background-color: rgba(0, 0, 0, 0.05);
-  border-right: 3px solid #121212;
+  border-bottom: 3px solid #1976d2;
+}
+
+.mobile-menu {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background-color: white;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-overlay {
@@ -299,24 +293,17 @@ onMounted(() => {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 99;
-  display: none;
 }
 
-/* Show overlay on mobile only */
-@media (max-width: 960px) {
-  .nav-overlay {
-    display: block;
-  }
+.mobile-menu .active-route {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #1976d2;
+  border-bottom: none;
 }
 
-/* Adjust for mobile screens */
 @media (max-width: 600px) {
-  .side-nav-panel {
-    width: 250px;
-    right: -250px;
+  .nav-items {
+    display: none;
   }
 }
-
-
-
 </style>

@@ -5,7 +5,6 @@ import vuetify from "./plugins/vuetify.js";
 import store from "./store/store.js";
 import "./assets/main.css"; // ✅ Import the global styles
 
-
 // App.use(store); //added the store to help us access our store globally
 createApp(App)
   .use(vuetify)

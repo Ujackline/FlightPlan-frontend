@@ -1,108 +1,200 @@
 <template>
-  <div class="min-h-screen bg-white">
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-3xl mx-auto">
-        <!-- Greeting -->
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">
-          Eagle Flight Plan
-        </h1>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo-container">
+        <div class="logo">
+          <v-icon color="white" size="x-large">mdi-school</v-icon>
+        </div>
+      </div>
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
+      </div>
 
-        <!-- Career Progress -->
-        <div class="mb-8">
-          <p class="text-sm text-gray-600 mb-2">Flight Plan Progress</p>
-          <div class="h-2 bg-gray-200 rounded">
-            <div class="h-full bg-blue-600 rounded" :style="{ width: progressPercentage + '%' }"></div>
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
+      </div>
+
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-medal</v-icon>
+        <router-link to="/badge" class="nav-text" style="color: white; text-decoration: none;">My Badges</router-link>
+      </div>
+
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-chart-bar</v-icon>
+        <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">My Points</router-link>
+      </div>
+   
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
+        <router-link to="/events" class="nav-text" style="color: white; text-decoration: none;">Event Registration</router-link>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      
+      <!-- Header with Search and Profile -->
+      <div class="header">
+        <input type="text" placeholder="">
+        <div class="profile">
+          <div class="profile-pic">
+            <img src="https://via.placeholder.com/40" alt="Profile">
+          </div>
+          
+          <div class="profile-info">
+            <div class="profile-name">{{ firstName}} {{ lastName }}</div>
+         
+            <div class="profile-year">{{ studentYear || 'Senior' }}</div>
+          </div>
+          <div class="notification-icon">
+            <v-icon>mdi-bell</v-icon>
+            <div v-if="notifications > 0" class="notification-badge"></div>
           </div>
         </div>
+      </div>
 
-        <!-- Experiences Section -->
-        <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Your Experiences</h2>
-            <div class="flex space-x-2">
-              <router-link to="/experience" class="text-blue-600 hover:text-blue-800">
-                Manage Experiences →
-              </router-link>
+      <!-- Progress Bar
+      <div class="progress-section">
+        <p class="progress-text">Flight Plan Progress</p>
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+        </div>
+        <p class="progress-percentage">{{ progressPercentage }}% complete</p>
+      </div> -->
+
+      <!-- Points Section -->
+      <div class="points-card">
+        <h2 class="card-title">Total Points Earned</h2>
+        <p class="total-points">{{ totalPoints }}</p>
+        <div class="points-breakdown">
+          <span>Tasks: {{ pointsBreakdown.tasks }}</span>
+          <span>Events: {{ pointsBreakdown.events }}</span>
+          <span>Experiences: {{ pointsBreakdown.experiences }}</span>
+        </div>
+      </div>
+
+    
+      <div class="dashboard-grid">
+        <!-- My Experiences -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">My Experiences</h2>
+            <router-link to="/experience" class="see-all">Manage Experiences →</router-link>
+          </div>
+          <div class="experiences-list">
+            <div v-for="exp in experiences.slice(0, 3)" :key="exp.id" class="experience-item">
+              <div class="experience-title">{{ exp.name }}</div>
+              <div class="experience-details">{{ exp.status }}</div>
+              <div class="badge-category" v-if="exp.category">{{ exp.category }}</div>
+            </div>
+            <div v-if="experiences.length === 0" class="empty-state">
+              No experiences added yet
             </div>
           </div>
         </div>
 
-        <!-- Total points Earned -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <h2 class="text-xl font-semibold">Total Points Earned</h2>
-          <p class="mt-2 text-2xl font-bold">{{ totalPoints }}</p>
-          <div class="mt-4">
-            <div class="flex justify-between text-sm text-gray-600">
-              <span>Tasks: {{ pointsBreakdown.tasks }}</span>
-              <span>Events: {{ pointsBreakdown.events }}</span>
-              <span>Extras: {{ pointsBreakdown.extras }}</span>
+        <!-- My Badges -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">My Badges</h2>
+            <router-link to="/badge" class="see-all">View All Badges →</router-link>
+          </div>
+          
+          <!-- Badge count indicator -->
+          <div class="badge-count">Showing {{ Math.min(badges.length, displayedBadgeCount) }} of {{ badges.length }} badges</div>
+          
+          <div class="badges-container">
+            <div v-for="(badge, index) in badges.slice(0, displayedBadgeCount)" :key="index" class="badge-item" :class="badge.badge_type.toLowerCase()">
+              <!-- Workforce Debut -->
+              <svg v-if="badge.name === 'Workforce Debut'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+              </svg>
+
+              <!-- Interview Master -->
+              <svg v-else-if="badge.name === 'Interview Master'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+              </svg>
+
+              <!-- Resume Builder -->
+              <svg v-else-if="badge.name === 'Resume Builder'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM12 18H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V8h8v2zm-3-5V3.5L18.5 9H13V5z" />
+              </svg>
+
+              <!-- Interview Ready -->
+              <svg v-else-if="badge.name === 'Interview Ready'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z" />
+              </svg>
+
+              <!-- Network Starter -->
+              <svg v-else-if="badge.name === 'Network Starter'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+              </svg>
+
+              <!-- Portfolio Creator -->
+              <svg v-else-if="badge.name === 'Portfolio Creator'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
+              </svg>
+
+              <!-- Default icon if no specific icon is defined -->
+              <i v-else :class="badge.badge_type === 'Career' ? 'fas fa-briefcase' : 'fas fa-trophy'"></i>
+              
+              <div class="badge-tooltip">{{ badge.name }}</div>
+            </div>
+            <div v-if="badges.length === 0" class="empty-state">
+              No badges earned yet
             </div>
           </div>
-        </div>
-
-        <!-- Upcoming Tasks -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <h2 class="text-xl font-semibold mb-4">Upcoming Tasks</h2>
-          <div class="flex space-x-2">
-              <router-link to="/task" class="text-blue-600 hover:text-blue-800">
-                Manage Tasks →
-              </router-link>
-            </div>
-          <ul class="mt-4 space-y-2">
-            <li v-for="task in tasks" :key="task.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
-              <p class="font-medium">{{ task.title }}</p>
-              <p class="text-sm text-gray-600">Due: {{ task.dueDate }}</p>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Upcoming Events -->
-        <div class="bg-blue-50 rounded-lg p-6 mb-8 shadow-md">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Upcoming Events</h2>
+          
+          <!-- Show more/less badges button -->
+          <div v-if="badges.length > 6" class="show-more-container">
             <button 
-              @click="navigateToEvents"
-              class="text-blue-600 hover:text-blue-800"
+              @click="toggleBadgeCount" 
+              class="show-more-btn"
             >
-              View All →
-            </button>
-          </div>
-          
-          <div class="space-y-4">
-            <div v-for="event in events" :key="event.id" class="bg-white p-4 rounded shadow-sm border-l-4 border-blue-600">
-              <div class="text-sm text-gray-600">{{ formatDate(event.date) }}, {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</div>
-              <div class="font-medium text-gray-800">{{ event.name }}</div>
-              <div class="text-sm text-gray-600">{{ event.location }}</div>
-              <div class="text-sm text-gray-600">{{ event.description }}</div>
-            </div>
-          </div>
-
-          <div class="flex justify-center mt-4 space-x-4">
-            <button class="p-2 hover:bg-blue-100 rounded text-gray-600">
-              ←
-            </button>
-            <button class="p-2 hover:bg-blue-100 rounded text-gray-600">
-              →
+              {{ displayedBadgeCount === 6 ? 'Show More Badges' : 'Show Fewer Badges' }}
             </button>
           </div>
         </div>
+        
 
-        <!-- Action Buttons -->
-        <div class="space-y-4 text-center">
-          <button
-            @click="navigateToDashboard"
-            class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800 w-48"
-          >
-            GO TO DASHBOARD
-          </button>
-          
-          <div>
-            <button
-              @click="navigateToProfile"
-              class="bg-gray-200 text-gray-800 px-6 py-2 rounded hover:bg-gray-300 w-48"
-            >
-              VIEW PROFILE
-            </button>
+        <!-- Completed Tasks -->
+        <div class="card-container">
+          <div class="card-header">
+            <h2 class="card-title">Completed Tasks</h2>
+            <router-link to="/task" class="see-all">View All →</router-link>
+          </div>
+          <div class="tasks-list">
+            <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
+              <div class="task-title">{{ task.name }}</div>
+              <div class="task-date">{{ task.description || 'No description' }}</div>
+            </div>
+            <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
+              No completed tasks
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Events -->
+        <div class="card-container">
+          <div class="card-header">
+
+            <h2 class="card-title">Registered Events</h2>
+            <router-link to="/event" class="see-all">View All →</router-link>
+          </div>
+          <div class="events-list">
+            <div v-for="event in registeredEvents.slice(0, 3)" :key="event.id" class="event-item">
+              <div class="event-title">{{ event.name }}</div>
+              <div class="event-date">{{ formatDate(event.date) }}</div>
+              <div class="event-location">{{ event.location }}</div>
+            </div>
+            <div v-if="registeredEvents.length === 0" class="empty-state">
+              No registered events
+            </div>
           </div>
         </div>
       </div>
@@ -111,127 +203,713 @@
 </template>
 
 <script>
-import studentServices from "../services/studentServices"; // Import studentServices
-import axios from 'axios'; // Import axios
+import { ref, onMounted, computed } from 'vue';
+import { useStore } from 'vuex';
+import taskService from '../services/task';
+import badgeServices from '../services/badgeServices';
+import studentServices from '../services/studentServices';
+import experienceServices from '../services/experienceServices';
+import eventServices from '../services/eventServices';
+import Utils from '../config/utils';
 
 export default {
   name: 'StudentDashboard',
-  data() {
-    return {
-      studentId: null,
-      studentName: '',
-      progressPercentage: 0,
-      tasks: [],
-      events: [], // List of events
-      totalPoints: 0,
-      pointsBreakdown: { tasks: 0, events: 0, extras: 0 },
-      loading: false, // Loading state
-      error: null, // Error message
+  setup() {
+    const store = useStore();
+    
+    // State management
+    const studentId = ref(null);
+    const studentName = ref('');
+    const studentYear = ref('');
+    const progressPercentage = ref(65);
+    const totalPoints = ref(0);
+    const pointsBreakdown = ref({ tasks: 0, events: 0, experiences: 0 });
+    const experiences = ref([]);
+    const badges = ref([]);
+    const tasks = ref([]);
+    const registeredEvents = ref([]);
+    const notifications = ref(0);
+    const firstName = ref(null);
+    const lastName = ref(null);
+    const error = ref(null);
+    const loading = ref(true);
+    const message = ref('');
+    const currentUser = ref(null);
+
+    
+    // Badge display count control
+    const displayedBadgeCount = ref(6); // Default to showing 6 badges
+
+    const toggleBadgeCount = () => {
+      displayedBadgeCount.value = displayedBadgeCount.value === 6 ? 12 : 6;
     };
-  },
-  async created() {
-    await this.fetchStudentId();
-    if (this.studentId) {
-      await this.fetchDashboardData();
-    }
-  },
-  methods: {
-    async fetchStudentId() {
+    
+    // Computed properties
+    const user = computed(() => store.getters.getLoginUserInfo);
+    
+    // Methods
+    const formatDate = (dateString) => {
       try {
-        // Fetch the authenticated student's ID (e.g., from localStorage or a token)
-        const token = localStorage.getItem("authToken"); // Example
-        if (!token) {
-          throw new Error("No token found");
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          return 'Unknown date';
         }
-
-        // Decode the token to get the student ID (if the token contains the ID)
-        const decodedToken = JSON.parse(atob(token.split(".")[1])); // Example
-        this.studentId = decodedToken.id; // Assuming the token contains the student ID
-
-        if (!this.studentId) {
-          throw new Error("Student ID not found in token");
-        }
-      } catch (error) {
-        console.error("Error fetching student ID:", error);
-        throw error;
+        
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+      } catch (e) {
+        return 'Unknown date';
       }
-    },
-    async fetchDashboardData() {
-      this.loading = true;
-      this.error = null;
+    };
+    
+    const formatTime = (timeString) => {
       try {
-        // Fetch student data using studentServices
-        const studentRes = await studentServices.getStudentById(this.studentId);
-        this.studentName = studentRes.studentFirstName || 'Student';
-
-        // Fetch tasks and events (replace with your actual endpoints)
-        const [tasksRes, eventsRes] = await Promise.all([
-          axios.get('/flight-plan-t9/task/'),
-          axios.get('/flight-plan-t9/event/')
-        ]);
-
-        this.tasks = tasksRes.data;
-        this.events = eventsRes.data;
-
-        console.log("Fetched Events:", this.events); // Debugging
-
-        // Calculate progress and points (frontend logic)
-        this.progressPercentage = this.calculateProgress();
-        this.totalPoints = this.calculateTotalPoints();
-        this.pointsBreakdown = this.calculatePointsBreakdown();
+        const time = new Date(timeString);
+        return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        return timeString;
+      }
+    };
+    
+    const setUserFromStore = () => {
+      const userData = user.value;
+      if (userData) {
+        studentId.value = userData.id || null;
+        studentName.value = userData.name || 'Student';
+        studentYear.value = userData.year || '3rd year';
+        console.log('User data from store:', userData);
+      } else {
+        console.warn('No user data found in store');
+        // You might want to redirect to login page if no user is found
+        // router.push('/login');
+      }
+    };
+   
+    // Comprehensive function to get current user from all available sources
+    const getCurrentUser = async () => {
+      try {
+        // Try to get from store first
+        const storeUser = store.getters.getLoginUserInfo;
+        
+        if (storeUser && storeUser.id) {
+          console.log('User found in store:', storeUser.id);
+          currentUser.value = storeUser;
+          firstName.value = storeUser.fName || storeUser.firstName;
+          lastName.value = storeUser.lName || storeUser.lastName;
+          return storeUser;
+        }
+        
+        // If not in store, try localStorage
+        const storedUser = Utils.getStore("user");
+        if (storedUser && (storedUser.id || storedUser.userId)) {
+          console.log('User found in localStorage:', storedUser);
+          currentUser.value = storedUser;
+          firstName.value = storedUser.fName || storedUser.firstName;
+          lastName.value = storedUser.lName || storedUser.lastName;
+          return storedUser;
+        }
+        
+        // If not in localStorage, try API
+        console.log('User not found in store or localStorage, attempting to fetch from API');
+        message.value = 'Retrieving user data...';
+        
+        const response = await studentServices.getStudentById();
+        
+        if (response && response.id) {
+          console.log('User fetched from API:', response.id);
+          currentUser.value = response;
+          firstName.value = response.fName || response.firstName;
+          lastName.value = response.lName || response.lastName;
+          return response;
+        } else {
+          throw new Error('Could not retrieve user information');
+        }
       } catch (error) {
-        this.error = "Failed to fetch dashboard data. Please try again later.";
-        console.error("Error fetching dashboard data:", error);
+        console.error('Error getting current user:', error);
+        message.value = 'Unable to determine current user. Please log in again.';
+        loading.value = false;
+        return null;
+      }
+    };
+
+    const fetchExperiences = async () => {
+      try {
+        const response = await experienceServices.getExperiences();
+        experiences.value = response.data || response;
+        console.log('Experiences loaded:', experiences.value);
+        
+        // Calculate points from experiences
+        const experiencePoints = experiences.value
+          .filter(exp => exp.status === 'Approved')
+          .reduce((sum, exp) => sum + (exp.points || 0), 0);
+        
+        pointsBreakdown.value.experiences = experiencePoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching experiences:', error);
+        experiences.value = [];
+      }
+    };
+    
+    // Function to fetch badges
+    const fetchBadges = async () => {
+      try {
+
+        const response = await axios.get('/flight-plan-t9/event');
+        this.badges = response.data || [];
+
+        loading.value = true;
+        message.value = '';
+        
+        const user = currentUser.value || await getCurrentUser();
+        
+        if (!user || !user.id) {
+          message.value = 'User not found. Please log in again.';
+          loading.value = false;
+          return;
+        }
+        
+        console.log('Fetching badges for user:', user.id);
+        const response = await badgeServices.getAllUserBadges(user.id);
+        
+        console.log('Badge API response:', response);
+        
+        // Handle different possible data structures
+        if (Array.isArray(response)) {
+          // If response is directly an array
+          badges.value = response.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && Array.isArray(response.data)) {
+          // If response has a data array property
+          badges.value = response.data.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && typeof response === 'object') {
+          // If response is a single object or has a different structure
+          // Try to extract badges if they exist in the response
+          const badgeData = response.data || response;
+          
+          if (Array.isArray(badgeData)) {
+            badges.value = badgeData.map(badge => ({
+              ...badge,
+              badge_type: badge.badge_type || badge.type || 'Achievement'
+            }));
+          } else {
+            // If it's a single badge object
+            badges.value = [{ 
+              ...badgeData,
+              badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+            }];
+          }
+        } else {
+          badges.value = [];
+          message.value = 'No badges found for this user.';
+        }
+        
+        console.log('Processed badges:', badges.value);
+        
+        if (badges.value.length === 0) {
+          message.value = 'No badges found for this user.';
+        }
+
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        message.value = 'Failed to load your badges. Please try again.';
+        badges.value = [];
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
-    calculateProgress() {
-      // Replace with your logic to calculate progress
-      return 50; // Example
-    },
-    calculateTotalPoints() {
-      // Replace with your logic to calculate total points
-      return 100; // Example
-    },
-    calculatePointsBreakdown() {
-      // Replace with your logic to calculate points breakdown
-      return { tasks: 50, events: 30, extras: 20 }; // Example
-    },
-    navigateToEvents() {
-      this.$router.push('/events'); // Navigate to the events page
-    },
-    navigateToDashboard() {
-      this.$router.push('/dashboard'); // Navigate to the dashboard page
-    },
-    navigateToProfile() {
-      this.$router.push('/profile'); // Navigate to the profile page
-    },
-    formatDate(dateString) {
-      // Format the date for display
-      const date = new Date(dateString);
-      return date.toLocaleDateString(); // Adjust formatting as needed
-    },
-    formatTime(dateString) {
-      // Format the time for display
-      const date = new Date(dateString);
-      return date.toLocaleTimeString(); // Adjust formatting as needed
-    }
+    };
+    
+    const fetchTasks = async () => {
+      try {
+        const response = await taskService.getAllTasks();
+        tasks.value = response.data || [];
+        console.log('Tasks loaded:', tasks.value);
+        
+        // Calculate points from completed tasks
+        const taskPoints = tasks.value
+          .filter(task => task.completed)
+          .length * 50; // Assuming each task is worth 50 points
+        
+        pointsBreakdown.value.tasks = taskPoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        tasks.value = [];
+      }
+    };
+    
+    const fetchRegisteredEvents = async () => {
+      try {
+        if (studentId.value) {
+          const response = await eventServices.getRegisteredEvents(studentId.value);
+          registeredEvents.value = response.data || [];
+          console.log('Registered events loaded:', registeredEvents.value);
+          
+          const eventPoints = registeredEvents.value.length * 75; 
+          
+          pointsBreakdown.value.events = eventPoints;
+          updateTotalPoints();
+        } else {
+          // Load from localStorage if not logged in
+          const stored = localStorage.getItem('eventRegistrations');
+          if (stored) {
+            const localRegistrations = JSON.parse(stored);
+            // Get full event details
+            const allEvents = await eventServices.getAll();
+            registeredEvents.value = allEvents.data.filter(event => 
+              localRegistrations.includes(event.id)
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching registered events:', error);
+        registeredEvents.value = [];
+      }
+    };
+    
+    const updateTotalPoints = () => {
+      totalPoints.value = 
+        pointsBreakdown.value.tasks + 
+        pointsBreakdown.value.events + 
+        pointsBreakdown.value.experiences;
+      
+      // Update progress percentage based on points
+      // Assuming 1000 points is 100% completion
+      progressPercentage.value = Math.min(Math.round((totalPoints.value / 1000) * 100), 100);
+    };
+    
+    const refreshDashboard = async () => {
+      await getCurrentUser(); // Get user data first
+      
+      await Promise.all([
+        fetchExperiences(),
+        fetchBadges(),
+        fetchTasks(),
+        fetchRegisteredEvents()
+      ]);
+    };
+    
+    onMounted(() => {
+      refreshDashboard();
+    });
+    
+    return {
+      studentId,
+      firstName,
+      lastName,
+      studentName,
+      studentYear,
+      progressPercentage,
+      totalPoints,
+      pointsBreakdown,
+      experiences,
+      badges,
+      tasks,
+      registeredEvents,
+      notifications,
+      displayedBadgeCount,
+      toggleBadgeCount,
+      formatDate,
+      formatTime,
+      refreshDashboard,
+    };
   }
 };
 </script>
 
 <style scoped>
-.bg-blue-50 {
-  background-color: #eff6ff;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.bg-blue-600 {
-  background-color: #3182ce;
+
+.dashboard-container {
+  background-color: white;
+  width: 100%;
+  height: 100vh;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
-.text-blue-600 {
+
+/* Sidebar Styles */
+.sidebar {
+  background-color: #8B2332;
+  width: 220px;
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-container {
+  background-color: #8B2332;
+  width: 90px;
+  height: 90px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  color: white;
+  font-size: 24px;
+}
+
+.nav-item {
+  width: 100%;
+  padding: 15px 30px;
+  display: flex;
+  align-items: center;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: background-color 0.3s;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-icon {
+  margin-right: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-text {
+  font-size: 14px;
+}
+
+.sidebar-spacer {
+  flex-grow: 1;
+}
+
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px 30px;
+  overflow-y: auto;
+  margin-top: 30px; 
+  padding-top: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+
+.profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+  background-color: #f0f0f0;
+}
+
+.profile-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  font-size: 14px;
+}
+
+.profile-name {
+  font-weight: bold;
+}
+
+.profile-year {
+  color: #666;
+}
+
+.notification-icon {
+  margin-left: 15px;
+  color: #333;
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+  background-color: #8B2332;
+  border-radius: 15px;
+  padding: 30px;
+  color: white;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-text h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.welcome-text p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+
+.progress-section {
+  margin-bottom: 25px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #289e32;
+  border-radius: 4px;
+}
+
+.progress-percentage {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  margin-top: 5px;
+}
+
+/* Card Layouts */
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.see-all {
   color: #3182ce;
+  font-size: 14px;
+  text-decoration: none;
 }
-.error {
-  color: red;
+
+.card-container {
+  background-color: #eff6ff;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Points Card */
+.points-card {
+  background-color: #eff6ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.total-points {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.points-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  margin-top: 10px;
+}
+
+
+.task-item, .event-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 4px solid #3182ce;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.task-title, .event-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.task-date, .event-date, .event-location {
+  font-size: 13px;
+  color: #666;
+}
+
+
+.badge-count {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.badges-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  color: white;
+  font-size: 20px;
+}
+
+.badge-item.career {
+  background-color: #4169E1;
+}
+
+.badge-item.achievement {
+  background-color: #FFA500;
+}
+
+.badge-tooltip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.badge-item:hover .badge-tooltip {
+  opacity: 1;
+}
+
+.show-more-container {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.show-more-btn {
+  background-color: transparent;
+  color: #3182ce;
+  border: 1px solid #3182ce;
+  border-radius: 4px;
+  padding: 5px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.show-more-btn:hover {
+  background-color: #3182ce;
+  color: white;
+}
+
+/* Experiences */
+.experiences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.experience-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #3182ce;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.experience-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.experience-details {
+  font-size: 13px;
+  color: #666;
+}
+
+.badge-category {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #666;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+  font-style: italic;
+  font-size: 14px;
 }
 </style>
+

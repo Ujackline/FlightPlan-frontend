@@ -11,6 +11,13 @@
           <label for="major">Major</label>
           <input v-model="profile.major" id="major" required />
         </div>
+
+
+        <div class="form-group">
+          <label for="semester">Current Semester</label>
+          <input v-model="profile.semester" id="semester" placeholder="e.g. Fall 2025" required />
+        </div>
+
   
         <div class="form-group">
           <label for="grad_semester">Graduation Semester</label>
@@ -41,6 +48,7 @@
           studentID: '',
           major: '',
           grad_semester: '',
+          semester:'',
           cliftonstrengths: '',
         },
         message: '',
