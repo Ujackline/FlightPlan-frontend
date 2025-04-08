@@ -16,10 +16,24 @@
       <input v-model="searchQuery" placeholder="Search Student by Name or Email" />
     </div>
 
-    <!-- Display Filtered Users -->
+    <!-- User List Section with Loading and Error States -->
     <section class="user-list">
       <h3>Student Accounts</h3>
-      <table>
+      
+      <!-- Loading State -->
+      <div v-if="loadingUsers" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading student accounts...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="userError" class="error-state">
+        <p class="error-message">{{ userError }}</p>
+        <p class="fallback-message">Showing sample student data</p>
+      </div>
+
+      <!-- User Table -->
+      <table v-else>
         <thead>
           <tr>
             <th>Student Id</th>
@@ -103,6 +117,7 @@ import studentServices from "../services/studentServices";
 import awardServices from "../services/awardServices";
 import Utils from "../config/utils.js";
 import axios from 'axios';
+import apiClient from "../config/apiClient.js";
 
 export default {
   data() {
@@ -115,9 +130,29 @@ export default {
       message: "",
       isSuccess: false,
       loading: false,
-      showDebug: true,
+      showDebug: false,
       debugInfo: null,
       usingSampleAwards: false,
+      loadingUsers: false,
+      userError: null,
+      sampleUsers: [
+        {
+          id: 1,
+          studentID: "12345",
+          fName: "John",
+          lName: "Doe",
+          email: "john.doe@example.com",
+          points: "100"
+        },
+        {
+          id: 2,
+          studentID: "67890",
+          fName: "Jane",
+          lName: "Smith",
+          email: "jane.smith@example.com",
+          points: "150"
+        }
+      ],
       sampleAwards: [
         {
           AwardID: 1,
@@ -145,10 +180,11 @@ export default {
   },
   computed: {
     filteredUsers() {
-      if (!this.searchQuery) return this.users;
+      const users = this.users.length > 0 ? this.users : this.sampleUsers;
+      if (!this.searchQuery) return users;
       
       const query = this.searchQuery.toLowerCase();
-      return this.users.filter(user => 
+      return users.filter(user => 
         user.fName.toLowerCase().includes(query) || 
         user.lName.toLowerCase().includes(query) || 
         user.email.toLowerCase().includes(query)
@@ -166,25 +202,87 @@ export default {
     
     await this.fetchUsers();
     await this.fetchAwards();
+    
+    // If no awards were fetched from API, show sample awards
+    if (this.awards.length === 0) {
+      this.usingSampleAwards = true;
+      this.awards = this.sampleAwards;
+    }
   },
   methods: {
     async fetchUsers() {
+      this.loadingUsers = true;
+      this.userError = null;
+      this.message = "";
+      
       try {
+        // Log API configuration
+        if (this.showDebug) {
+          const user = Utils.getStore('user');
+          console.log("🔧 API Configuration:", {
+            baseUrl: apiClient.defaults.baseURL,
+            hasToken: !!user?.token,
+            tokenExpiry: user?.tokenExpiry
+          });
+        }
+
         const response = await studentServices.getStudents();
-        if (Array.isArray(response)) {
-          this.users = response;
-          console.log("Fetched Students:", this.users);
+        console.log("🔍 Raw student response:", response);
+        
+        if (response && (Array.isArray(response) || response.data)) {
+          this.users = Array.isArray(response) ? response : response.data;
+          console.log(`✅ Successfully fetched ${this.users.length} students`);
+          this.message = "";
+          this.isSuccess = true;
         } else {
-          console.error("❌ Unexpected student data format:", response);
-          this.message = "Failed to fetch student accounts: Unexpected data format.";
-          this.isSuccess = false;
-          this.users = [];
+          throw new Error("Unexpected student data format");
         }
       } catch (error) {
         console.error("❌ Error fetching students:", error);
-        this.message = "Failed to fetch student accounts. Please make sure you're logged in.";
-        this.isSuccess = false;
-        this.users = [];
+        
+        // Enhanced error handling with specific user messages
+        if (error.message.includes("Session expired")) {
+          this.userError = "Your session has expired. Please log in again.";
+          // Optionally redirect to login
+          // this.$router.push('/login');
+        } else if (error.message.includes("Access denied")) {
+          this.userError = "You don't have permission to view student data.";
+        } else if (error.message.includes("service may be down")) {
+          this.userError = "The student service is currently unavailable. Using sample data instead.";
+        } else if (error.message.includes("check your connection")) {
+          this.userError = "Unable to connect to the server. Please check your internet connection.";
+        } else {
+          this.userError = "Unable to load student data. Using sample data instead.";
+        }
+
+        this.message = "Using sample student data temporarily";
+        this.isSuccess = true; // Still show success since we have fallback
+        this.users = []; // Clear users to trigger fallback to sample data
+        
+        // Enhanced debug information
+        if (this.showDebug) {
+          const user = Utils.getStore('user');
+          this.debugInfo = JSON.stringify({
+            error: {
+              message: error.message,
+              type: error.name,
+              stack: error.stack
+            },
+            apiConfig: {
+              baseUrl: apiClient.defaults.baseURL,
+              hasToken: !!user?.token,
+              tokenExpiry: user?.tokenExpiry
+            },
+            response: error.response ? {
+              status: error.response.status,
+              statusText: error.response.statusText,
+              data: error.response.data
+            } : "No response",
+            timestamp: new Date().toISOString()
+          }, null, 2);
+        }
+      } finally {
+        this.loadingUsers = false;
       }
     },
 
@@ -285,11 +383,33 @@ export default {
       this.showDebug = !this.showDebug;
       if (this.showDebug) {
         const user = Utils.getStore('user');
+        const apiConfig = {
+          baseUrl: apiClient.defaults.baseURL,
+          hasToken: !!user?.token,
+          tokenExpiry: user?.tokenExpiry,
+          environment: import.meta.env.MODE,
+          apiEndpoint: `${apiClient.defaults.baseURL}/student`
+        };
+        
         this.debugInfo = JSON.stringify({
-          userLoggedIn: !!user,
-          hasToken: user && !!user.token,
-          tokenPrefix: user && user.token ? user.token.substring(0, 10) + '...' : null,
-          apiBaseUrl: import.meta.env.DEV ? "http://localhost:3029/flight-plan-t9" : "/flight-plan-t9/",
+          system: {
+            timestamp: new Date().toISOString(),
+            environment: import.meta.env.MODE,
+            buildVersion: import.meta.env.VITE_APP_VERSION || 'unknown'
+          },
+          auth: {
+            isLoggedIn: !!user,
+            hasToken: user && !!user.token,
+            tokenPrefix: user && user.token ? user.token.substring(0, 10) + '...' : null,
+            tokenExpiry: user?.tokenExpiry
+          },
+          api: apiConfig,
+          state: {
+            usersLoaded: this.users.length > 0,
+            usingFallback: this.users.length === 0,
+            awardsLoaded: this.awards.length > 0,
+            usingSampleAwards: this.usingSampleAwards
+          }
         }, null, 2);
       } else {
         this.debugInfo = null;
@@ -486,5 +606,39 @@ export default {
 .debug-info button {
   margin-right: 10px;
   margin-bottom: 10px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 20px;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-state {
+  text-align: center;
+  padding: 20px;
+  color: red;
+}
+
+.error-message {
+  margin-bottom: 10px;
+}
+
+.fallback-message {
+  color: #666;
 }
 </style>

@@ -45,8 +45,40 @@
     <!-- Experience List -->
     <section v-if="experiences.length > 0" class="experience-list">
       <h3 class="section-title">Experiences</h3>
-      <ul v-if="Array.isArray(experiences)" class="experiences-ul">
-        <li v-for="exp in experiences" :key="exp.id" class="experience-item" :class="{ 'admin-view': isAdmin }">
+      <div class="admin-controls" v-if="isAdmin">
+        <div class="search-filter">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Search experiences..."
+            class="search-input"
+          >
+        </div>
+      </div>
+      
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading experiences...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="error-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error }}</p>
+        <button @click="fetchExperiences" class="retry-button">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="!experiences.length" class="empty-state">
+        <i class="fas fa-folder-open"></i>
+        <p>No experiences found</p>
+      </div>
+
+      <ul v-else class="experiences-ul">
+        <li v-for="exp in filteredExperiences" :key="exp.id" class="experience-item" :class="{ 'admin-view': isAdmin }">
           <div class="experience-info">
             <div class="experience-main-info">
               <span class="experience-name">{{ exp.name }}</span>
@@ -131,7 +163,6 @@ export default {
         semester:"",
         reflectionRequired: false,
         points: 0,
-        badge: "",
         status: "Incomplete",
         approvedBy: "",
         completionDate: null,
@@ -152,6 +183,9 @@ export default {
         { name: "points", label: "Points", type: "number" },
         { name: "badge", label: "Badge", type: "text" },
       ],
+      loading: false,
+      error: null,
+      searchQuery: '',
     };
   },
 
@@ -163,6 +197,18 @@ export default {
   async created() {
     await this.fetchStudentId();
     await this.fetchExperiences();
+  },
+
+  computed: {
+    filteredExperiences() {
+      if (!this.searchQuery) return this.experiences;
+      const query = this.searchQuery.toLowerCase();
+      return this.experiences.filter(exp => 
+        exp.name.toLowerCase().includes(query) ||
+        exp.major.toLowerCase().includes(query) ||
+        exp.status.toLowerCase().includes(query)
+      );
+    }
   },
 
   methods: {
@@ -179,10 +225,23 @@ export default {
     },
 
     async fetchExperiences() {
+      this.loading = true;
+      this.error = null;
       try {
-        this.experiences = await experienceServices.getExperiences();
+        const response = await experienceServices.getExperiences();
+        if (Array.isArray(response)) {
+          this.experiences = response;
+        } else if (response && typeof response === 'object') {
+          this.experiences = [response];
+        } else {
+          throw new Error("Unexpected response format");
+        }
       } catch (error) {
         console.error("Error fetching experiences:", error);
+        this.error = "Failed to load experiences. Please try again.";
+        this.experiences = [];
+      } finally {
+        this.loading = false;
       }
     },
     
@@ -586,5 +645,116 @@ export default {
   .admin-actions .btn {
     width: 100%;
   }
+}
+
+/* Add new styles */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin: 1rem 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-state {
+  color: #e74c3c;
+}
+
+.error-state i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #2980b9;
+}
+
+.empty-state {
+  color: #7f8c8d;
+}
+
+.empty-state i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.search-filter {
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.admin-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-title {
+  font-size: 1.75rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.admin-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  border-radius: 3px;
 }
 </style>

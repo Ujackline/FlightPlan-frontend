@@ -9,11 +9,13 @@
           </div>
         </div>
         <nav>
-        
-          <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
-            <i class="fas fa-tasks"></i> Manage Experiences
+          <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
           </router-link>
-          <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
+          <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
+            <i class="fas fa-tasks"></i> Experiences
+          </router-link>
+          <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
@@ -26,12 +28,10 @@
             <i class="fas fa-cog"></i> Settings
           </router-link>
 
-          <router-link to="/tasks" class="nav-item" :class="{ active: currentRoute === 'tasks' }">
-            <i class="fas fa-tasks"></i> Manage Tasks
-          </router-link>
-          <router-link to="/admin/users" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
+          <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-users-cog"></i> Manage Users
           </router-link>
+
           <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
             <i class="fas fa-file-alt"></i> Manage Documents
           </router-link>
@@ -64,14 +64,9 @@
         </div>
     </header>
 
-    <!-- Router View for Child Routes -->
-    <router-view v-if="$route.name !== 'adminDashboard'"></router-view>
-
     <!-- Admin Dashboard Content -->
-    <div v-if="$route.name === 'adminDashboard'" class="dashboard-content">
+    <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
         <h2>Admin Dashboard</h2>
-
-       
 
         <!-- Experience Notifications -->
         <div class="experience-notifications">
@@ -128,10 +123,6 @@ import experienceServices from "../services/experienceServices";
 
 export default {
   name: "AdminDashboard",
-  setup() {
-    const router = useRouter();
-    return { router };
-  },
   data() {
     return {
       admin: {},
@@ -256,12 +247,12 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
+},
 
     // Add method to navigate to document management
     goToDocuments() {
-      this.router.push('/admin/dashboard/documents');
-  },
+      this.$router.push('/admin/dashboard/documents');
+    },
   }
 };
 </script>
