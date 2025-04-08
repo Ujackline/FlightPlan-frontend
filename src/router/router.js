@@ -48,6 +48,11 @@ const router = createRouter({
       name: 'AdminEvents',
       component: AdminEvents,
     },
+    // Add this additional route to catch the lowercase version
+    {
+      path: '/admin/events',
+      redirect: { name: 'AdminEvents' }  // Redirect to the main route
+    },
     {
       path: '/afternest',
       name: 'afterNest',
