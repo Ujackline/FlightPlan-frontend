@@ -163,7 +163,7 @@
         <div class="card-container">
           <div class="card-header">
             <h2 class="card-title">Completed Events</h2>
-            <a href="#" class="see-all" @click.prevent="$emit('navigate', 'completed-events')">View All →</a>
+            <router-link to="/events" class="see-all">View All →</router-link>
           </div>
           <div class="events-list">
             <div v-for="event in completedEvents" :key="event.id" class="event-item">
@@ -265,7 +265,7 @@ export default {
     },
     async fetchBadges() {
       try {
-        const response = await axios.get(`/flight-plan-t9/badge/${this.studentId}`);
+        const response = await axios.get('/flight-plan-t9/event');
         this.badges = response.data || [];
       } catch (error) {
         console.error('Error fetching badges:', error);
