@@ -1,33 +1,27 @@
-import apiClient from "../services/services"; // Import your configured API client
-
+// studentServices.js - modified version
+import apiClient from "../services/services";
 const API_BASE_URL = "http://localhost:3029/flight-plan-t9/student";
 
 export default {
   async getStudentById(studentId) {
-    const response = await apiClient.get(`${API_BASE_URL}/${studentId}`);
-    return response.data;
+    try {
+      // If no studentId is provided, get the current logged-in student
+      const endpoint = studentId ? `${API_BASE_URL}/${studentId}` : `${API_BASE_URL}/current`;
+      const response = await apiClient.get(endpoint);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      throw error;
+    }
   },
 
   async getStudents() {
-    const response = await apiClient.get(API_BASE_URL);
-    return response.data;
-  },
-
-  // ✅ Get student points
-  async getStudentPoints(studentId) {
-    const response = await apiClient.get(`${API_BASE_URL}/${studentId}/points`);
-    return response.data;
-  },
-
-  // ✅ Add points to student
-  async addStudentPoints(studentId, amount) {
-    const response = await apiClient.patch(`${API_BASE_URL}/${studentId}/addPoints`, { amount });
-    return response.data;
-  },
-
-  // ✅ Redeem points from student
-  async redeemStudentPoints(studentId, amount) {
-    const response = await apiClient.patch(`${API_BASE_URL}/${studentId}/redeemPoints`, { amount });
-    return response.data;
+    try {
+      const response = await apiClient.get(API_BASE_URL);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      throw error;
+    }
   },
 };
