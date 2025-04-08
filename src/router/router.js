@@ -5,13 +5,14 @@ import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
+import Badge from "../views/Badge.vue"
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
-import themeToggle from "../views/themeToggle.vue"; 
+import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
 import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
@@ -27,11 +28,8 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
-    { 
-      path: '/pointRedemption', 
-      name: 'pointRedemption',
-      component: PointRedemption 
-    },
+
+   
     {
       path: '/shop',
       name: 'shop',
@@ -130,6 +128,11 @@ const router = createRouter({
       name: 'adminEvents',
       component: Events,
       meta: { requiresAdmin: true }
+    },
+    {
+      path: '/badge',
+      name: 'badge',
+      component: Badge
     },
 
     {

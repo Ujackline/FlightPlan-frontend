@@ -13,7 +13,11 @@
           <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
             <i class="fas fa-tasks"></i> Manage Experiences
           </router-link>
+
           <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
+
+          <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
+
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
