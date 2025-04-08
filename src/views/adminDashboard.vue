@@ -25,7 +25,7 @@
           <router-link to="/admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
-         
+
           <router-link to="/tasks" class="nav-item" :class="{ active: currentRoute === 'tasks' }">
             <i class="fas fa-tasks"></i> Manage Tasks
           </router-link>
@@ -35,6 +35,7 @@
           <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
             <i class="fas fa-file-alt"></i> Manage Documents
           </router-link>
+
         </nav>
         <div class="sidebar-footer">
           <button @click="logout" class="logout-btn">
@@ -74,46 +75,47 @@
 
         <!-- Experience Notifications -->
         <div class="experience-notifications">
-            <h3>Experience Approval Requests</h3>
+  <h3>Experience Approval Requests</h3>
 
-            <!-- ✅ Show confirmation if experience was just approved -->
-            <p v-if="successMessage" class="success-message">
-                ✅ {{ successMessage }}
-            </p>
+  <!-- ✅ Show confirmation if experience was just approved -->
+  <p v-if="successMessage" class="success-message">
+    ✅ {{ successMessage }}
+  </p>
 
-            <div v-if="experienceNotifications.length > 0">
-                <ul class="notification-list">
-                    <li v-for="note in experienceNotifications" :key="note.id" class="notification-item">
-                        <div class="notification-text">
-                            <strong>{{ note.message }}</strong>
-                            <p class="timestamp">{{ formatDate(note.createdAt) }}</p>
-                        </div>
-                        <div class="notification-actions">
-                            <button @click="viewExperience(note.experienceId)" class="view-btn">View</button>
-                            <button @click="approveExperience(note)" class="approve-btn">Approve</button>
-                            <button @click="rejectExperience(note)" class="reject-btn">Reject</button>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <p v-else>No experience notifications.</p>
+  <div v-if="experienceNotifications.length > 0">
+    <ul class="notification-list">
+      <li v-for="note in experienceNotifications" :key="note.id" class="notification-item">
+        <div class="notification-text">
+          <strong>{{ note.message }}</strong>
+          <p class="timestamp">{{ formatDate(note.createdAt) }}</p>
         </div>
-
-        <!-- ✅ Modal to show experience details -->
-        <div v-if="selectedExperience" class="modal-overlay">
-            <div class="modal">
-                <h3>{{ selectedExperience.name }}</h3>
-                <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
-                <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
-                <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
-                <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
-                <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
-                <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
-                <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
-                <button @click="selectedExperience = null" class="close-btn">Close</button>
-            </div>
+        <div class="notification-actions">
+          <button @click="viewExperience(note.experienceId)" class="view-btn">View</button>
+          <button @click="approveExperience(note)" class="approve-btn">Approve</button>
+          <button @click="rejectExperience(note)" class="reject-btn">Reject</button>
         </div>
+      </li>
+    </ul>
+  </div>
+
+  <p v-else>No experience notifications.</p>
+</div>
+
+<!-- ✅ Modal to show experience details -->
+<div v-if="selectedExperience" class="modal-overlay">
+  <div class="modal">
+    <h3>{{ selectedExperience.name }}</h3>
+    <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
+    <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
+    <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
+    <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
+    <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+    <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
+    <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
+    <button @click="selectedExperience = null" class="close-btn">Close</button>
+  </div>
+</div>
+
     </div>
 </div>
 
@@ -123,7 +125,6 @@
 <script>
 import adminServices from "../services/adminServices";
 import experienceServices from "../services/experienceServices";
-import { useRouter } from 'vue-router';
 
 export default {
   name: "AdminDashboard",
@@ -166,14 +167,16 @@ export default {
   methods: {
     // ✅ Fetch Admin Info
     async fetchAdminInfo() {
-      try {
-        const adminData = await adminServices.getAdminInfo();
-        console.log("✅ Admin info fetched:", adminData);
-        this.admin = adminData; // ✅ assign the actual data
-      } catch (error) {
-        console.error("❌ Error fetching admin info:", error);
-      }
-    },
+  try {
+    const adminData = await adminServices.getAdminInfo();
+    console.log("✅ Admin info fetched:", adminData);
+    this.admin = adminData; // ✅ assign the actual data
+  } catch (error) {
+    console.error("❌ Error fetching admin info:", error);
+  }
+},
+
+
 
     // ✅ Fetch All Notifications
     async fetchNotifications() {
@@ -194,71 +197,71 @@ export default {
     },
 
     async viewExperience(id) {
-      try {
-        const exp = await experienceServices.getExperienceById(id);
-        this.selectedExperience = exp;
-      } catch (error) {
-        console.error("❌ Error fetching experience details:", error);
-      }
-    },
+  try {
+    const exp = await experienceServices.getExperienceById(id);
+    this.selectedExperience = exp;
+  } catch (error) {
+    console.error("❌ Error fetching experience details:", error);
+  }
+},
 
-    async approveExperience(notification) {
-      try {
-        const experienceId = notification.experienceId;
-        await experienceServices.approveExperience(
-          experienceId,
-          `${this.admin.fName} ${this.admin.lName}`
-        );
+async approveExperience(notification) {
+  try {
+    const experienceId = notification.experienceId;
+    await experienceServices.approveExperience(
+      experienceId,
+      `${this.admin.fName} ${this.admin.lName}`
+    );
 
-        await adminServices.deleteNotification(notification.id);
+    await adminServices.deleteNotification(notification.id);
 
-        this.successMessage = "Experience approved successfully!";
-        this.fetchNotifications();
+    this.successMessage = "Experience approved successfully!";
+    this.fetchNotifications();
 
-        // Clear success message after a short delay
-        setTimeout(() => {
-          this.successMessage = "";
-        }, 3000);
-      } catch (error) {
-        console.error("❌ Error approving experience:", error);
-      }
-    },
+    // Clear success message after a short delay
+    setTimeout(() => {
+      this.successMessage = "";
+    }, 3000);
+  } catch (error) {
+    console.error("❌ Error approving experience:", error);
+  }
+},
 
-    async rejectExperience(notification) {
-      try {
-        const experienceId = notification.experienceId;
-        await experienceServices.rejectExperience(experienceId);
+async rejectExperience(notification) {
+  try {
+    const experienceId = notification.experienceId;
+    await experienceServices.rejectExperience(experienceId);
 
-        await adminServices.deleteNotification(notification.id);
+    await adminServices.deleteNotification(notification.id);
 
-        this.successMessage = "Experience rejected successfully.";
-        this.fetchNotifications();
+    this.successMessage = "Experience rejected successfully.";
+    this.fetchNotifications();
 
-        setTimeout(() => {
-          this.successMessage = "";
-        }, 3000);
-      } catch (error) {
-        console.error("❌ Error rejecting experience:", error);
-      }
-    },
+    setTimeout(() => {
+      this.successMessage = "";
+    }, 3000);
+  } catch (error) {
+    console.error("❌ Error rejecting experience:", error);
+  }
+},
 
     // ✅ Get Admin Initials
     getInitials() {
-      const f = this.admin?.fName?.charAt(0) || '';
-      const l = this.admin?.lName?.charAt(0) || '';
-      return `${f}${l}`.toUpperCase();
-    },
+  const f = this.admin?.fName?.charAt(0) || '';
+  const l = this.admin?.lName?.charAt(0) || '';
+  return `${f}${l}`.toUpperCase();
+},
 
-    formatDate(dateString) {
-      if (!dateString) return '';
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      return new Date(dateString).toLocaleDateString(undefined, options);
-    },
+formatDate(dateString) {
+  if (!dateString) return '';
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
 
     // Add method to navigate to document management
     goToDocuments() {
       this.router.push('/admin/dashboard/documents');
-    },
+  },
   }
 };
 </script>
