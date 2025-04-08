@@ -48,6 +48,27 @@
           <v-icon class="mr-1">mdi-store</v-icon>
           Shop
         </v-btn>
+        
+        <v-btn 
+          text 
+          @click="navigateTo('documents')"
+          :class="{ 'active-route': currentRoute === 'documents' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-file-document</v-icon>
+          Documents
+        </v-btn>
+        
+        <v-btn 
+          v-if="isAdmin"
+          text 
+          @click="navigateTo('adminDashboard')"
+          :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
+          class="mx-1"
+        >
+          <v-icon class="mr-1">mdi-view-dashboard</v-icon>
+          Admin Dashboard
+        </v-btn>
       </div>
 
       <!-- Mobile menu button - only shows on small screens -->
@@ -133,6 +154,16 @@
           </v-list-item>
           
           <v-list-item 
+            @click="navigateTo('documents')"
+            :class="{ 'active-route': currentRoute === 'documents' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-file-document</v-icon>
+            </template>
+            <v-list-item-title>Documents</v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
           >
@@ -140,6 +171,17 @@
               <v-icon>mdi-paper-plane</v-icon>
             </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item 
+            v-if="isAdmin"
+            @click="navigateTo('adminDashboard')"
+            :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-view-dashboard</v-icon>
+            </template>
+            <v-list-item-title>Admin Dashboard</v-list-item-title>
           </v-list-item>
         </v-list>
       </div>
@@ -217,6 +259,11 @@ const navigateTo = (routeName) => {
     isMobileMenuOpen.value = false;
   }
 };
+
+// Add the computed property for isAdmin
+const isAdmin = computed(() => {
+  return user.value && user.value.role === 'admin';
+});
 
 onMounted(() => {
   logoURL.value = ocLogo;
