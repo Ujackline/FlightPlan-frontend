@@ -3,10 +3,10 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import StudentDashboard from "../views/StudentDashbord.vue"
-import Task from "../views/task.vue"
+//import StudentDashboard from "../views/StudentDashboard.vue"
+import Task from "../views/taskStudents.vue"
 import Experience from "../views/Experience.vue";
-import AdminDashboard from "../views/AdminDashboard.vue";
+import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import StudentDashboard from "../views/StudentDashboard.vue";
@@ -14,7 +14,8 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
-
+import AdminCreateTask from "../views/AdminCreateTask.vue";
+import AdminViewTask from "../views/AdminViewTasks.vue"; 
 
 
 const router = createRouter({
@@ -46,11 +47,11 @@ const router = createRouter({
       name: 'studentDashboard',
       component: StudentDashboard
     },
-    {
-      path: '/flightPlan',
-      name: 'flightPlan',
-      component: FlightPlan
-    },
+    // {
+    //   path: '/flightPlan',
+    //   name: 'flightPlan',
+    //   component: FlightPlan
+    // },
 
     {
       path: '/Experience',
@@ -75,6 +76,17 @@ const router = createRouter({
       name: 'task',
       component: Task
     },
+    {
+      path: "/admin/create-task",
+      name: "create-task",
+      component: AdminCreateTask
+    },   
+    
+    {
+      path: "/admin/view-task",
+      name: "view-task",
+      component: AdminViewTask
+    }, 
 
     {
       path: '/themeToggle',
