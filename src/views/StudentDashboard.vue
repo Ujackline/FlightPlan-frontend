@@ -182,6 +182,7 @@
         <!-- Completed Events -->
         <div class="card-container">
           <div class="card-header">
+
             <h2 class="card-title">Registered Events</h2>
             <router-link to="/event" class="see-all">View All →</router-link>
           </div>
@@ -353,6 +354,10 @@ export default {
     // Function to fetch badges
     const fetchBadges = async () => {
       try {
+
+        const response = await axios.get('/flight-plan-t9/event');
+        this.badges = response.data || [];
+
         loading.value = true;
         message.value = '';
         
@@ -409,6 +414,7 @@ export default {
         if (badges.value.length === 0) {
           message.value = 'No badges found for this user.';
         }
+
       } catch (error) {
         console.error('Error fetching badges:', error);
         message.value = 'Failed to load your badges. Please try again.';
