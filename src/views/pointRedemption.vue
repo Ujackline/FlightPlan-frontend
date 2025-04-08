@@ -2,6 +2,15 @@
   <div class="points-redeemer">
     <h1>Points Redeemer</h1>
 
+    <!-- Debug Information -->
+    <div v-if="showDebug" class="debug-info">
+      <h3>Debug Information</h3>
+      <button @click="toggleDebugInfo">Toggle Debug Info</button>
+      <button @click="attemptDirectFetch">Try Direct Fetch</button>
+      <button @click="showSampleAwards">Show Sample Awards</button>
+      <pre v-if="debugInfo">{{ debugInfo }}</pre>
+    </div>
+
     <!-- Search Bar -->
     <div class="search-bar">
       <input v-model="searchQuery" placeholder="Search Student by Name or Email" />
@@ -21,11 +30,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in users" :key="user.id">
+          <tr v-for="user in filteredUsers" :key="user.id">
             <td>{{ user.studentID }}</td>
             <td>{{ user.fName }} {{ user.lName }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.studentPointsAvailable }}</td>
+            <td>{{ user.points }}</td>
             <td>
               <button @click="selectUser(user)" class="select-btn">Select</button>
             </td>
@@ -39,19 +48,48 @@
       <h2>Selected Student</h2>
       <p><strong>ID:</strong> {{ selectedUser.studentID }}</p>
       <p><strong>Name:</strong> {{ selectedUser.fName }} {{ selectedUser.lName }}</p>
-      <p><strong>Available Points:</strong> {{ selectedUser.studentPointsAvailable }}</p>
+      <p><strong>Available Points:</strong> {{ selectedUser.points }}</p>
 
-      <!-- Deduct Points for Reward -->
-      <div class="form-group">
-        <label>Reward Name:</label>
-        <input v-model="rewardName" placeholder="Enter Reward Name" required />
+      <!-- Available Awards -->
+      <div class="awards-section">
+        <h3>Available Awards</h3>
+        <div class="awards-grid">
+          <div v-for="award in awards" :key="award.AwardID" class="award-card" @click="selectAward(award)">
+            <img :src="award.description" :alt="award.name" class="award-image" />
+            <div class="award-details">
+              <h4>{{ award.name }}</h4>
+              <p>{{ award.points }} points</p>
+              <button 
+                @click.stop="redeemAward(award)" 
+                :disabled="parseInt(award.points) > parseInt(selectedUser.points) || loading"
+                class="redeem-btn"
+              >
+                {{ loading && selectedAward?.AwardID === award.AwardID ? "Processing..." : "Redeem" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <label>Points to Deduct:</label>
-        <input v-model.number="pointsToDeduct" type="number" min="1" required />
-
-        <button @click="redeemPoints" :disabled="loading || !canRedeem">
-          {{ loading ? "Processing..." : "Redeem" }}
-        </button>
+    <!-- Display Fallback Sample Awards if API fails -->
+    <div v-if="usingSampleAwards && selectedUser" class="selected-student">
+      <h3>Sample Awards (API Fallback)</h3>
+      <div class="awards-grid">
+        <div v-for="award in sampleAwards" :key="award.AwardID" class="award-card" @click="selectAward(award)">
+          <img :src="award.description" :alt="award.name" class="award-image" />
+          <div class="award-details">
+            <h4>{{ award.name }}</h4>
+            <p>{{ award.points }} points</p>
+            <button 
+              @click.stop="redeemAward(award)" 
+              :disabled="parseInt(award.points) > parseInt(selectedUser.points) || loading"
+              class="redeem-btn"
+            >
+              {{ loading && selectedAward?.AwardID === award.AwardID ? "Processing..." : "Redeem" }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -61,68 +99,132 @@
 </template>
 
 <script>
-import userServices from "../services/userServices";
-import adminServices from "../services/adminServices";
-import axios from "axios";
 import studentServices from "../services/studentServices";
+import awardServices from "../services/awardServices";
+import Utils from "../config/utils.js";
+import axios from 'axios';
 
 export default {
   data() {
     return {
-      users: [], // All students with points
+      users: [],
+      awards: [],
       searchQuery: "",
       selectedUser: null,
-      rewardName: "",
-      pointsToDeduct: null,
+      selectedAward: null,
       message: "",
       isSuccess: false,
-      loading: false, // Disable button when processing
+      loading: false,
+      showDebug: true,
+      debugInfo: null,
+      usingSampleAwards: false,
+      sampleAwards: [
+        {
+          AwardID: 1,
+          name: "Free Coffee",
+          description: "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=1937&auto=format&fit=crop",
+          points: 50,
+          redemption_type: "food"
+        },
+        {
+          AwardID: 2,
+          name: "Parking Pass",
+          description: "https://images.unsplash.com/photo-1590674899484-8a8ae973a5b2?q=80&w=2070&auto=format&fit=crop",
+          points: 100,
+          redemption_type: "service"
+        },
+        {
+          AwardID: 3,
+          name: "$10 Bookstore Credit",
+          description: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1974&auto=format&fit=crop",
+          points: 75,
+          redemption_type: "merchandise"
+        }
+      ]
     };
   },
   computed: {
-    // Filter users based on search query (by name or email)
-    async fetchUsers() {
-  try {
-    console.log("Fetching students...");
-    const response = await studentServices.getStudents();
-    console.log("Raw API response:", response);
-
-
-      this.users = response;
-
-    console.log("Parsed Students:", this.users);
-  } catch (error) {
-    console.error("❌ Error fetching students:", error);
-    this.message = "Failed to fetch student accounts.";
-    this.isSuccess = false;
-  }
-},
-
-    // Prevent redeeming if points are insufficient
-    canRedeem() {
-      return (
-        this.selectedUser &&
-        this.pointsToDeduct > 0 &&
-        this.pointsToDeduct <= this.selectedUser.studentPointsAvailable
+    filteredUsers() {
+      if (!this.searchQuery) return this.users;
+      
+      const query = this.searchQuery.toLowerCase();
+      return this.users.filter(user => 
+        user.fName.toLowerCase().includes(query) || 
+        user.lName.toLowerCase().includes(query) || 
+        user.email.toLowerCase().includes(query)
       );
-    },
+    }
   },
   async mounted() {
+    // Check if user is logged in
+    const user = Utils.getStore('user');
+    if (!user || !user.token) {
+      this.message = "Please log in to access this page.";
+      this.isSuccess = false;
+      return;
+    }
+    
     await this.fetchUsers();
+    await this.fetchAwards();
   },
   methods: {
     async fetchUsers() {
-  try {
-    console.log("Fetching students...");
-    const response = await adminServices.fetchStudents(); // 👈 Use this instead
-    this.users = response.data;
-    console.log("Fetched Students:", this.users);
-  } catch (error) {
-    console.error("❌ Error fetching students:", error);
-    this.message = "Failed to fetch student accounts.";
-    this.isSuccess = false;
-  }
-},
+      try {
+        const response = await studentServices.getStudents();
+        if (Array.isArray(response)) {
+          this.users = response;
+          console.log("Fetched Students:", this.users);
+        } else {
+          console.error("❌ Unexpected student data format:", response);
+          this.message = "Failed to fetch student accounts: Unexpected data format.";
+          this.isSuccess = false;
+          this.users = [];
+        }
+      } catch (error) {
+        console.error("❌ Error fetching students:", error);
+        this.message = "Failed to fetch student accounts. Please make sure you're logged in.";
+        this.isSuccess = false;
+        this.users = [];
+      }
+    },
+
+    async fetchAwards() {
+      try {
+        console.log("Attempting to fetch awards...");
+        console.log("API base URL being used:", import.meta.env.DEV ? "http://localhost:3029/flight-plan-t9" : "/flight-plan-t9/");
+        
+        const response = await awardServices.getAwards();
+        console.log("Raw award response:", response);
+        
+        if (Array.isArray(response)) {
+          this.awards = response;
+          console.log("Fetched Awards:", this.awards);
+          this.message = "";
+        } else if (response && typeof response === 'object') {
+          // Handle case where API returns an object with data property
+          if (Array.isArray(response.data)) {
+            this.awards = response.data;
+            console.log("Fetched Awards from data property:", this.awards);
+            this.message = "";
+          } else {
+            console.error("❌ Unexpected award data format:", response);
+            this.message = "Failed to fetch awards: Unexpected data format.";
+            this.isSuccess = false;
+            this.awards = [];
+          }
+        } else {
+          console.error("❌ Unexpected award response format:", response);
+          this.message = "Failed to fetch awards: Unexpected response format.";
+          this.isSuccess = false;
+          this.awards = [];
+        }
+      } catch (error) {
+        console.error("❌ Error fetching awards:", error);
+        this.message = "Failed to fetch awards. Please make sure you're logged in.";
+        this.isSuccess = false;
+        this.awards = [];
+      }
+    },
 
     selectUser(user) {
       if (!user) {
@@ -134,34 +236,121 @@ export default {
       this.message = "";
     },
 
-    async redeemPoints() {
-      if (!this.canRedeem) {
-        this.message = "Invalid points amount or insufficient balance.";
+    selectAward(award) {
+      this.selectedAward = award;
+    },
+
+    async redeemAward(award) {
+      if (!this.selectedUser || !award) {
+        this.message = "Please select a student and an award.";
+        this.isSuccess = false;
+        return;
+      }
+
+      if (parseInt(award.points) > parseInt(this.selectedUser.points)) {
+        this.message = "Insufficient points to redeem this award.";
         this.isSuccess = false;
         return;
       }
 
       this.loading = true;
+      this.selectedAward = award;
 
       try {
-        const response = await axios.post("/api/student/redeem", {
-          studentId: this.selectedUser.id,
-          pointsToDeduct: this.pointsToDeduct,
-          rewardName: this.rewardName,
-        });
+        const response = await awardServices.redeemAward(
+          this.selectedUser.id,
+          award.AwardID,
+          award.points
+        );
 
-        // Update local points balance
-        this.selectedUser.studentPointsAvailable -= this.pointsToDeduct;
+        // Update the user's points locally
+        this.selectedUser.points = (parseInt(this.selectedUser.points) - parseInt(award.points)).toString();
 
-        this.message = response.data.message || "Points redeemed successfully!";
+        // Remove the award from the list if successfully redeemed
+        if (response && response.success) {
+          this.awards = this.awards.filter(a => a.AwardID !== award.AwardID);
+        }
+
+        this.message = response.message || "Award redeemed successfully!";
         this.isSuccess = true;
       } catch (error) {
-        this.message = error.response?.data?.error || "Error processing request.";
+        this.message = error.response?.data?.error || "Error processing redemption.";
         this.isSuccess = false;
       } finally {
         this.loading = false;
       }
     },
+
+    toggleDebugInfo() {
+      this.showDebug = !this.showDebug;
+      if (this.showDebug) {
+        const user = Utils.getStore('user');
+        this.debugInfo = JSON.stringify({
+          userLoggedIn: !!user,
+          hasToken: user && !!user.token,
+          tokenPrefix: user && user.token ? user.token.substring(0, 10) + '...' : null,
+          apiBaseUrl: import.meta.env.DEV ? "http://localhost:3029/flight-plan-t9" : "/flight-plan-t9/",
+        }, null, 2);
+      } else {
+        this.debugInfo = null;
+      }
+    },
+    
+    async attemptDirectFetch() {
+      try {
+        this.debugInfo = "Attempting direct fetch...";
+        const user = Utils.getStore('user');
+        
+        if (!user || !user.token) {
+          this.debugInfo = "No user token found.";
+          return;
+        }
+        
+        const endpoints = ["award", "awards", "reward", "rewards"];
+        const baseUrl = "http://localhost:3029/flight-plan-t9";
+        
+        const results = {};
+        
+        for (const endpoint of endpoints) {
+          try {
+            const response = await axios.get(`${baseUrl}/${endpoint}`, {
+              headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            results[endpoint] = {
+              status: response.status,
+              data: response.data
+            };
+            
+            // If we got a successful response with data, use it
+            if (response.data && Array.isArray(response.data)) {
+              this.awards = response.data;
+              this.message = `Success! Found ${response.data.length} awards using endpoint '${endpoint}'`;
+              this.isSuccess = true;
+            }
+          } catch (error) {
+            results[endpoint] = {
+              error: error.message,
+              status: error.response?.status,
+              data: error.response?.data
+            };
+          }
+        }
+        
+        this.debugInfo = JSON.stringify(results, null, 2);
+      } catch (error) {
+        this.debugInfo = `Error in direct fetch: ${error.message}`;
+      }
+    },
+    
+    showSampleAwards() {
+      this.usingSampleAwards = true;
+      this.message = "Showing sample awards data (API fallback)";
+      this.isSuccess = true;
+    }
   },
 };
 </script>
@@ -212,28 +401,90 @@ export default {
   border-radius: 5px;
 }
 
-.form-group {
-  margin-top: 10px;
+.awards-section {
+  margin-top: 20px;
 }
 
-button {
+.awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.award-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s;
+  cursor: pointer;
+  background-color: white;
+}
+
+.award-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.award-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.award-details {
+  padding: 10px;
+}
+
+.award-details h4 {
+  margin: 0 0 5px 0;
+}
+
+.redeem-btn {
   background-color: #4caf50;
   color: white;
-  padding: 10px;
+  padding: 6px 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
+  margin-top: 8px;
+  width: 100%;
 }
 
-button:disabled {
+.redeem-btn:disabled {
   background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .success {
   color: green;
+  margin-top: 15px;
 }
 
 .error {
   color: red;
+  margin-top: 15px;
+}
+
+.debug-info {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+.debug-info pre {
+  background: #333;
+  color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 300px;
+}
+
+.debug-info button {
+  margin-right: 10px;
+  margin-bottom: 10px;
 }
 </style>

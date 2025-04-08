@@ -1,5 +1,6 @@
-// studentServices.js - modified version
+// studentServices.js - merged version
 import apiClient from "../services/services";
+
 const API_BASE_URL = "http://localhost:3029/flight-plan-t9/student";
 
 export default {
