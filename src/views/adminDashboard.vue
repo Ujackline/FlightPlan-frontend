@@ -14,18 +14,18 @@
             <i class="fas fa-tasks"></i> Manage Experiences
           </router-link>
 
-          <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
-
           <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
-
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
+
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
             <i class="fas fa-users"></i> Student Flight Plans
           </router-link>
+
           <router-link to="/admin/pointRedemption" class="nav-item" :class="{ active: currentRoute === 'points' }">
             <i class="fas fa-coins"></i> Point Redemption
           </router-link>
+          
           <router-link to="/admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
@@ -36,7 +36,7 @@
           <router-link to="/admin/users" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-users-cog"></i> Manage Users
           </router-link>
-          <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
+          <router-link to="/admin/adminDocuments" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
             <i class="fas fa-file-alt"></i> Manage Documents
           </router-link>
 
@@ -129,6 +129,7 @@
 <script>
 import adminServices from "../services/adminServices";
 import experienceServices from "../services/experienceServices";
+import { useRouter } from "vue-router";
 
 export default {
   name: "AdminDashboard",
@@ -262,11 +263,8 @@ formatDate(dateString) {
   return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
-    // Add method to navigate to document management
-    goToDocuments() {
-      this.router.push('/admin/dashboard/documents');
+
   },
-  }
 };
 </script>
 
