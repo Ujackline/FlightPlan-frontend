@@ -89,7 +89,7 @@ import { ref, onMounted } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
 import eventServices from '../services/eventServices';
-import task from '../services/task.js';
+import task from '../services/taskServices.js';
 
 export default {
   components: {
@@ -387,7 +387,7 @@ export default {
   color: white;
 }
 
-=======
+
 
 /* Badges list */
 .badges-list {
