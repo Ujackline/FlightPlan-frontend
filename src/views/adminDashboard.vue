@@ -15,7 +15,7 @@
           </router-link>
 
           <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
-
+          </router-link>
           <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
 
             <i class="fas fa-calendar-alt"></i> Event Management
@@ -267,7 +267,7 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
+},
 
     // Add method to navigate to document management
     goToDocuments() {
