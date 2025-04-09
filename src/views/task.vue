@@ -151,7 +151,7 @@ export default {
 
 <script>
 import { ref, onMounted } from "vue";
-import task from "../services/taskServices";
+import task from "../services/task";
 
 export default {
   setup() {

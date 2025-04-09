@@ -27,6 +27,7 @@ import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
+import AdminBadge from "../views/adminBadge.vue";
 
 
 
@@ -130,6 +131,12 @@ const router = createRouter({
       path: '/admin/users',
       name: 'manageusers',
       component: ManageUser,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/adminBadges',
+      name: 'adminBadges',
+      component: AdminBadge,
       meta: { requiresAdmin: true }
     },
     {
