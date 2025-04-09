@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "bundle": "powershell Move-Item .env dist",
+    "bundle": "mv .env dist",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
