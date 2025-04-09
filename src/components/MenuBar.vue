@@ -17,48 +17,25 @@
 
       <v-spacer></v-spacer>
 
+    
       <div v-if="user" class="d-none d-sm-flex">
+       
+      
         <v-btn 
           text 
           @click="navigateTo('studentDashboard')"
           :class="{ 'active-route': currentRoute === 'studentDashboard' }"
           class="mx-1"
         >
+          
           Student Dashboard
         </v-btn>
-
-        <v-btn 
-          text 
-          @click="navigateTo('shop')"
-          :class="{ 'active-route': currentRoute === 'shop' }"
-          class="mx-1"
-        >
-          <v-icon class="mr-1">mdi-store</v-icon>
-          Shop
-        </v-btn>
-
-        <v-btn 
-          text 
-          @click="navigateTo('documents')"
-          :class="{ 'active-route': currentRoute === 'documents' }"
-          class="mx-1"
-        >
-          <v-icon class="mr-1">mdi-file-document</v-icon>
-          Documents
-        </v-btn>
-
-        <v-btn 
-          v-if="isAdmin"
-          text 
-          @click="navigateTo('adminDashboard')"
-          :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
-          class="mx-1"
-        >
-          <v-icon class="mr-1">mdi-view-dashboard</v-icon>
-          Admin Dashboard
-        </v-btn>
+        
+        
+       
       </div>
 
+      <!-- Mobile menu button - only shows on small screens -->
       <v-btn 
         v-if="user" 
         icon 
@@ -68,6 +45,7 @@
         <v-icon>{{ isMobileMenuOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
       </v-btn>
 
+      <!-- User Profile Menu -->
       <div v-if="user">
         <v-menu bottom min-width="200px" rounded offset-y>
           <template v-slot:activator="{ props }">
@@ -92,7 +70,10 @@
                   Logout
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-                <themeToggle @toggle-theme="$emit('toggle-theme')" />
+                
+                          <!-- 🌗 Theme Toggle Component -->
+            <themeToggle @toggle-theme="$emit('toggle-theme')" />
+                
               </div>
             </v-card-text>
           </v-card>
@@ -100,6 +81,7 @@
       </div>
     </v-app-bar>
 
+    <!-- Mobile Menu - Dropdown for small screens -->
     <v-expand-transition>
       <div 
         v-if="isMobileMenuOpen && user" 
@@ -115,7 +97,7 @@
             </template>
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item>
-
+          
           <v-list-item 
             @click="navigateTo('studentDashboard')"
             :class="{ 'active-route': currentRoute === 'studentDashboard' }"
@@ -125,27 +107,7 @@
             </template>
             <v-list-item-title>Student Dashboard</v-list-item-title>
           </v-list-item>
-
-          <v-list-item 
-            @click="navigateTo('shop')"
-            :class="{ 'active-route': currentRoute === 'shop' }"
-          >
-            <template v-slot:prepend>
-              <v-icon>mdi-store</v-icon>
-            </template>
-            <v-list-item-title>Shop</v-list-item-title>
-          </v-list-item>
-
-          <v-list-item 
-            @click="navigateTo('documents')"
-            :class="{ 'active-route': currentRoute === 'documents' }"
-          >
-            <template v-slot:prepend>
-              <v-icon>mdi-file-document</v-icon>
-            </template>
-            <v-list-item-title>Documents</v-list-item-title>
-          </v-list-item>
-
+          
           <v-list-item 
             @click="navigateTo('afterNest')"
             :class="{ 'active-route': currentRoute === 'afterNest' }"
@@ -155,21 +117,11 @@
             </template>
             <v-list-item-title>Life After Nest</v-list-item-title>
           </v-list-item>
-
-          <v-list-item 
-            v-if="isAdmin"
-            @click="navigateTo('adminDashboard')"
-            :class="{ 'active-route': currentRoute === 'adminDashboard' || currentRoute === 'adminDocuments' }"
-          >
-            <template v-slot:prepend>
-              <v-icon>mdi-view-dashboard</v-icon>
-            </template>
-            <v-list-item-title>Admin Dashboard</v-list-item-title>
-          </v-list-item>
         </v-list>
       </div>
     </v-expand-transition>
-
+    
+    <!-- Overlay for mobile menu -->
     <div 
       class="nav-overlay" 
       v-if="isMobileMenuOpen" 
@@ -184,6 +136,8 @@ import { ref, onMounted, computed, watch } from "vue";
 import Utils from "../config/utils";
 import AuthServices from "../services/authServices";
 import { useRouter, useRoute } from "vue-router";
+//import Admin from "../views/AdminDashboard.vue";
+//import adminService from "../services/adminServices";
 
 const router = useRouter();
 const route = useRoute();
@@ -194,12 +148,17 @@ const name = ref("");
 const logoURL = ref("");
 const isMobileMenuOpen = ref(false);
 
-const currentRoute = computed(() => route.name);
+// Track current route for highlighting active menu item
+const currentRoute = computed(() => {
+  return route.name;
+});
 
+// Toggle mobile menu
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
+// Close mobile menu when route changes
 watch(() => route.path, () => {
   isMobileMenuOpen.value = false;
 });
@@ -216,7 +175,7 @@ const logout = async () => {
   try {
     await AuthServices.logoutUser(user.value);
     Utils.removeItem("user");
-    localStorage.removeItem("user");
+    localStorage.removeItem('user');
     router.push({ name: "login" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -224,31 +183,30 @@ const logout = async () => {
 };
 
 const navigateTo = (routeName) => {
-  router.push({ name: routeName }).catch((err) => {
-    if (err.name !== "NavigationDuplicated") {
-      console.error("Navigation error:", err);
+  router.push({ name: routeName }).catch(err => {
+    if (err.name !== 'NavigationDuplicated') {
+      console.error('Navigation error:', err);
     }
   });
+  // Close mobile menu after navigation on mobile
   if (window.innerWidth < 600) {
     isMobileMenuOpen.value = false;
   }
 };
 
-const isAdmin = computed(() => {
-  return user.value && user.value.role === "admin";
-});
-
 onMounted(() => {
   logoURL.value = ocLogo;
   resetMenu();
-
-  window.addEventListener("storage", (e) => {
-    if (e.key === "user") {
+  
+  // Add event listener for storage changes
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'user') {
       resetMenu();
     }
   });
-
-  window.addEventListener("resize", () => {
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
     if (window.innerWidth > 600) {
       isMobileMenuOpen.value = false;
     }
@@ -270,14 +228,16 @@ onMounted(() => {
   cursor: pointer;
 }
 
+/* Active route styling */
 .active-route {
   background-color: rgba(0, 0, 0, 0.05);
   border-bottom: 3px solid #1976d2;
 }
 
+/* Mobile menu styling */
 .mobile-menu {
   position: absolute;
-  top: 64px;
+  top: 64px; /* Height of app bar */
   left: 0;
   right: 0;
   background-color: white;
@@ -295,12 +255,14 @@ onMounted(() => {
   z-index: 99;
 }
 
+/* Mobile menu active route styling */
 .mobile-menu .active-route {
   background-color: rgba(0, 0, 0, 0.05);
   border-left: 3px solid #1976d2;
   border-bottom: none;
 }
 
+/* Adjust for mobile screens */
 @media (max-width: 600px) {
   .nav-items {
     display: none;
