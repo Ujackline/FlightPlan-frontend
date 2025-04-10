@@ -137,7 +137,7 @@ import taskServices from '../services/taskServices.js';
 import experienceServices from '../services/experienceServices.js';
 import eventServices from '../services/eventServices.js';
 import studentServices from '../services/studentServices';
-import flightPlanServices from '../services/flightplanServices'
+import flightPlanServices from '../services/flightPlanServices'
 
 export default {
   setup() {
