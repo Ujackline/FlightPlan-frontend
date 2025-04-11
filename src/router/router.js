@@ -3,16 +3,26 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
+
+//import StudentDashboard from "../views/StudentDashboard.vue"
+// import Task from "../views/taskStudents.vue"
+
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
+import Badge from "../views/Badge.vue"
+
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
-import themeToggle from "../views/themeToggle.vue"; 
+import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
+
+import AdminCreateTask from "../views/AdminCreateTask.vue";
+import AdminViewTask from "../views/AdminViewTasks.vue"; 
+
 import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
@@ -27,11 +37,8 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
-    { 
-      path: '/pointRedemption', 
-      name: 'pointRedemption',
-      component: PointRedemption 
-    },
+
+   
     {
       path: '/shop',
       name: 'shop',
@@ -59,7 +66,7 @@ const router = createRouter({
       name: 'studentDashboard',
       component: StudentDashboard
     },
-   
+
 
     {
       path: '/Experience',
@@ -131,6 +138,22 @@ const router = createRouter({
       component: Events,
       meta: { requiresAdmin: true }
     },
+    {
+      path: '/badge',
+      name: 'badge',
+      component: Badge
+    },
+    {
+      path: "/admin/create-task",
+      name: "create-task",
+      component: AdminCreateTask
+    },   
+    
+    {
+      path: "/admin/view-task",
+      name: "view-task",
+      component: AdminViewTask
+    }, 
 
     {
       path: '/themeToggle',

@@ -1,11 +1,14 @@
-import apiClient from "../config/apiClient.js"; // Fix import path
+// studentServices.js - merged version
+import apiClient from "../services/services";
 
-const API_ENDPOINT = "student";
+const API_BASE_URL = "http://localhost:3029/flight-plan-t9/student";
 
 export default {
   async getStudentById(studentId) {
     try {
-      const response = await apiClient.get(`${API_ENDPOINT}/${studentId}`);
+      // If no studentId is provided, get the current logged-in student
+      const endpoint = studentId ? `${API_BASE_URL}/${studentId}` : `${API_BASE_URL}/current`;
+      const response = await apiClient.get(endpoint);
       return response.data;
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -15,37 +18,11 @@ export default {
       throw new Error(errorMessage);
     }
   },
+
   async getStudents() {
     try {
-      // Log the request attempt
-      console.log("🔍 Attempting to fetch students from:", `${apiClient.defaults.baseURL}/${API_ENDPOINT}`);
-      
-      // Log headers being sent
-      const headers = apiClient.defaults.headers;
-      console.log("📨 Request headers:", {
-        Authorization: headers.Authorization ? "Bearer ..." + headers.Authorization.slice(-10) : "Not set",
-        ContentType: headers["Content-Type"] || "Not set"
-      });
-
-      const response = await apiClient.get(API_ENDPOINT);
-      console.log("✅ Raw student response:", response);
-      
-      // Validate and transform response
-      if (response?.data) {
-        if (Array.isArray(response.data)) {
-          console.log(`✅ Received ${response.data.length} students`);
-          return response.data;
-        } else if (response.data.students && Array.isArray(response.data.students)) {
-          console.log(`✅ Received ${response.data.students.length} students from nested data`);
-          return response.data.students;
-        } else if (typeof response.data === 'object') {
-          console.log("ℹ️ Received single student object, converting to array");
-          return [response.data];
-        }
-      }
-      
-      console.error("❌ Unexpected response format:", response);
-      throw new Error("Invalid response format from server");
+      const response = await apiClient.get(API_BASE_URL);
+      return response.data;
     } catch (error) {
       // Enhanced error logging
       console.error("❌ Error fetching students. Details:", {
