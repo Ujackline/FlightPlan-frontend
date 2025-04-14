@@ -1,109 +1,84 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
-    <!-- Personalized Greeting with Eagle Flight Plan Title -->
-    <div class="container mx-auto px-4 py-6 max-w-4xl text-center">
-      <h1 class="text-5xl font-bold text-blue-800 mb-4">EAGLE FLIGHT PLAN</h1>
-      <h2 class="text-4xl font-bold text-gray-900">Welcome, {{ firstName || 'Guest' }}!</h2>
-      <p class="text-gray-600 text-lg">Stay on track with your Eagle Flight Plan</p>
+  <div class="dashboard-container">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <h2>Welcome, {{ firstName }}!</h2>
+      <p>Track your progress and achievements</p>
     </div>
+    
+    <!-- Main content area with 3 columns -->
+    <div class="dashboard-columns">
+      <!-- Left Column: Points & Progress -->
+      <div class="dashboard-column left-column">
 
-    <!-- Flight Plan Progress & Points System -->
-    <div class="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-1 gap-6">
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <div class="flex flex-wrap justify-between items-center">
-          <div class="w-full md:w-2/3">
-            <h2 class="text-lg font-bold text-gray-900">Your Eagle Flight Progress</h2>
-            <progress :value="progress" max="100" class="w-full h-3 mt-2 bg-gray-300 rounded"></progress>
-            <p class="text-sm text-gray-600 mt-1">{{ progress }}% completed</p>
+        <div class="column-card">
+          <h3 class="column-title">Your Eagle Flight Progress</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: progress + '%' }"></div>
           </div>
-          <div class="w-full md:w-1/3 mt-4 md:mt-0 p-4 bg-gray-100 rounded-lg shadow-md text-center">
-            <h2 class="text-xl font-semibold text-gray-900">Points & Rewards</h2>
-            <p class="text-lg font-bold text-indigo-600">{{ points }} Points</p>
-            <button class="mt-4 p-2 bg-blue-600 text-white rounded hover:bg-blue-700">Redeem Rewards</button>
+          <p class="progress-text">{{ progress }}% completed</p>
+        </div>
+        <div class="column-card">
+          
+          <h3 class="column-title">Points & Rewards</h3>
+          
+          <!-- Circular Points Gauge -->
+          <div class="gauge-container">
+            <CircularPoints :points="points" :maxPoints="100" />
           </div>
+          
+          <p class="points-subtitle">Total earned points</p>
+      <center>
+        <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
+      </center>
+
+     
+        </div>
+        
+      </div>
+      
+      <!-- Center Column: Flight Plan Tasks -->
+      <div class="dashboard-column center-column">
+        <div class="column-card">
+          <h3 class="column-title">Flight Plan</h3>
+          <div class="task-list">
+            <div class="task-header">
+              <span>Task</span>
+              <span>Complete</span>
+            </div>
+            
+            <div v-for="task in tasks" :key="task.id" class="task-item">
+              <span class="task-name">{{ task.name }}</span>
+              <span class="task-check">
+                <input type="checkbox" v-model="task.completed" :disabled="task.locked">
+              </span>
+            </div>
+          </div>
+          <button class="view-button">View Completed Tasks</button>
         </div>
       </div>
-    </div>
-
-    <!-- Career Readiness Checklist & My Experiences in Two Tables -->
-    <div class="container mx-auto px-4 py-8 max-w-6xl grid grid-cols-2 gap-6">
-      <!-- Career Tasks Table -->
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-3xl font-bold text-burgundy mb-4 text-center">Career Readiness</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr class="bg-blue-200 text-gray-700 uppercase text-sm">
-                <th class="py-3 px-6 text-left">Task</th>
-                <th class="py-3 px-6 text-center">Completed</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-600 text-sm bg-blue-50">
-              <tr v-for="(task, index) in careerTasks" :key="task.id" class="border-b border-gray-200 hover:bg-gray-100">
-                <td class="py-3 px-6 whitespace-nowrap">{{ task.name }}</td>
-                <td class="py-3 px-6 text-center">
-                  <input type="checkbox" v-model="task.completed" class="form-checkbox h-5 w-5 text-blue-600">
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      
+      <!-- Right Column: Upcoming Events -->
+      <div class="dashboard-column right-column">
+        <div class="column-card">
+          <div class="card-header">
+            <h3 class="column-title">Upcoming Events</h3>
+            
+          </div>
+          
+          <div class="events-list">
+            <div v-if="events.length === 0" class="empty-state">
+              No upcoming events
+            </div>
+            <div v-else v-for="event in events" :key="event.id" class="event-item">
+              <div class="event-title">{{ event.name }}</div>
+              <div class="event-date">{{ formatDate(event.date) }}</div>
+              <div class="event-location" v-if="event.location">{{ event.location }}</div>
+              <div class="event-category" v-if="event.category">{{ event.category }}</div>
+            </div>
+          </div>
+          <button class="view-button" @click="$router.push('/events')">View All Events</button>
         </div>
-        <div class="text-center mt-4">
-          <button @click="saveChecklist" class="p-2 bg-green-600 text-white rounded hover:bg-green-700">Save Checklist</button>
-        </div>
-      </div>
-
-      <!-- My Experiences Table -->
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-3xl font-bold text-burgundy mb-4 text-center">My Experiences</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr class="bg-blue-200 text-gray-700 uppercase text-sm">
-                <th class="py-3 px-6 text-left">Experience</th>
-                <th class="py-3 px-6 text-left">Details</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-600 text-sm bg-blue-50">
-              <tr v-for="(experience, index) in experiences" :key="experience.id" class="border-b border-gray-200 hover:bg-gray-100">
-                <td class="py-3 px-6 whitespace-nowrap">{{ experience.name }}</td>
-                <td class="py-3 px-6 whitespace-nowrap">
-                  <details>
-                    <summary class="cursor-pointer font-bold text-blue-600">View Details</summary>
-                    <ul class="list-disc pl-5">
-                      <li v-for="detail in experience.details" :key="detail">{{ detail }}</li>
-                    </ul>
-                  </details>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Upcoming Events & Deadlines -->
-    <div class="container mx-auto px-4 py-8 max-w-6xl text-center">
-      <h2 class="text-3xl font-bold text-burgundy mb-4">Upcoming Events & Deadlines</h2>
-    </div>
-    <div class="container mx-auto px-4 py-6 max-w-6xl bg-white rounded-lg shadow-lg p-6">
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-200">
-          <thead>
-            <tr class="bg-blue-200 text-gray-700 uppercase text-sm">
-              <th class="py-3 px-6 text-left">Event Name</th>
-              <th class="py-3 px-6 text-left">Date</th>
-              <th class="py-3 px-6 text-left">Deadline</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-600 text-sm bg-blue-50">
-            <tr v-for="event in upcomingEvents" :key="event.id" class="border-b border-gray-200 hover:bg-gray-100">
-              <td class="py-3 px-6 whitespace-nowrap">{{ event.name }}</td>
-              <td class="py-3 px-6 whitespace-nowrap">{{ event.date }}</td>
-              <td class="py-3 px-6">{{ event.deadline }}</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
@@ -111,46 +86,385 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import userServices from '../services/userServices';
+import CircularPoints from '../components/CircularPoints.vue';
+import Utils from '../config/utils';
+import eventServices from '../services/eventServices';
+import task from '../services/task.js';
 
 export default {
-  name: "HomeDashboard",
+  components: {
+    CircularPoints
+  },
   setup() {
-    const firstName = ref('Guest');
+    const firstName = ref('');
+    const progress = ref(10);
+    const points = ref(24);
+    
+    const tasks = ref([]);
+    
+    const events = ref([]);
+    const loading = ref(false);
     const error = ref(null);
-
-    const fetchUser = async () => {
+   
+    
+    const formatDate = (dateString) => {
+      const options = { month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+    
+    const fetchUserData = async () => {
       try {
-        // Get the user ID from your authentication store/session
-        // This should be set when the user logs in
-        const userId = localStorage.getItem('userId'); 
+        const storedUser = Utils.getStore("user");
         
-        if (!userId) {
-          console.error('No user ID found');
-          return;
+        if (storedUser && storedUser.fName) {
+          firstName.value = storedUser.fName;
         }
-
-        const response = await userServices.getOne(userId);
-        if (response.data && response.data.fName) {
-          firstName.value = response.data.fName;
-        }
-      } catch (err) {
-        error.value = 'Failed to load user.';
-        console.error('Error fetching user:', err);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
     };
 
-    onMounted(() => {});
+    const fetchEvents = async () => {
+      try {
+        loading.value = true;
+        const response = await eventServices.getAll();
+        events.value = response.data;
+      } catch (err) {
+        error.value = err.response?.data?.message || "Failed to fetch events.";
+        console.error("Error fetching upcoming events:", err);
+      } finally {
+        loading.value = false;
+      }
+    };
 
+    const fetchTasks = async () => {
+      try {
+        const response = await task.getAllTasks();
+        tasks.value = response.data;
+      } catch (err) {
+        error.value = err.response?.data?.message || "Failed to fetch tasks.";
+        console.error("Error fetching tasks:", err);
+      } finally {
+        loading.value = false;
+      }
+    };
+    
+    onMounted(() => {
+      fetchUserData();
+      fetchEvents();
+      fetchTasks();
+    });
+    
     return {
       firstName,
       progress,
       points,
-      careerTasks,
-      experiences,
-      upcomingEvents,
-      saveChecklist
+      tasks,
+      events,
+      formatDate
     };
   }
 };
 </script>
+
+<style scoped>
+/* Main container */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Welcome banner */
+.welcome-banner {
+  background-color: #8B2332;
+  color: white;
+  padding: 20px;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.welcome-banner h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* Columns layout */
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 20px;
+}
+
+.dashboard-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Column cards */
+.column-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.column-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+/* Card header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.see-all {
+  color: #3182ce;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+/* Points section */
+.gauge-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.points-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.redeem-button {
+  width: 100%;
+  background-color: #4169E1;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Task list */
+.task-list {
+  margin-bottom: 16px;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-bottom: 2px solid #eee;
+  font-weight: bold;
+  color: #555;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.task-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+/* Events list */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.event-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #3182ce;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.event-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.event-date, .event-location {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.event-category {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #666;
+}
+
+.no-events, .no-badges {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Badges list */
+.badges-list {
+  margin-bottom: 16px;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  color: white;
+}
+
+=======
+
+/* Badges list */
+.badges-list {
+  margin-bottom: 16px;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  color: white;
+}
+.badge-icon.career {
+  background-color: #4169E1;
+}
+
+.badge-icon.achievement {
+  background-color: #FFA500;
+}
+
+.badge-name {
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.badge-date {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Button styles */
+.view-button {
+  width: 100%;
+  background-color: #f1f1f1;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.view-button:hover {
+  background-color: #e5e5e5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .dashboard-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .right-column {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+  
+  .left-column, .center-column {
+    grid-column: 1 / -1;
+  }
+}
+</style>
+

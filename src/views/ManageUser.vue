@@ -13,7 +13,8 @@
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>First Name</th>
+              <th>Last Name</th>
               <th>Email</th>
               <th>Role</th>
               <th>Actions</th>
@@ -21,8 +22,9 @@
           </thead>
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id">
-              <td>{{ user.name }}</td>
-              <td>{{ user.email }}</td>
+                  <td>{{ user.fName }}</td>
+                  <td>{{ user.lName }}</td>
+                  <td>{{ user.email }}</td>
               <td>
                 <select v-model="user.role" @change="updateUserRole(user)">
                   <option value="student">Student</option>
@@ -32,10 +34,11 @@
               </td>
               <td class="actions">
                 <button @click="deleteUser(user.id)" class="icon-btn delete-btn">
-                  <i class="fas fa-trash-alt"></i>
+                  <i class="fas fa-trash-alt"></i> Delete
                 </button>
               </td>
             </tr>
+
           </tbody>
         </table>
       </section>
@@ -45,8 +48,10 @@
         <h3>Add New User</h3>
         <form @submit.prevent="addUser">
           <div class="form-group">
-            <label>Name:</label>
-            <input type="text" v-model="newUser.name" required />
+            <label>First Name:</label>
+            <input type="text" v-model="newUser.fName"  required />
+            <label>Last Name:</label>
+            <input type="text" v-model="newUser.lName"  required />
           </div>
           <div class="form-group">
             <label>Email:</label>
@@ -68,22 +73,24 @@
   
   <script>
   import adminServices from "../services/adminServices";
-  
   export default {
     data() {
       return {
         users: [],
         searchQuery: "",
-        newUser: { name: "", email: "", role: "student" },
+        newUser: { fName: "",lName:"", email: "", role: "Admin" },
       };
     },
     computed: {
       filteredUsers() {
+  if (!Array.isArray(this.users)) return [];
+
         return this.users.filter(user =>
-          user.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
+          user.fName?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          user.email?.toLowerCase().includes(this.searchQuery.toLowerCase())
         );
-      },
+      }
+
     },
     async mounted() {
       this.fetchUsers();
@@ -91,8 +98,11 @@
     methods: {
       async fetchUsers() {
         try {
-          const response = await adminServices.getUsers();
-          this.users = response.data;
+          const users = await adminServices.getUsers(); // calls /user now
+          this.users = Array.isArray(users) ? users : [users]; //  make sure it’s always an array
+          console.log(this.users);
+          //    console.log("Fetched Users:", response.data); // Check what data is coming
+
         } catch (error) {
           console.error("Error fetching users:", error);
         }
@@ -119,7 +129,7 @@
         try {
           const response = await adminServices.addUser(this.newUser);
           this.users.push(response.data);
-          this.newUser = { name: "", email: "", role: "student" };
+          this.newUser = { fName: "", lName: "", email: "", role: "student" };
         } catch (error) {
           console.error("Error adding user:", error);
         }
@@ -167,16 +177,17 @@
   }
   
   .icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 5px;
-  }
-  
-  .delete-btn i {
-    color: #e74c3c;
-  }
+  background-color: #ffdddd;
+  border: 1px solid #ccc;
+  padding: 6px;
+  margin: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  color: red;
+}
   
   .add-user-section {
     margin-top: 30px;

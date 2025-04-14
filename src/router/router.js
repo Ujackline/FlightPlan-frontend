@@ -1,16 +1,33 @@
-
 import { createRouter, createWebHistory } from "vue-router";
 import Utils from '../config/utils'; 
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
-import StudentDashboard from "../views/StudentDashbord.vue"
-import FlightPlan from "../views/FlightPlan.vue";
+
+//import StudentDashboard from "../views/StudentDashboard.vue"
+// import Task from "../views/taskStudents.vue"
+
+import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
+import Badge from "../views/Badge.vue"
+
 import Experience from "../views/Experience.vue";
-import Admin from "../views/Admin.vue";
+import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
+import Events from "../views/Events.vue";
+import Profile from "../views/profile.vue";
+import themeToggle from "../views/themeToggle.vue";
+import StudentSetup from "../views/StudentSetup.vue";
+
+import AdminCreateTask from "../views/AdminCreateTask.vue";
+import AdminViewTask from "../views/AdminViewTasks.vue"; 
+
+import PointRedemption from "../views/pointRedemption.vue";
+import Shop from "../views/Shop.vue";
+import Documents from "../views/Documents.vue";
+import AdminDocuments from "../views/AdminDocuments.vue";
+
 
 
 const router = createRouter({
@@ -20,10 +37,24 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
+
+   
+    {
+      path: '/shop',
+      name: 'shop',
+      component: Shop
+    },
+    
     {
       path: '/login',
       name: 'login',
       component: Login
+    },
+
+    {
+      path: '/student/StudentSetup',
+      name: 'StudentSetup',
+      component: StudentSetup,
     },
     {
       path: '/afternest',
@@ -31,10 +62,11 @@ const router = createRouter({
       component: AfterNest
     },
     {
-      path: '/studentDashboard',
+      path: '/student/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
     },
+
 
     {
       path: '/Experience',
@@ -43,34 +75,116 @@ const router = createRouter({
     },
 
     {
-      path:'/Admin',
-      name: 'Admin',
-      component: Admin
+      path: '/admin/dashboard',
+      name: 'adminDashboard',
+      component: AdminDashboard,
+      meta: { requiresAdmin: true },
+      children: [
+        {
+          path: 'documents',
+          name: 'adminDocuments',
+          component: AdminDocuments,
+          meta: { requiresAdmin: true }
+        }
+      ]
     },
 
+    // Admin routes
     {
-      path:'/settings',
+      path: '/experience',
+      name: 'experience',
+      component: Experience,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/students',
+      name: 'students',
+      component: StudentDashboard,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/pointRedemption',
+      name: 'points',
+      component: PointRedemption,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/settings',
       name: 'settings',
-      component: Adminsettings
+      component: Adminsettings,
+      meta: { requiresAdmin: true }
     },
     {
       path: '/task',
       name: 'task',
-      component: Task
+      component: Task,
+      meta: { requiresAdmin: true }
     },
+    {
+      path: '/tasks',
+      name: 'tasks',
+      component: Task,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/users',
+      name: 'manageusers',
+      component: ManageUser,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/dashboard/events',
+      name: 'adminEvents',
+      component: Events,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/badge',
+      name: 'badge',
+      component: Badge
+    },
+    {
+      path: "/admin/create-task",
+      name: "create-task",
+      component: AdminCreateTask
+    },   
+    
+    {
+      path: "/admin/view-task",
+      name: "view-task",
+      component: AdminViewTask
+    }, 
+
+    {
+      path: '/themeToggle',
+      name: 'themeToggle',
+      component: themeToggle
+    },
+
     {
       path: '/home',
       name: 'home',
       component: Home,
       meta: { requiresAuth: true }
     },
-    
+    {
+      path: '/events',
+      name: 'Events',
+      component: Events,
+    },
   
     {
-      path: '/manageusers',
-      name: 'manageusers',
-      component: ManageUser,
-    }, 
+      path: '/profile',
+      name: 'profile',
+      component: Profile,
+    },
+
+    {
+      path: '/documents',
+      name: 'documents',
+      component: Documents,
+      meta: { requiresAuth: true }
+    },
   ],
 });
 
@@ -92,6 +206,7 @@ router.beforeEach((to, from, next) => {
   
   // If trying to access admin routes without admin role
   if (to.meta.requiresAdmin && user?.role !== 'admin') {
+    console.log('Access to admin route blocked - user is not an admin');
     next({ name: 'home' });
     return;
   }

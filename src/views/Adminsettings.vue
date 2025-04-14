@@ -7,12 +7,12 @@
         <h3>Profile Settings</h3>
         <form @submit.prevent="updateProfile">
           <div class="form-group">
-            <label for="fname">First Name:</label>
-            <input type="text" id="fname" v-model="admin.fname" required />
+            <label for="fName">First Name:</label>
+            <input type="text" id="fName" v-model="admin.fName" required />
           </div>
           <div class="form-group">
-            <label for="lname">Last Name:</label>
-            <input type="text" id="lname" v-model="admin.lname" required />
+            <label for="lName">Last Name:</label>
+            <input type="text" id="lName" v-model="admin.lName" required />
           </div>
           <div class="form-group">
             <label for="email">Email:</label>
@@ -49,8 +49,8 @@
     data() {
       return {
         admin: {
-          fname: "",
-          lname: "",
+          fName: "",
+          lName: "",
           email: ""
         },
         settings: {
