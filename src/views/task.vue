@@ -137,7 +137,7 @@ export default {
       <tbody>
         <tr v-for="task in tasks" :key="task.id">
           <td>{{ task.id }}</td>
-          <td>{{ task.name }}</td>
+          <td>{{ task.taskName }}</td>
           <td>{{ task.description || 'No description' }}</td>
           <td>
             <button class="edit-btn" @click="editTask(task)">Edit</button>

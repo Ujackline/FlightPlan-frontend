@@ -27,7 +27,9 @@
           <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
-
+          <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
+             <i class="fas fa-tasks"></i> Tasks
+           </router-link>
           <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-cog"></i> Manage Users
           </router-link>
