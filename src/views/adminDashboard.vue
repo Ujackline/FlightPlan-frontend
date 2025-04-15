@@ -9,43 +9,27 @@
           </div>
         </div>
         <nav>
-        
-          <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
-            <i class="fas fa-tasks"></i> Manage Experiences
+          <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
           </router-link>
-
-          <!-- <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }"> -->
-
-
-          <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
-
+          <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
+            <i class="fas fa-tasks"></i> Experiences & Tasks
+          </router-link>
+          <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
             <i class="fas fa-users"></i> Student Flight Plans
           </router-link>
-          <router-link to="/admin/pointRedemption" class="nav-item" :class="{ active: currentRoute === 'points' }">
+          <router-link to="/admin/points" class="nav-item" :class="{ active: currentRoute === 'points' }">
             <i class="fas fa-coins"></i> Point Redemption
           </router-link>
-          <router-link to="/admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
+          <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
-          <!-- <router-link to="/admin/create-task" class="nav-item" :class="{ active: currentRoute === 'create-task' }">
-            <i class="fas fa-tasks"></i> Create Tasks
-          </router-link> -->
-          <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
-            <i class="fas fa-tasks"></i> Tasks
-          </router-link>
 
-
-          <router-link to="/task" class="nav-item" :class="{ active: currentRoute === 'task' }">
-            <i class="fas fa-tasks"></i> Manage Tasks
-          </router-link>
-          <router-link to="/admin/users" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
-            <i class="fas fa-users-cog"></i> Manage Users
-          </router-link>
-          <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
-            <i class="fas fa-file-alt"></i> Manage Documents
+          <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
+            <i class="fas fa-cog"></i> Manage Users
           </router-link>
 
         </nav>
@@ -76,14 +60,9 @@
         </div>
     </header>
 
-    <!-- Router View for Child Routes -->
-    <router-view v-if="$route.name !== 'adminDashboard'"></router-view>
-
     <!-- Admin Dashboard Content -->
-    <div v-if="$route.name === 'adminDashboard'" class="dashboard-content">
+    <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
         <h2>Admin Dashboard</h2>
-
-       
 
         <!-- Experience Notifications -->
         <div class="experience-notifications">
@@ -140,10 +119,6 @@ import experienceServices from "../services/experienceServices";
 
 export default {
   name: "AdminDashboard",
-  setup() {
-    const router = useRouter();
-    return { router };
-  },
   data() {
     return {
       admin: {},
@@ -268,138 +243,11 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-},
+}
 
-    // Add method to navigate to document management
-    goToDocuments() {
-      this.router.push('/admin/dashboard/documents');
+
   },
-  }
 };
 </script>
-
-<style scoped>
-.nav-item i {
-  margin-right: 10px;
-  width: 20px;
-  text-align: center;
-}
-
-.sidebar {
-  background-color: #47121D;
-  color: white;
-  width: 250px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  padding: 20px 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  padding: 0 20px;
-  margin-bottom: 30px;
-}
-
-.sidebar-header h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.admin-info {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-nav {
-  flex: 1;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;
-  color: white;
-  text-decoration: none;
-  transition: background-color 0.3s;
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.nav-item.active {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.sidebar-footer {
-  padding: 20px;
-}
-
-.logout-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logout-btn i {
-  margin-right: 8px;
-}
-
-.logout-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.main-content {
-  margin-left: 250px;
-  padding: 20px;
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin: 20px 0;
-}
-
-.action-card {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: transform 0.2s;
-    text-align: center;
-}
-
-.action-card:hover {
-    transform: translateY(-5px);
-}
-
-.action-card i {
-    font-size: 2em;
-    color: #3498db;
-    margin-bottom: 10px;
-}
-
-.action-card h3 {
-    margin: 10px 0;
-    color: #2c3e50;
-}
-
-.action-card p {
-    color: #666;
-    font-size: 0.9em;
-}
-</style>
 
 
