@@ -14,7 +14,8 @@
             <i class="fas fa-tasks"></i> Manage Experiences
           </router-link>
 
-          <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
+          <!-- <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }"> -->
+
 
           <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
 
@@ -37,7 +38,7 @@
           </router-link>
 
 
-          <router-link to="/tasks" class="nav-item" :class="{ active: currentRoute === 'tasks' }">
+          <router-link to="/task" class="nav-item" :class="{ active: currentRoute === 'task' }">
             <i class="fas fa-tasks"></i> Manage Tasks
           </router-link>
           <router-link to="/admin/users" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
@@ -267,7 +268,7 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
+},
 
     // Add method to navigate to document management
     goToDocuments() {
