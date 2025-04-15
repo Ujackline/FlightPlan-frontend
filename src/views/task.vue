@@ -177,7 +177,9 @@ export default {
       }
     };
 
+
     const toggleCompletion = async (task) => {
+
       try {
         const response = await taskService.completeTask(task.id, !task.completed);
         if (response.data.success) {

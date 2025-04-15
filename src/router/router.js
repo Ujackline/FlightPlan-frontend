@@ -12,7 +12,7 @@ import Task from "../views/task.vue"
 import Badge from "../views/Badge.vue"
 
 import Experience from "../views/Experience.vue";
-import AdminDashboard from "../views/adminDashboard.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
@@ -118,14 +118,20 @@ const router = createRouter({
       path: '/task',
       name: 'task',
       component: Task,
-      meta: { requiresAdmin: true }
     },
     {
-      path: '/tasks',
-      name: 'tasks',
-      component: Task,
+      path: "/admin/create-task",
+      name: "create-task",
+      component: AdminCreateTask,
       meta: { requiresAdmin: true }
-    },
+    },   
+    
+    {
+      path: "/admin/view-task",
+      name: "view-task",
+      component: AdminViewTask,
+      meta: { requiresAdmin: true }
+    }, 
     {
       path: '/admin/users',
       name: 'manageusers',
@@ -143,17 +149,7 @@ const router = createRouter({
       name: 'badge',
       component: Badge
     },
-    {
-      path: "/admin/create-task",
-      name: "create-task",
-      component: AdminCreateTask
-    },   
-    
-    {
-      path: "/admin/view-task",
-      name: "view-task",
-      component: AdminViewTask
-    }, 
+   
 
     {
       path: '/themeToggle',
