@@ -53,7 +53,7 @@ const handleCredentialResponse = async (response) => {
   if (user.value.needsProfile) {
     router.push('/student/StudentSetup');
   } else {
-    router.push('/student/StudentDashboard');
+    router.push('/home');
   }
 } else if (user.value.role === 'admin') {
   router.push('/admin/AdminDashboard');
