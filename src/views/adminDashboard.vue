@@ -16,10 +16,7 @@
             <i class="fas fa-tasks"></i> Experiences & Tasks
           </router-link>
 
-          <router-link to="/admin/dashboard/events" class="nav-item" :class="{ active: currentRoute === 'adminEvents' }">
-          </router-link>
-          <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
-
+          <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
@@ -31,22 +28,23 @@
           <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
-          <!-- <router-link to="/admin/create-task" class="nav-item" :class="{ active: currentRoute === 'create-task' }">
-            <i class="fas fa-tasks"></i> Create Tasks
-          </router-link> -->
           <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
+
             <i class="fas fa-tasks"></i> Tasks
           </router-link>
 
 
-          <router-link to="/tasks" class="nav-item" :class="{ active: currentRoute === 'tasks' }">
+          <router-link to="/task" class="nav-item" :class="{ active: currentRoute === 'task' }">
             <i class="fas fa-tasks"></i> Manage Tasks
           </router-link>
-          <router-link to="/admin/users" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
-            <i class="fas fa-users-cog"></i> Manage Users
-          </router-link>
+          
           <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
             <i class="fas fa-file-alt"></i> Manage Documents
+
+           </router-link>
+          <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
+            <i class="fas fa-cog"></i> Manage Users
+
           </router-link>
 
         </nav>
@@ -262,9 +260,7 @@ formatDate(dateString) {
   return new Date(dateString).toLocaleDateString(undefined, options);
 },
 
-    // Add method to navigate to document management
-    goToDocuments() {
-      this.router.push('/admin/dashboard/documents');
+
   },
 };
 </script>

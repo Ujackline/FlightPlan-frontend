@@ -8,13 +8,13 @@
         </div>
       </div>
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -435,6 +435,7 @@ export default {
     //     }
 
         
+
         
     //     console.log('Fetching badges for user:', user.id);
     //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
@@ -836,7 +837,7 @@ export default {
 
 
 .task-item, .event-item {
-  background-color: white;
+  background-color: rgb(94, 18, 18);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;
