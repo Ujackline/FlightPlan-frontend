@@ -8,13 +8,13 @@
         </div>
       </div>
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -205,7 +205,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
-import taskService from '../services/task';
+import taskService from '../services/taskServices';
 import badgeServices from '../services/badgeServices';
 import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
@@ -370,7 +370,7 @@ export default {
         }
         
         console.log('Fetching badges for user:', user.id);
-        const response = await badgeServices.getAllUserBadges(user.id);
+       // const response = await badgeServices.getAllUserBadges(user.id);
         
         console.log('Badge API response:', response);
         
@@ -769,7 +769,7 @@ export default {
 
 
 .task-item, .event-item {
-  background-color: white;
+  background-color: rgb(94, 18, 18);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;
