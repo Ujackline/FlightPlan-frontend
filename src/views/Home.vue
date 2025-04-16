@@ -38,25 +38,78 @@
       </div>
       
       <!-- Center Column: Flight Plan Tasks -->
-      <div class="dashboard-column center-column">
+      <!-- <div class="dashboard-column center-column">
         <div class="column-card">
           <h3 class="column-title">Flight Plan</h3>
           <div class="task-list">
             <div class="task-header">
               <span>Task</span>
+              <th>Points</th>
               <span>Complete</span>
             </div>
             
-            <div v-for="task in tasks" :key="task.id" class="task-item">
-              <span class="task-name">{{ task.name }}</span>
-              <span class="task-check">
-                <input type="checkbox" v-model="task.completed" :disabled="task.locked">
-              </span>
+            <div v-for="task in tasks" :key="task.id" :class="{ 'completed-task': task.completed }">
+            <td class="task-name">{{ task.taskName }}</td>
+            <td class="task-points">{{ task.NumOfPoints }}</td>
+            <td class="task-complete">
+              <label class="checkbox-container">
+                <input 
+                  type="checkbox" 
+                  :checked="task.completed"
+                  @change="toggleCompletion(task)" 
+                />
+                <span class="checkmark"></span>
+              </label>
+            </td>
             </div>
           </div>
           <button class="view-button">View Completed Tasks</button>
         </div>
+      </div> -->
+
+      <div class="dashboard-column center-column">
+  <div class="column-card1">
+    <div class="card-header1">
+      <h3 class="column-title1">Flight Plan</h3>
+      <div class="decoration-line"></div>
+    </div>
+    
+    <div class="flight-tasks-container">
+      <div class="task-list">
+        <div class="task-header">
+          <span class="header-task">Task</span>
+          <span class="header-points">Points</span>
+          <span class="header-complete">Complete</span>
+        </div>
+        
+        <div v-if="tasks && tasks.length === 0" class="empty-tasks">
+          <p>No tasks available in your flight plan</p>
+        </div>
+        
+        <div v-for="task in tasks" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
+          <div class="task-name">{{ task.taskName }}</div>
+          <div class="task-points">{{ task.NumOfPoints }}</div>
+          <div class="task-complete">
+            <label class="checkbox-container">
+              <input 
+                type="checkbox" 
+                :checked="task.completed"
+                @change="toggleCompletion(task)" 
+              />
+              <span class="checkmark"></span>
+            </label>
+          </div>
+        </div>
       </div>
+      
+      <button class="view-button">
+        <span class="button-icon">✓</span>
+        View Completed Tasks
+      </button>
+    </div>
+  </div>
+</div>
+
       
       <!-- Right Column: Upcoming Events -->
       <div class="dashboard-column right-column">
@@ -89,7 +142,10 @@ import { ref, onMounted } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
 import eventServices from '../services/eventServices';
-import task from '../services/task.js';
+
+// import task from '../services/taskServices';
+import taskService from "../services/taskServices"; // Rename to taskService instead of task
+
 
 export default {
   components: {
@@ -137,9 +193,11 @@ export default {
       }
     };
 
+
+
     const fetchTasks = async () => {
       try {
-        const response = await task.getAllTasks();
+        const response = await taskService.getAllTasks();
         tasks.value = response.data;
       } catch (err) {
         error.value = err.response?.data?.message || "Failed to fetch tasks.";
@@ -148,6 +206,20 @@ export default {
         loading.value = false;
       }
     };
+
+    const toggleCompletion = async (taskItem) => {
+      try {
+        const response = await taskService.completeTask(taskItem.id);
+        if (response.data.success) {
+          taskItem.completed = !taskItem.completed;
+          // Update points if needed
+        }
+      } catch (err) {
+        console.error("Error updating task completion:", err);
+      }
+    };
+
+    
     
     onMounted(() => {
       fetchUserData();
@@ -161,7 +233,8 @@ export default {
       points,
       tasks,
       events,
-      formatDate
+      formatDate,
+      toggleCompletion
     };
   }
 };
@@ -387,7 +460,7 @@ export default {
   color: white;
 }
 
-=======
+
 
 /* Badges list */
 .badges-list {
@@ -466,5 +539,229 @@ export default {
     grid-column: 1 / -1;
   }
 }
-</style>
 
+/* // <style scoped> */
+/* Main container styles */
+.column-card1 {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(128, 0, 32, 0.08);
+  border-top: 4px solid #800020;
+  overflow: hidden;
+}
+
+.card-header1 {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+.column-title1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #800020;
+  margin: 0 0 0.5rem 0;
+}
+
+.decoration-line {
+  height: 3px;
+  width: 50px;
+  background: linear-gradient(90deg, #800020, #A52A2A);
+  border-radius: 2px;
+  margin-bottom: 0.5rem;
+}
+
+/* Task list styling */
+.flight-tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task-list {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.task-header {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr;
+  background: linear-gradient(to bottom, #f9f9f9, #f0f0f0);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #4A0010;
+  border-bottom: 2px solid rgba(128, 0, 32, 0.2);
+  text-transform: uppercase;
+}
+
+.header-task {
+  text-align: left;
+}
+
+.header-points {
+  text-align: center;
+}
+
+.header-complete {
+  text-align: center;
+}
+
+.empty-tasks {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.task-item {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item:hover {
+  background-color: rgba(128, 0, 32, 0.02);
+}
+
+.completed-task {
+  background-color: rgba(128, 0, 32, 0.04);
+}
+
+.completed-task .task-name {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.task-name {
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 1rem;
+}
+
+.task-points {
+  font-weight: 600;
+  color: #800020;
+  text-align: center;
+}
+
+.task-complete {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Custom checkbox styling */
+.checkbox-container {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+  background-color: #e9e9e9;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #800020;
+  border-color: #800020;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-container .checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Button styling */
+.view-button {
+  background-color: white;
+  color: #800020;
+  border: 1px solid #800020;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-button:hover {
+  background-color: rgba(128, 0, 32, 0.05);
+  box-shadow: 0 2px 4px rgba(128, 0, 32, 0.1);
+}
+
+.view-button:active {
+  transform: translateY(1px);
+}
+
+.button-icon {
+  margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .task-header, .task-item {
+    grid-template-columns: 2fr 1fr 1fr;
+    font-size: 0.9rem;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .column-title {
+    font-size: 1.1rem;
+  }
+}
+</style>

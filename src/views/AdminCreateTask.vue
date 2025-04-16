@@ -468,7 +468,7 @@ import taskService from "../services/task";
   </template>
   
   <script>
-  import taskService from "../services/task";
+  import taskService from "../services/taskServices";
   
   export default {
     data() {
@@ -490,8 +490,8 @@ import taskService from "../services/task";
       async createTask() {
         try {
           await taskService.createTask(this.task);
-          alert("Task created successfully!");
-          this.$router.push("/admin");
+          // alert("Task created successfully!");
+          this.$router.push("/admin/view-task");
         } catch (error) {
           console.error("Error creating task:", error);
         }
