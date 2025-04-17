@@ -12,7 +12,7 @@ import Task from "../views/task.vue"
 import Badge from "../views/Badge.vue"
 
 import Experience from "../views/Experience.vue";
-import AdminDashboard from "../views/AdminDashboard.vue";
+import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";

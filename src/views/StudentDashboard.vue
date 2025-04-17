@@ -353,8 +353,6 @@ export default {
 
     const fetchBadges = async () => {
   try {
-    this.badges = response.data || []; // Remove this line, as response is not defined here
-
     loading.value = true;
     message.value = '';
     
@@ -365,24 +363,29 @@ export default {
       loading.value = false;
       return;
     }
-
+    
     console.log('Fetching badges for user:', user.id);
-    const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
+    const response = await badgeServices.getAllUserBadges(user.id);
     
-    console.log('Badge API response:', badgeResponse);
+    console.log('Badge API response:', response);
     
-    if (Array.isArray(badgeResponse)) {
-      badges.value = badgeResponse.map(badge => ({
+    // Handle different possible data structures
+    if (Array.isArray(response)) {
+      // If response is directly an array
+      badges.value = response.map(badge => ({
         ...badge,
         badge_type: badge.badge_type || badge.type || 'Achievement'
       }));
-    } else if (badgeResponse && Array.isArray(badgeResponse.data)) {
-      badges.value = badgeResponse.data.map(badge => ({
+    } else if (response && Array.isArray(response.data)) {
+      // If response has a data array property
+      badges.value = response.data.map(badge => ({
         ...badge,
         badge_type: badge.badge_type || badge.type || 'Achievement'
       }));
-    } else if (badgeResponse && typeof badgeResponse === 'object') {
-      const badgeData = badgeResponse.data || badgeResponse;
+    } else if (response && typeof response === 'object') {
+      // If response is a single object or has a different structure
+      // Try to extract badges if they exist in the response
+      const badgeData = response.data || response;
       
       if (Array.isArray(badgeData)) {
         badges.value = badgeData.map(badge => ({
@@ -390,6 +393,7 @@ export default {
           badge_type: badge.badge_type || badge.type || 'Achievement'
         }));
       } else {
+        // If it's a single badge object
         badges.value = [{ 
           ...badgeData,
           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
@@ -405,7 +409,6 @@ export default {
     if (badges.value.length === 0) {
       message.value = 'No badges found for this user.';
     }
-
   } catch (error) {
     console.error('Error fetching badges:', error);
     message.value = 'Failed to load your badges. Please try again.';
@@ -414,6 +417,7 @@ export default {
     loading.value = false;
   }
 };
+
 
     
     // Function to fetch badges
