@@ -10,7 +10,6 @@ import AfterNest from "../views/AfterNest.vue";
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
 import Badge from "../views/Badge.vue"
-
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
@@ -19,17 +18,14 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
-
 import AdminCreateTask from "../views/AdminCreateTask.vue";
 import AdminViewTask from "../views/AdminViewTasks.vue"; 
-
 import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
 import AdminBadge from "../views/adminBadge.vue";
 import AdminEvents from "../views/AdminEvents.vue";
-
 
 
 
