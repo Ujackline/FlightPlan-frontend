@@ -4,13 +4,13 @@
     <div class="welcome-banner">
       <h2>Welcome, {{ firstName }}!</h2>
       <p>Track your progress and achievements</p>
+      <p v-if="currentSemester" class="current-semester">Current Semester: {{ currentSemester.name }}</p>
     </div>
     
     <!-- Main content area with 3 columns -->
     <div class="dashboard-columns">
       <!-- Left Column: Points & Progress -->
       <div class="dashboard-column left-column">
-
         <div class="column-card">
           <h3 class="column-title">Your Eagle Flight Progress</h3>
           <div class="progress-bar">
@@ -19,7 +19,6 @@
           <p class="progress-text">{{ progress }}% completed</p>
         </div>
         <div class="column-card">
-          
           <h3 class="column-title">Points & Rewards</h3>
           
           <!-- Circular Points Gauge -->
@@ -28,99 +27,72 @@
           </div>
           
           <p class="points-subtitle">Total earned points</p>
-      <center>
-        <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
-      </center>
-
-     
+          <center>
+            <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
+          </center>
         </div>
-        
       </div>
       
       <!-- Center Column: Flight Plan Tasks -->
-      <!-- <div class="dashboard-column center-column">
-        <div class="column-card">
-          <h3 class="column-title">Flight Plan</h3>
-          <div class="task-list">
-            <div class="task-header">
-              <span>Task</span>
-              <th>Points</th>
-              <span>Complete</span>
+      <div class="dashboard-column center-column">
+        <div class="column-card1">
+          <div class="card-header1">
+            <h3 class="column-title1">Flight Plan</h3>
+            <div class="decoration-line"></div>
+          </div>
+          
+          <div class="flight-tasks-container">
+            <div class="task-list">
+              <div class="task-header">
+                <span class="header-task">Task</span>
+                <span class="header-points">Points</span>
+                <span class="header-complete">Complete</span>
+              </div>
+              
+              <div v-if="loading" class="empty-tasks">
+                <p>Loading tasks...</p>
+              </div>
+              
+              <div v-else-if="tasks.length === 0" class="empty-tasks">
+                <p>No tasks available in your flight plan</p>
+              </div>
+              
+              <div v-else v-for="task in tasks" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
+                <div class="task-name">{{ task.taskName }}</div>
+                <div class="task-points">{{ task.NumOfPoints }}</div>
+                <div class="task-complete">
+                  <label class="checkbox-container">
+                    <input 
+                      type="checkbox" 
+                      :checked="task.completed"
+                      @change="toggleCompletion(task)" 
+                    />
+                    <span class="checkmark"></span>
+                  </label>
+                </div>
+              </div>
             </div>
             
-            <div v-for="task in tasks" :key="task.id" :class="{ 'completed-task': task.completed }">
-            <td class="task-name">{{ task.taskName }}</td>
-            <td class="task-points">{{ task.NumOfPoints }}</td>
-            <td class="task-complete">
-              <label class="checkbox-container">
-                <input 
-                  type="checkbox" 
-                  :checked="task.completed"
-                  @change="toggleCompletion(task)" 
-                />
-                <span class="checkmark"></span>
-              </label>
-            </td>
-            </div>
-          </div>
-          <button class="view-button">View Completed Tasks</button>
-        </div>
-      </div> -->
-
-      <div class="dashboard-column center-column">
-  <div class="column-card1">
-    <div class="card-header1">
-      <h3 class="column-title1">Flight Plan</h3>
-      <div class="decoration-line"></div>
-    </div>
-    
-    <div class="flight-tasks-container">
-      <div class="task-list">
-        <div class="task-header">
-          <span class="header-task">Task</span>
-          <span class="header-points">Points</span>
-          <span class="header-complete">Complete</span>
-        </div>
-        
-        <div v-if="tasks && tasks.length === 0" class="empty-tasks">
-          <p>No tasks available in your flight plan</p>
-        </div>
-        
-        <div v-for="task in tasks" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
-          <div class="task-name">{{ task.taskName }}</div>
-          <div class="task-points">{{ task.NumOfPoints }}</div>
-          <div class="task-complete">
-            <label class="checkbox-container">
-              <input 
-                type="checkbox" 
-                :checked="task.completed"
-                @change="toggleCompletion(task)" 
-              />
-              <span class="checkmark"></span>
-            </label>
+            <button class="view-button">
+              <span class="button-icon">✓</span>
+              View Completed Tasks
+            </button>
           </div>
         </div>
       </div>
-      
-      <button class="view-button">
-        <span class="button-icon">✓</span>
-        View Completed Tasks
-      </button>
-    </div>
-  </div>
-</div>
-
       
       <!-- Right Column: Upcoming Events -->
       <div class="dashboard-column right-column">
         <div class="column-card">
           <div class="card-header">
             <h3 class="column-title">Upcoming Events</h3>
-            
           </div>
           
           <div class="events-list">
-            <div v-if="events.length === 0" class="empty-state">
+            <div v-if="loading && events.length === 0" class="empty-state">
+              Loading events...
+            </div>
+            <div v-else-if="events.length === 0" class="empty-state">
               No upcoming events
             </div>
             <div v-else v-for="event in events" :key="event.id" class="event-item">
@@ -142,10 +114,9 @@ import { ref, onMounted } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
 import eventServices from '../services/eventServices';
-
-// import task from '../services/taskServices';
-import taskService from "../services/taskServices"; // Rename to taskService instead of task
-
+import taskService from "../services/taskServices";
+import flightPlanService from "../services/flightPlanServices";
+import apiClient from '../services/services';
 
 export default {
   components: {
@@ -155,13 +126,11 @@ export default {
     const firstName = ref('');
     const progress = ref(10);
     const points = ref(24);
-    
     const tasks = ref([]);
-    
     const events = ref([]);
     const loading = ref(false);
     const error = ref(null);
-   
+    const currentSemester = ref(null);
     
     const formatDate = (dateString) => {
       const options = { month: 'short', day: 'numeric' };
@@ -170,13 +139,71 @@ export default {
     
     const fetchUserData = async () => {
       try {
+        loading.value = true;
         const storedUser = Utils.getStore("user");
         
         if (storedUser && storedUser.fName) {
           firstName.value = storedUser.fName;
+          
+          // Fetch the student's data to get current semester
+          try {
+            const userResponse = await apiClient.get(`/student?id=${storedUser.id}`);
+            if (userResponse.data && userResponse.data.length > 0) {
+              const student = userResponse.data[0];
+              
+              // Get semester info
+              if (student.currentSemesterId) {
+                const semesterResponse = await apiClient.get(`/semester/${student.currentSemesterId}`);
+                currentSemester.value = semesterResponse.data;
+                
+                // Now that we have the semester, get the flight plan
+                fetchFlightPlanAndTasks(storedUser.id, currentSemester.value.name);
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching student data:', error);
+          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const fetchFlightPlanAndTasks = async (userId, semester) => {
+      try {
+        loading.value = true;
+        
+        // Get flight plan using your service
+        const flightPlanResponse = await flightPlanService.getFlightPlanBySemester(userId, semester);
+        console.log('Flight plan response:', flightPlanResponse);
+        
+        if (flightPlanResponse.data) {
+          // Get tasks for this flight plan
+          const flightPlan = flightPlanResponse.data;
+          const tasksResponse = await taskService.getAllTasks();
+          
+          // Filter and format tasks for this flight plan
+          // Note: This assumes the tasks are related to the flight plan
+          // You may need to adjust this based on your API response structure
+          tasks.value = tasksResponse.data.map(task => ({
+            id: task.id,
+            taskName: task.taskName || task.name,
+            NumOfPoints: task.NumOfPoints || 0,
+            completed: task.completed || false
+          }));
+          
+          // Calculate progress
+          if (tasks.value.length > 0) {
+            const completedTasks = tasks.value.filter(task => task.completed).length;
+            progress.value = Math.round((completedTasks / tasks.value.length) * 100);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching flight plan and tasks:', error);
+      } finally {
+        loading.value = false;
       }
     };
 
@@ -193,38 +220,26 @@ export default {
       }
     };
 
-
-
-    const fetchTasks = async () => {
+    const toggleCompletion = async (task) => {
       try {
-        const response = await taskService.getAllTasks();
-        tasks.value = response.data;
-      } catch (err) {
-        error.value = err.response?.data?.message || "Failed to fetch tasks.";
-        console.error("Error fetching tasks:", err);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const toggleCompletion = async (taskItem) => {
-      try {
-        const response = await taskService.completeTask(taskItem.id);
-        if (response.data.success) {
-          taskItem.completed = !taskItem.completed;
-          // Update points if needed
+        const response = await taskService.completeTask(task.id);
+        console.log('Task completion response:', response);
+        
+        if (response.data && response.data.success) {
+          task.completed = !task.completed;
+          
+          // Recalculate progress
+          const completedTasks = tasks.value.filter(t => t.completed).length;
+          progress.value = Math.round((completedTasks / tasks.value.length) * 100);
         }
       } catch (err) {
         console.error("Error updating task completion:", err);
       }
     };
-
-    
     
     onMounted(() => {
       fetchUserData();
       fetchEvents();
-      fetchTasks();
     });
     
     return {
@@ -233,12 +248,17 @@ export default {
       points,
       tasks,
       events,
+      loading,
+      error,
+      currentSemester,
       formatDate,
       toggleCompletion
     };
   }
 };
 </script>
+
+
 
 <style scoped>
 /* Main container */
