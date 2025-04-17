@@ -133,7 +133,7 @@
 import { ref, onMounted, watch } from 'vue';
 import Utils from '../config/utils';
 import userServices from '../services/userServices';
-import taskServices from '../services/taskServices.js';
+import taskServices from '../services/task.js';
 import experienceServices from '../services/experienceServices.js';
 import eventServices from '../services/eventServices.js';
 import studentServices from '../services/studentServices';

@@ -29,13 +29,16 @@
             <i class="fas fa-cog"></i> Settings
           </router-link>
           <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
-
             <i class="fas fa-tasks"></i> Tasks
           </router-link>
 
 
           <router-link to="/task" class="nav-item" :class="{ active: currentRoute === 'task' }">
             <i class="fas fa-tasks"></i> Manage Tasks
+          </router-link>
+          
+            <router-link to="/admin/adminBadges" class="nav-item" :class="{ active: currentRoute === 'badges' }">
+            <i class="fas fa-cog"></i> Manage Badges
           </router-link>
           
           <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
@@ -264,5 +267,3 @@ formatDate(dateString) {
   },
 };
 </script>
-
-
