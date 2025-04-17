@@ -28,6 +28,8 @@ import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
 import AdminBadge from "../views/adminBadge.vue";
+import AdminEvents from "../views/AdminEvents.vue";
+
 
 
 
@@ -170,6 +172,13 @@ const router = createRouter({
       component: Home,
       meta: { requiresAuth: true }
     },
+ {
+    path: '/admin/AdminEvents',
+    name: 'AdminEvents', 
+    component: AdminEvents, 
+    meta: { requiresAdmin: true }  // Added protection }, // Add this additional route to catch the lowercase version { path: '/admin/events', redirect: { name:'AdminEvents' }  // Redirect to the main route },
+ },
+
     {
       path: '/events',
       name: 'Events',

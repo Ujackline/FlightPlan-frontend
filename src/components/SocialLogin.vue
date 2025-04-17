@@ -54,6 +54,7 @@ const handleCredentialResponse = async (response) => {
     router.push('/student/StudentSetup');
   } else {
     router.push('/home');
+
   }
 } else if (user.value.role === 'admin') {
   router.push('/admin/AdminDashboard');
@@ -62,6 +63,7 @@ const handleCredentialResponse = async (response) => {
     console.log("error", error);
   }
 };
+
 
 onMounted(() => {
   loginWithGoogle();
