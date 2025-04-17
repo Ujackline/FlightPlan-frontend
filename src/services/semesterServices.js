@@ -1,43 +1,44 @@
-import apiClient from '../services/services';
+import apiClient from "./services";
 
-
-const API_BASE_URL = "/semester";
+const SEMESTER_API = "/semester";
 
 const semesterServices = {
+
+  createSemester(semesterData) {
+    return apiClient.post(SEMESTER_API, semesterData);
+  },
+
+
   getAllSemesters() {
-    return apiClient.get(API_BASE_URL);
+    return apiClient.get(SEMESTER_API);
   },
-  
-  getCurrentSemester() {
-    return apiClient.get(`${API_BASE_URL}/current`);
-  },
-  
+
   getActiveSemester() {
-    return apiClient.get(`${API_BASE_URL}/active`);
+    return apiClient.get(`${SEMESTER_API}/active`);
   },
-  
+
+
   getSemesterById(id) {
-    return apiClient.get(`${API_BASE_URL}/${id}`);
+    return apiClient.get(`${SEMESTER_API}/${id}`);
   },
-  
-  createSemester(data) {
-    return apiClient.post(API_BASE_URL, data);
+
+
+  updateSemester(id, updateData) {
+    return apiClient.put(`${SEMESTER_API}/${id}`, updateData);
   },
-  
-  updateSemester(id, data) {
-    return apiClient.put(`${API_BASE_URL}/${id}`, data);
-  },
-  
+
   setActiveSemester(id) {
-    return apiClient.patch(`${API_BASE_URL}/${id}/setActive`);
+    return apiClient.patch(`${SEMESTER_API}/${id}/setActive`);
   },
-  
+
+
   deleteSemester(id) {
-    return apiClient.delete(`${API_BASE_URL}/${id}`);
+    return apiClient.delete(`${SEMESTER_API}/${id}`);
   },
-  
+
+
   deleteAllSemesters() {
-    return apiClient.delete(API_BASE_URL);
+    return apiClient.delete(SEMESTER_API);
   }
 };
 
