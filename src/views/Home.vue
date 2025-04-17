@@ -209,16 +209,16 @@ export default {
 
     const fetchEvents = async () => {
       try {
-        loading.value = true;
         const response = await eventServices.getAll();
-        events.value = response.data;
-      } catch (err) {
-        error.value = err.response?.data?.message || "Failed to fetch events.";
-        console.error("Error fetching upcoming events:", err);
-      } finally {
+        this.events = response.data;
+      } catch (error) {
+        console.error('Failed to fetch events', error);
+        this.showMessage('Failed to load events.', 'error');
+      }finally {
         loading.value = false;
       }
     };
+
 
     const toggleCompletion = async (task) => {
       try {
