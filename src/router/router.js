@@ -3,6 +3,10 @@ import Utils from '../config/utils';
 import Login from "../views/Login.vue";
 import Home from "../views/Home.vue"
 import AfterNest from "../views/AfterNest.vue";
+
+//import StudentDashboard from "../views/StudentDashboard.vue"
+// import Task from "../views/taskStudents.vue"
+
 import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
 import Badge from "../views/Badge.vue"
@@ -14,10 +18,13 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
+import AdminCreateTask from "../views/AdminCreateTask.vue";
+import AdminViewTask from "../views/AdminViewTasks.vue"; 
 import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
+import AdminBadge from "../views/adminBadge.vue";
 import AdminEvents from "../views/AdminEvents.vue";
 
 
@@ -58,7 +65,7 @@ const router = createRouter({
       name: 'studentDashboard',
       component: StudentDashboard
     },
-   
+
 
     {
       path: '/Experience',
@@ -109,14 +116,20 @@ const router = createRouter({
       path: '/task',
       name: 'task',
       component: Task,
-      meta: { requiresAdmin: true }
     },
     {
-      path: '/tasks',
-      name: 'tasks',
-      component: Task,
+      path: "/admin/create-task",
+      name: "create-task",
+      component: AdminCreateTask,
       meta: { requiresAdmin: true }
-    },
+    },   
+    
+    {
+      path: "/admin/view-task",
+      name: "view-task",
+      component: AdminViewTask,
+      meta: { requiresAdmin: true }
+    }, 
     {
       path: '/admin/users',
       name: 'manageusers',
@@ -129,11 +142,26 @@ const router = createRouter({
     //   component: Events,
     //   meta: { requiresAdmin: true }
     // },
+
+    {
+      path: '/admin/adminBadges',
+      name: 'adminBadges',
+      component: AdminBadge,
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/dashboard/events',
+      name: 'adminEvents',
+      component: Events,
+      meta: { requiresAdmin: true }
+    },
+
     {
       path: '/badge',
       name: 'badge',
       component: Badge
     },
+   
 
     {
       path: '/themeToggle',
