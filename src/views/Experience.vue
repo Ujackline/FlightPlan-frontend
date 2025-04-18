@@ -1,4 +1,3 @@
-
 <template>
   <div class="admin-events-container">
     <h1>Experience Management</h1>
@@ -34,22 +33,30 @@
     </div>
 
 <!-- Experience Cards -->
-<section v-if="experiences.length > 0" class="event-list">
-  <div v-for="exp in experiences" :key="exp.id" class="experience-grid-row">
-    <div class="grid-col name-col">
-      <span class="event-name">
-        {{ exp.name }}
-        <span v-if="!isAdmin" class="status-badge" :class="{
-          attended: exp.status === 'Approved',
-          pending: exp.status === 'Pending'
-        }">{{ exp.status }}</span>
+<section v-if="experiences.length > 0" class="experience-list">
+  <div v-for="exp in experiences" :key="exp.id" class="experience-item-row">
+    <!-- Name -->
+    <div class="experience-name">
+      {{ exp.name }}
+    </div>
+
+    <!-- Status (only for students) -->
+    <div v-if="!isAdmin" class="experience-status">
+      <span class="status-label" :class="exp.status?.toLowerCase()">
+        {{ exp.status }}
       </span>
     </div>
-    <div class="grid-col desc-col">{{ exp.description.length > 100 ? exp.description.slice(0, 100) + '...' : exp.description }}</div>
-    <div class="grid-col type-col">{{ exp.type }}</div>
-    <div class="grid-col actions-col">
-      <button class="send-button" @click="viewExperience(exp)">View</button>
-      <button v-if="!isAdmin && exp.status !== 'Approved'" class="mark-button" @click="markAsComplete(exp)">Mark Complete</button>
+
+    <!-- Actions -->
+    <div class="experience-actions">
+      <button class="view-button" @click="viewExperience(exp)">View</button>
+      <button
+        v-if="!isAdmin && exp.status !== 'Approved'"
+        class="mark-button"
+        @click="markAsComplete(exp)"
+      >
+        Mark Complete
+      </button>
       <button v-if="isAdmin" class="edit-button" @click="editExperience(exp)">Edit</button>
       <button v-if="isAdmin" class="delete-button" @click="openDeleteModal(exp)">Delete</button>
     </div>
@@ -103,7 +110,8 @@
         <p><strong>Semester:</strong> {{ selectedExperience.semester }}</p>
         <p><strong>Reflection Required:</strong> {{ selectedExperience.reflectionRequired ? "Yes" : "No" }}</p>
         <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
-        <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
+        <p><strong>Status:</strong> <span :class="['status-label', selectedExperience.status?.toLowerCase()]">
+          {{ selectedExperience.status }}</span></p>
         <p><strong>Completion Date:</strong> {{ selectedExperience.completionDate || "N/A" }}</p>
         <p v-if="selectedExperience.approvedBy"><strong>Approved By:</strong> {{ selectedExperience.approvedBy }}</p>
         <div v-if="isAdmin">
@@ -135,6 +143,8 @@
 
 <script>
 import experienceServices from "../services/experienceServices";
+import studentServices from "../services/studentServices";
+//import { useRoute } from "vue-router";
 
 export default {
   data() {
@@ -179,17 +189,70 @@ export default {
     };
   },
   async mounted() {
-    this.fetchExperiences();
     this.isAdmin = this.checkAdmin(); // Implement this function based on authentication
+    await  this.fetchExperiences();
+    
   },
   methods: {
     async fetchExperiences() {
-      try {
-        this.experiences = await experienceServices.getExperiences();
-      } catch (error) {
-        console.error("Error fetching experiences:", error);
-      }
-    },
+  try {
+    if (this.checkAdmin()) {
+      // Admins: Get all experiences
+      const all = await experienceServices.getExperiences();
+      this.experiences = all.data || all;
+      return;
+    }
+
+    // Students: Get user from localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const studentId = storedUser?.id;
+    if (!studentId) {
+      console.warn("No student ID found.");
+      return;
+    }
+
+    //  Get student info (to fetch semester)
+    const student = await studentServices.getStudentById(studentId);
+    const semester = student.semester || student.grad_semester;
+    if (!semester) {
+      console.warn("Student record is missing semester info.");
+      return;
+    }
+
+    //  Get all experiences for this semester
+    const all = await experienceServices.getExperiencesBySemester(semester);
+    const allExperiences = all.data || all;
+
+    //  Get student-specific progress
+    const studentData = await experienceServices.getMyExperiences(studentId);
+    const studentExperiences = studentData || [];
+
+    //  Merge student progress into experiences
+    const merged = allExperiences.map(exp => {
+      const match = studentExperiences.find(se =>
+        se.experience?.id === exp.id
+      );
+
+      return {
+        ...exp,
+        status: match?.status || 'Incomplete',
+        approvedBy: match?.approvedBy || null,
+        completionDate: match?.CompletionDate || null,
+        pointsEarned: match?.pointsEarned || 0,
+        completed: match?.status === 'Approved',
+        studentExperienceId: match?.id || null
+      };
+    });
+
+    this.experiences = merged;
+
+  } catch (error) {
+    console.error("Error fetching experiences:", error);
+    this.experiences = [];
+  }
+},
+
+
     
     openDeleteModal(exp) {
   this.experienceToDelete = exp;
@@ -252,17 +315,7 @@ async confirmDelete() {
         console.error("Error updating experience:", error);
       }
     },
-    // async deleteExperience(id) {
-    //   if (confirm("Are you sure you want to delete this experience?")) {
-    //     try {
-    //       await experienceServices.deleteExperience(id);
-    //       this.experiences = this.experiences.filter(exp => exp.id !== id);
-    //     } catch (error) {
-    //       console.error("Error deleting experience:", error);
-    //     }
-    //   }
-    // },
-
+  
     async markAsComplete(exp) {
       try {
         await experienceServices.markAsComplete(exp.id);
@@ -293,6 +346,7 @@ async confirmDelete() {
 
 
 <style scoped>
+
 .admin-events-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -325,57 +379,107 @@ h3 {
   font-weight: 500;
 }
 
-.event-list {
-  margin-top: 25px;
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
+.experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-top: 20px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-th, td {
-  border: none;
-  padding: 14px 16px;
-  text-align: left;
+.experience-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  transition: box-shadow 0.3s ease;
 }
 
-th {
-  background-color: #d5dfe7;
-  color: #48111c;
+.experience-item:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.experience-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.experience-name {
+  font-size: 18px;
   font-weight: 600;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: #333;
 }
 
-tr {
-  border-bottom: 1px solid #eee;
+.experience-status {
+  display: inline-block;
 }
 
-tr:nth-child(even) {
-  background-color: #f9f9f9;
+.status-label {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
-tr:hover {
-  background-color: #f0f6ff;
+/* Status-specific colors */
+.approved {
+  background-color: #d4edda;
+  color: #155724;
 }
 
-tr:last-child {
-  border-bottom: none;
+.pending {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-.actions {
-  white-space: nowrap;
-  width: 200px;
+.incomplete {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.rejected {
+  background-color: #f5c6cb;
+  color: #842029;
+}
+
+.experience-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.view-button,
+.mark-button,
+.edit-button,
+.delete-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.view-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.view-button:hover {
+  background-color: #1976d2;
+}
+
+.mark-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.mark-button:hover {
+  background-color: #45a049;
 }
 
 .add-button {
@@ -390,7 +494,6 @@ tr:last-child {
   transition: all 0.2s ease;
   box-shadow: 0 2px 5px rgba(249, 198, 52, 0.3);
 }
-
 .add-button:hover {
   background-color: #edbb2d;
   transform: translateY(-2px);
@@ -427,39 +530,6 @@ tr:last-child {
 
 .delete-button:hover {
   background-color: #c82333;
-  transform: translateY(-1px);
-}
-
-.code-button {
-  background-color: #f4ecd0;
-  color: #48111c;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.code-button:hover {
-  background-color: #eee0b9;
-  transform: translateY(-1px);
-}
-
-.send-button {
-  background-color: #f68d76;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-right: 6px;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.send-button:hover {
-  background-color: #f57a5f;
   transform: translateY(-1px);
 }
 
@@ -924,21 +994,5 @@ textarea {
   font-weight: 600;
 }
 
-.attendance-button {
-  background-color: #48111c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-right: 6px;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.attendance-button:hover {
-  background-color: #5e1a27;
-  transform: translateY(-1px);
-}
 }
 </style>
