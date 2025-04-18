@@ -67,18 +67,17 @@ const router = createRouter({
     },
 
     {
-      path: '/admin/dashboard',
+      path: '/admin/adminDashboard',
       name: 'adminDashboard',
       component: AdminDashboard,
       meta: { requiresAdmin: true },
-      children: [
-        {
-          path: 'documents',
+    },
+    {
+          path: '/admin/adminDocuments',
           name: 'adminDocuments',
           component: AdminDocuments,
           meta: { requiresAdmin: true }
-        }
-      ]
+      
     },
 
     // Admin routes
@@ -124,12 +123,12 @@ const router = createRouter({
       component: ManageUser,
       meta: { requiresAdmin: true }
     },
-    {
-      path: '/admin/dashboard/events',
-      name: 'adminEvents',
-      component: Events,
-      meta: { requiresAdmin: true }
-    },
+    // {
+    //   path: '/admin/adminEvents',
+    //   name: 'adminEvents',
+    //   component: Events,
+    //   meta: { requiresAdmin: true }
+    // },
     {
       path: '/badge',
       name: 'badge',
