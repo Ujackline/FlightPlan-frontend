@@ -350,7 +350,7 @@ export default {
         experiences.value = [];
       }
     };
-
+//
     const fetchBadges = async () => {
   try {
     this.badges = response.data || []; // Remove this line, as response is not defined here
