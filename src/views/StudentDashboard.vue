@@ -380,7 +380,7 @@ export default {
         experiences.value = [];
       }
     };
-
+//
     const fetchBadges = async () => {
   try {
     loading.value = true;
