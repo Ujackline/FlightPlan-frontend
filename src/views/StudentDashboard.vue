@@ -348,16 +348,24 @@ export default {
 
     
     const fetchExperiences = async () => {
-    try {
+  try {
     const storedUser = Utils.getStore("user");
     const studentId = storedUser?.id;
     console.log(studentId);
-    console.log("her", storedUser)
+    console.log("her", storedUser);
 
     if (!studentId) {
       console.warn("No student ID found.");
       return;
     }
+
+    // Your fetch logic here (e.g., API call)
+    
+  } catch (error) {
+    console.error("Error fetching experiences:", error);
+  }
+};
+
 
     // ✅ Get full student object from DB
     const student = await studentServices.getStudentById(studentId);
