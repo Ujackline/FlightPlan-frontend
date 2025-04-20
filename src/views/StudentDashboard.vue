@@ -364,7 +364,6 @@ export default {
   } catch (error) {
     console.error("Error fetching experiences:", error);
   }
-};
 
 
     // ✅ Get full student object from DB
