@@ -1,10 +1,10 @@
+<!-- Updated template section to support completed tasks toggle -->
 <template>
   <div class="dashboard-container">
     <!-- Welcome Banner -->
     <div class="welcome-banner">
       <h2>Welcome, {{ firstName }}!</h2>
       <p>Track your progress and achievements</p>
-      <p v-if="currentSemester" class="current-semester">Current Semester: {{ currentSemester.name }}</p>
     </div>
     
     <!-- Main content area with 3 columns -->
@@ -27,9 +27,7 @@
           </div>
           
           <p class="points-subtitle">Total earned points</p>
-          <center>
-            <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
-          </center>
+         
         </div>
       </div>
       
@@ -37,7 +35,10 @@
       <div class="dashboard-column center-column">
         <div class="column-card1">
           <div class="card-header1">
-            <h3 class="column-title1">Flight Plan</h3>
+            <div class="flight-plan-header">
+              <h3 class="column-title1">Flight Plan</h3>
+              <span v-if="currentSemester" class="current-semester-tag">{{ currentSemester }}</span>
+            </div>
             <div class="decoration-line"></div>
           </div>
           
@@ -53,12 +54,20 @@
                 <p>Loading tasks...</p>
               </div>
               
-              <div v-else-if="tasks.length === 0" class="empty-tasks">
+              <div v-else-if="flightPlanTasks.length === 0" class="empty-tasks">
                 <p>No tasks available in your flight plan</p>
               </div>
               
-              <div v-else v-for="task in tasks" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
-                <div class="task-name">{{ task.taskName }}</div>
+              <div v-else-if="showCompletedTasks && tasksToDisplay.length === 0" class="empty-tasks">
+                <p>No completed tasks yet</p>
+              </div>
+              
+              <div v-else-if="!showCompletedTasks && tasksToDisplay.length === 0" class="empty-tasks">
+                <p>All tasks completed! 🎉</p>
+              </div>
+              
+              <div v-else v-for="task in tasksToDisplay" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
+                <div class="task-name">{{ task.name }}</div>
                 <div class="task-points">{{ task.NumOfPoints }}</div>
                 <div class="task-complete">
                   <label class="checkbox-container">
@@ -73,9 +82,9 @@
               </div>
             </div>
             
-            <button class="view-button">
-              <span class="button-icon">✓</span>
-              View Completed Tasks
+            <button class="view-button" @click="toggleTasksView">
+              
+              {{ showCompletedTasks ? 'View Active Tasks' : 'View Completed Tasks' }}
             </button>
           </div>
         </div>
@@ -89,7 +98,7 @@
           </div>
           
           <div class="events-list">
-            <div v-if="loading && events.length === 0" class="empty-state">
+            <div v-if="eventsLoading" class="empty-state">
               Loading events...
             </div>
             <div v-else-if="events.length === 0" class="empty-state">
@@ -99,7 +108,7 @@
               <div class="event-title">{{ event.name }}</div>
               <div class="event-date">{{ formatDate(event.date) }}</div>
               <div class="event-location" v-if="event.location">{{ event.location }}</div>
-              <div class="event-category" v-if="event.category">{{ event.category }}</div>
+              <div class="event-category" v-if="event.event_type">{{ event.event_type }}</div>
             </div>
           </div>
           <button class="view-button" @click="$router.push('/events')">View All Events</button>
@@ -110,13 +119,13 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
-import eventServices from '../services/eventServices';
-import taskService from "../services/taskServices";
-import flightPlanService from "../services/flightPlanServices";
 import apiClient from '../services/services';
+import taskService from "../services/taskServices";
+import flightPlanServices from "../services/flightPlanServices";
+import studentServices from "../services/studentServices";
 
 export default {
   components: {
@@ -124,117 +133,228 @@ export default {
   },
   setup() {
     const firstName = ref('');
-    const progress = ref(10);
-    const points = ref(24);
-    const tasks = ref([]);
+    const progress = ref(0);
+    const points = ref(0);
+    const tasks = ref([]); // All tasks
+    const flightPlanTasks = ref([]); 
+    const completedTasks = ref([]); // New ref for completed tasks
     const events = ref([]);
     const loading = ref(false);
+    const eventsLoading = ref(false);
     const error = ref(null);
-    const currentSemester = ref(null);
+    const currentSemester = ref('Fall 2025');
+    const currentFlightPlanId = ref(null);
+    const showCompletedTasks = ref(false);
+    
+    // Compute filtered tasks based on completion status
+    const activeTasks = computed(() => {
+      return flightPlanTasks.value.filter(task => !task.completed);
+    });
+    
+    const tasksToDisplay = computed(() => {
+      return showCompletedTasks.value ? 
+        flightPlanTasks.value.filter(task => task.completed) : 
+        flightPlanTasks.value.filter(task => !task.completed);
+    });
     
     const formatDate = (dateString) => {
+      if (!dateString) return '';
       const options = { month: 'short', day: 'numeric' };
       return new Date(dateString).toLocaleDateString(undefined, options);
     };
     
+    // Load main user data
     const fetchUserData = async () => {
       try {
-        loading.value = true;
         const storedUser = Utils.getStore("user");
         
         if (storedUser && storedUser.fName) {
           firstName.value = storedUser.fName;
           
-          // Fetch the student's data to get current semester
-          try {
-            const userResponse = await apiClient.get(`/student?id=${storedUser.id}`);
-            if (userResponse.data && userResponse.data.length > 0) {
-              const student = userResponse.data[0];
-              
-              // Get semester info
-              if (student.currentSemesterId) {
-                const semesterResponse = await apiClient.get(`/semester/${student.currentSemesterId}`);
-                currentSemester.value = semesterResponse.data;
-                
-                // Now that we have the semester, get the flight plan
-                fetchFlightPlanAndTasks(storedUser.id, currentSemester.value.name);
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching student data:', error);
-          }
+          // Get the student data using studentServices
+          await fetchUserFlightPlan(storedUser.id);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-      } finally {
-        loading.value = false;
       }
     };
+    
+    // Fetch the user's current flight plan
+    const fetchUserFlightPlan = async (userId) => {
+      try {
+        console.log('Fetching flight plan for user:', userId);
 
-    const fetchFlightPlanAndTasks = async (userId, semester) => {
+        // Get the student data using studentServices
+        const student = await studentServices.getStudentByUserId(userId);
+        console.log('Student data:', student);
+
+        if (!student) {
+          console.error('Student data not found');
+          return;
+        }
+        
+        // Use student's semester directly
+        if (student.semester) {
+          currentSemester.value = student.semester;
+        }
+        
+        // Update points
+        if (student.points) {
+          points.value = parseInt(student.points);
+        }
+
+        try {
+          // Get flight plan for this student
+          const response = await flightPlanServices.getFlightPlanBySemester(student.id, student.semester);
+          
+          console.log('Flight plan response:', response);
+          
+          if (response.data && response.data.id) {
+            currentFlightPlanId.value = response.data.id;
+            console.log('Set current flight plan ID:', currentFlightPlanId.value);
+            
+            // Fetch tasks now that we have a flight plan ID
+            await fetchTasks();
+          } else {
+            console.warn('No flight plan found for this student');
+            flightPlanTasks.value = [];
+          }
+        } catch (error) {
+          console.error('Error fetching flight plan:', 
+            error.response?.data || error.message, 
+            error.response?.status
+          );
+          flightPlanTasks.value = [];
+        }
+      } catch (error) {
+        console.error('Error in fetchUserFlightPlan:', error);
+      }
+    };
+    
+    // Fetch tasks for the flight plan
+    const fetchTasks = async () => {
       try {
         loading.value = true;
         
-        // Get flight plan using your service
-        const flightPlanResponse = await flightPlanService.getFlightPlanBySemester(userId, semester);
-        console.log('Flight plan response:', flightPlanResponse);
+        if (!currentFlightPlanId.value) {
+          console.warn('No flight plan ID available - cannot fetch tasks');
+          flightPlanTasks.value = [];
+          return;
+        }
         
-        if (flightPlanResponse.data) {
-          // Get tasks for this flight plan
-          const flightPlan = flightPlanResponse.data;
-          const tasksResponse = await taskService.getAllTasks();
-          
-          // Filter and format tasks for this flight plan
-          // Note: This assumes the tasks are related to the flight plan
-          // You may need to adjust this based on your API response structure
-          tasks.value = tasksResponse.data.map(task => ({
-            id: task.id,
-            taskName: task.taskName || task.name,
-            NumOfPoints: task.NumOfPoints || 0,
-            completed: task.completed || false
-          }));
+        console.log('Fetching tasks for flight plan ID:', currentFlightPlanId.value);
+        
+        const response = await flightPlanServices.getFlightPlanTasks(currentFlightPlanId.value);
+        console.log('Flight plan tasks response:', response);
+        
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          flightPlanTasks.value = response.data;
           
           // Calculate progress
-          if (tasks.value.length > 0) {
-            const completedTasks = tasks.value.filter(task => task.completed).length;
-            progress.value = Math.round((completedTasks / tasks.value.length) * 100);
-          }
+          updateProgress();
+        } else {
+          console.log('No tasks found for this flight plan');
+          flightPlanTasks.value = [];
         }
       } catch (error) {
-        console.error('Error fetching flight plan and tasks:', error);
+        console.error('Error fetching tasks:', error);
+        flightPlanTasks.value = [];
       } finally {
         loading.value = false;
       }
     };
 
-    const fetchEvents = async () => {
-      try {
-        const response = await eventServices.getAll();
-        this.events = response.data;
-      } catch (error) {
-        console.error('Failed to fetch events', error);
-        this.showMessage('Failed to load events.', 'error');
-      }finally {
-        loading.value = false;
+    // Function to update progress calculation
+    const updateProgress = () => {
+      if (flightPlanTasks.value.length > 0) {
+        const completedCount = flightPlanTasks.value.filter(t => t.completed).length;
+        progress.value = Math.round((completedCount / flightPlanTasks.value.length) * 100);
+      } else {
+        progress.value = 0;
       }
     };
-
-
-    const toggleCompletion = async (task) => {
+    
+    // Fetch events
+    const fetchEvents = async () => {
       try {
-        const response = await taskService.completeTask(task.id);
-        console.log('Task completion response:', response);
+        eventsLoading.value = true;
         
-        if (response.data && response.data.success) {
-          task.completed = !task.completed;
-          
-          // Recalculate progress
-          const completedTasks = tasks.value.filter(t => t.completed).length;
-          progress.value = Math.round((completedTasks / tasks.value.length) * 100);
+        // Get events directly
+        const response = await apiClient.get('/event');
+        console.log('Events response:', response);
+        
+        if (response.data && Array.isArray(response.data)) {
+          events.value = response.data.slice(0, 5); // Limit to 5 most recent events
         }
       } catch (err) {
-        console.error("Error updating task completion:", err);
+        console.error("Error fetching events:", err);
+      } finally {
+        eventsLoading.value = false;
       }
+    };
+    
+
+// Toggle task completion
+const toggleCompletion = async (task) => {
+  try {
+    console.log('Toggling task completion:', task);
+    
+    // Optimistically update UI first
+    task.completed = !task.completed;
+    
+    // Calculate new points value if task is completed
+    if (task.completed) {
+      points.value += task.NumOfPoints;
+    } else {
+      points.value -= task.NumOfPoints;
+    }
+    
+    // Update progress
+    updateProgress();
+    
+    // Call API to update server - using the non-async version of your service
+    taskService.completeTask(task.id)
+      .then(response => {
+        console.log('Task completion response:', response);
+        
+        // Update student points in the background
+        const storedUser = Utils.getStore("user");
+        if (storedUser && storedUser.id) {
+          studentServices.getStudentByUserId(storedUser.id)
+            .then(student => {
+              if (student) {
+                // Update points on server
+                studentServices.updateStudentPoints(student.id, points.value);
+              }
+            })
+            .catch(err => {
+              console.error("Error updating student points:", err);
+            });
+        }
+      })
+      .catch(err => {
+        console.error("Error updating task completion:", err);
+        // Revert UI changes if server call fails
+        task.completed = !task.completed;
+        
+        // Revert points calculation if task completion failed
+        if (!task.completed) {
+          points.value -= task.NumOfPoints;
+        } else {
+          points.value += task.NumOfPoints;
+        }
+        
+        // Update progress after reverting
+        updateProgress();
+      });
+  } catch (err) {
+    console.error("Unexpected error in toggleCompletion:", err);
+  }
+};
+    
+    // Toggle between showing active and completed tasks
+    const toggleTasksView = () => {
+      showCompletedTasks.value = !showCompletedTasks.value;
     };
     
     onMounted(() => {
@@ -247,18 +367,22 @@ export default {
       progress,
       points,
       tasks,
+      flightPlanTasks,
       events,
       loading,
+      eventsLoading,
       error,
       currentSemester,
       formatDate,
-      toggleCompletion
+      toggleCompletion,
+      showCompletedTasks,
+      toggleTasksView,
+      tasksToDisplay,
+      activeTasks
     };
   }
 };
 </script>
-
-
 
 <style scoped>
 /* Main container */
@@ -282,6 +406,23 @@ export default {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 4px;
+}
+
+.flight-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.current-semester-tag {
+  background-color: #8B2332;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-block;
 }
 
 /* Columns layout */
@@ -480,30 +621,6 @@ export default {
   color: white;
 }
 
-
-
-/* Badges list */
-.badges-list {
-  margin-bottom: 16px;
-}
-
-.badge-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.badge-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 12px;
-  color: white;
-}
 .badge-icon.career {
   background-color: #4169E1;
 }

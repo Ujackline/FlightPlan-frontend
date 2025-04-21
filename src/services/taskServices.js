@@ -42,8 +42,10 @@ const taskService = {
 // },
 
 // In your taskServices.js file
+
 completeTask(taskId) {
-  return apiClient.post("/task/complete", { studentId: 1, taskId }); // Fix the parameter name to taskId
+  // Using PUT instead of PATCH to match your route
+  return apiClient.put(`${TASK_API}/${taskId}/complete`);
 },
   approveTask(taskId, approvedBy = "Admin") {
     return apiClient.patch(`${TASK_API}/${taskId}/approve`, { approvedBy });

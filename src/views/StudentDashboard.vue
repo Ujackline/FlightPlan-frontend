@@ -8,13 +8,13 @@
         </div>
       </div>
       <div class="nav-item">
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -47,10 +47,9 @@
           </div>
           
           <div class="profile-info">
-            <div class="profile-name">{{ firstName}} {{ lastName }}</div>
-         
-            <div class="profile-year">{{ studentYear || 'Senior' }}</div>
-          </div>
+  <div class="profile-name">{{ firstName }} {{ lastName }}</div>
+  <div class="profile-year">{{ studentSemester }}</div>
+</div>
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
             <div v-if="notifications > 0" class="notification-badge"></div>
@@ -162,22 +161,23 @@
         </div>
         
 
-        <!-- Completed Tasks -->
-        <div class="card-container">
-          <div class="card-header">
-            <h2 class="card-title">Completed Tasks</h2>
-            <router-link to="/task" class="see-all">View All →</router-link>
-          </div>
-          <div class="tasks-list">
-            <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
-              <div class="task-title">{{ task.name }}</div>
-              <div class="task-date">{{ task.description || 'No description' }}</div>
-            </div>
-            <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
-              No completed tasks
-            </div>
-          </div>
-        </div>
+       
+       <!-- Completed Tasks -->
+<div class="card-container">
+  <div class="card-header">
+    <h2 class="card-title">Completed Tasks</h2>
+    <router-link to="/task" class="see-all">View All →</router-link>
+  </div>
+  <div class="tasks-list">
+    <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
+      <div class="task-title">{{ task.name }}</div>
+      <div class="task-date">{{ formatDate(task.completionDate) || 'Completed' }}</div>
+    </div>
+    <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
+      No completed tasks
+    </div>
+  </div>
+</div>
 
         <!-- Completed Events -->
         <div class="card-container">
@@ -211,6 +211,7 @@ import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
 import eventServices from '../services/eventServices';
 import Utils from '../config/utils';
+import semesterServices from '../services/semesterServices';
 
 export default {
   name: 'StudentDashboard',
@@ -220,7 +221,7 @@ export default {
     // State management
     const studentId = ref(null);
     const studentName = ref('');
-    const studentYear = ref('');
+    const studentSemester = ref('');
     const progressPercentage = ref(65);
     const totalPoints = ref(0);
     const pointsBreakdown = ref({ tasks: 0, events: 0, experiences: 0 });
@@ -276,12 +277,10 @@ export default {
       if (userData) {
         studentId.value = userData.id || null;
         studentName.value = userData.name || 'Student';
-        studentYear.value = userData.year || '3rd year';
+        studentSemester.value = userData.year || '3rd year';
         console.log('User data from store:', userData);
       } else {
         console.warn('No user data found in store');
-        // You might want to redirect to login page if no user is found
-        // router.push('/login');
       }
     };
    
@@ -331,7 +330,16 @@ export default {
         return null;
       }
     };
-
+    const fetchStudentSemester = async () => {
+  try {
+    const response = await semesterServices.getActiveSemester;
+    studentSemester.value = response.data || response;
+    console.log('Current Semester loaded:', studentSemester.value);
+  } catch (error) {
+    console.error('Error fetching current semester:', error);
+    studentSemester.value = '';
+  }
+};
     const fetchExperiences = async () => {
       try {
         const response = await experienceServices.getExperiences();
@@ -419,102 +427,40 @@ export default {
 };
 
 
+const fetchTasks = async () => {
+  try {
+    const response = await taskService.getAllTasks();
+    tasks.value = response.data || [];
+    console.log('Tasks loaded:', tasks.value);
     
-    // Function to fetch badges
-    // const fetchBadges = async () => {
-    //   try {
-
-    //     //const response = await axios.get('/flight-plan-t9/event');
-    //     this.badges = response.data || [];
-
-    //     loading.value = true;
-    //     message.value = '';
-        
-    //     const user = currentUser.value || await getCurrentUser();
-        
-    //     if (!user || !user.id) {
-    //       message.value = 'User not found. Please log in again.';
-    //       loading.value = false;
-    //       return;
-    //     }
-
-        
-
-        
-    //     console.log('Fetching badges for user:', user.id);
-    //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
-        
-    //     console.log('Badge API response:', response);
-        
-    //     // Handle different possible data structures
-    //     if (Array.isArray(response)) {
-    //       // If response is directly an array
-    //       badges.value = response.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && Array.isArray(response.data)) {
-    //       // If response has a data array property
-    //       badges.value = response.data.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && typeof response === 'object') {
-    //       // If response is a single object or has a different structure
-    //       // Try to extract badges if they exist in the response
-    //       const badgeData = response.data || response;
-          
-    //       if (Array.isArray(badgeData)) {
-    //         badges.value = badgeData.map(badge => ({
-    //           ...badge,
-    //           badge_type: badge.badge_type || badge.type || 'Achievement'
-    //         }));
-    //       } else {
-    //         // If it's a single badge object
-    //         badges.value = [{ 
-    //           ...badgeData,
-    //           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-    //         }];
-    //       }
-    //     } else {
-    //       badges.value = [];
-    //       message.value = 'No badges found for this user.';
-    //     }
-        
-    //     console.log('Processed badges:', badges.value);
-        
-    //     if (badges.value.length === 0) {
-    //       message.value = 'No badges found for this user.';
-    //     }
-
-    //   } catch (error) {
-    //     console.error('Error fetching badges:', error);
-    //     message.value = 'Failed to load your badges. Please try again.';
-    //     badges.value = [];
-    //   } finally {
-    //     loading.value = false;
-    //   }
-    // };
+    // Calculate points from completed tasks
+    const taskPoints = tasks.value
+      .filter(task => task.completed)
+      .reduce((sum, task) => sum + (task.NumOfPoints || 0), 0);
     
-    const fetchTasks = async () => {
-      try {
-        const response = await taskService.getAllTasks();
-        tasks.value = response.data || [];
-        console.log('Tasks loaded:', tasks.value);
-        
-        // Calculate points from completed tasks
-        const taskPoints = tasks.value
-          .filter(task => task.completed)
-          .length * 50; // Assuming each task is worth 50 points
-        
-        pointsBreakdown.value.tasks = taskPoints;
-        updateTotalPoints();
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        tasks.value = [];
+    pointsBreakdown.value.tasks = taskPoints;
+    updateTotalPoints();
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    tasks.value = [];
+  }
+};
+const fetchStudentPoints = async () => {
+  try {
+    const user = currentUser.value || await getCurrentUser();
+    
+    if (user && user.id) {
+      const studentData = await studentServices.getStudentByUserId(user.id);
+      if (studentData && typeof studentData.points === 'number') {
+        totalPoints.value = studentData.points;
+        console.log('Student points loaded:', totalPoints.value);
       }
-    };
-    
+    }
+  } catch (error) {
+    console.error('Error fetching student points:', error);
+    // Keep using calculated points if we can't fetch the actual value
+  }
+};
     const fetchRegisteredEvents = async () => {
       try {
         if (studentId.value) {
@@ -562,7 +508,10 @@ export default {
         fetchExperiences(),
         fetchBadges(),
         fetchTasks(),
-        fetchRegisteredEvents()
+        fetchStudentPoints,
+        fetchRegisteredEvents(),
+        fetchStudentSemester()
+      
       ]);
     };
     
@@ -575,7 +524,7 @@ export default {
       firstName,
       lastName,
       studentName,
-      studentYear,
+      studentSemester,
       progressPercentage,
       totalPoints,
       pointsBreakdown,
@@ -614,7 +563,7 @@ export default {
 
 /* Sidebar Styles */
 .sidebar {
-  background-color: #8B2332;
+  background-color: #660000;
   width: 220px;
   padding: 30px 0;
   display: flex;
@@ -623,7 +572,7 @@ export default {
 }
 
 .logo-container {
-  background-color: #8B2332;
+  background-color: #660000;
   width: 90px;
   height: 90px;
   border-radius: 15px;
@@ -736,7 +685,7 @@ export default {
 
 /* Welcome Banner */
 .welcome-banner {
-  background-color: #8B2332;
+  background-color: #660000;
   border-radius: 15px;
   padding: 30px;
   color: white;
@@ -841,7 +790,7 @@ export default {
 
 
 .task-item, .event-item {
-  background-color: rgb(94, 18, 18);
+  background-color: rgb(255, 255, 255);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;
