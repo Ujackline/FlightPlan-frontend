@@ -8,13 +8,14 @@
         </div>
       </div>
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
+
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -362,6 +363,92 @@ export default {
     const student = await studentServices.getStudentById(studentId);
     const semester = student.semester || student.grad_semester;
     console.log("semester", semester);
+      try {
+        const response = await experienceServices.getExperiences();
+        experiences.value = response.data || response;
+        console.log('Experiences loaded:', experiences.value);
+        
+        // Calculate points from experiences
+        const experiencePoints = experiences.value
+          .filter(exp => exp.status === 'Approved')
+          .reduce((sum, exp) => sum + (exp.points || 0), 0);
+        
+        pointsBreakdown.value.experiences = experiencePoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching experiences:', error);
+        experiences.value = [];
+      }
+    };
+
+    const fetchBadges = async () => {
+  try {
+    loading.value = true;
+    message.value = '';
+    
+    const user = currentUser.value || await getCurrentUser();
+    
+    if (!user || !user.id) {
+      message.value = 'User not found. Please log in again.';
+      loading.value = false;
+      return;
+    }
+    
+    console.log('Fetching badges for user:', user.id);
+    const response = await badgeServices.getAllUserBadges(user.id);
+    
+    console.log('Badge API response:', response);
+    
+    // Handle different possible data structures
+    if (Array.isArray(response)) {
+      // If response is directly an array
+      badges.value = response.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || badge.type || 'Achievement'
+      }));
+    } else if (response && Array.isArray(response.data)) {
+      // If response has a data array property
+      badges.value = response.data.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || badge.type || 'Achievement'
+      }));
+    } else if (response && typeof response === 'object') {
+      // If response is a single object or has a different structure
+      // Try to extract badges if they exist in the response
+      const badgeData = response.data || response;
+      
+      if (Array.isArray(badgeData)) {
+        badges.value = badgeData.map(badge => ({
+          ...badge,
+          badge_type: badge.badge_type || badge.type || 'Achievement'
+        }));
+      } else {
+        // If it's a single badge object
+        badges.value = [{ 
+          ...badgeData,
+          badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+        }];
+      }
+    } else {
+      badges.value = [];
+      message.value = 'No badges found for this user.';
+    }
+    
+    console.log('Processed badges:', badges.value);
+    
+    if (badges.value.length === 0) {
+      message.value = 'No badges found for this user.';
+    }
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    message.value = 'Failed to load your badges. Please try again.';
+    badges.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+
     
     if (!semester) {
       console.warn("Student record is missing semester info.");
@@ -415,61 +502,76 @@ badgeProgressList.value = badgeProgress;
 
 };    
     // Function to fetch badges
+
     const fetchBadges = async () => {
       try {
         loading.value = true;
         message.value = '';
+
+    // const fetchBadges = async () => {
+    //   try {
+
+    //     //const response = await axios.get('/flight-plan-t9/event');
+    //     this.badges = response.data || [];
+
+    //     loading.value = true;
+    //     message.value = '';
+
         
-        const user = currentUser.value || await getCurrentUser();
+    //     const user = currentUser.value || await getCurrentUser();
         
-        if (!user || !user.id) {
-          message.value = 'User not found. Please log in again.';
-          loading.value = false;
-          return;
-        }
+    //     if (!user || !user.id) {
+    //       message.value = 'User not found. Please log in again.';
+    //       loading.value = false;
+    //       return;
+    //     }
+
         
-        console.log('Fetching badges for user:', user.id);
-        const response = await badgeServices.getAllUserBadges(user.id);
+
         
-        console.log('Badge API response:', response);
+    //     console.log('Fetching badges for user:', user.id);
+    //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
         
-        // Handle different possible data structures
-        if (Array.isArray(response)) {
-          // If response is directly an array
-          badges.value = response.map(badge => ({
-            ...badge,
-            badge_type: badge.badge_type || badge.type || 'Achievement'
-          }));
-        } else if (response && Array.isArray(response.data)) {
-          // If response has a data array property
-          badges.value = response.data.map(badge => ({
-            ...badge,
-            badge_type: badge.badge_type || badge.type || 'Achievement'
-          }));
-        } else if (response && typeof response === 'object') {
-          // If response is a single object or has a different structure
-          // Try to extract badges if they exist in the response
-          const badgeData = response.data || response;
+    //     console.log('Badge API response:', response);
+        
+    //     // Handle different possible data structures
+    //     if (Array.isArray(response)) {
+    //       // If response is directly an array
+    //       badges.value = response.map(badge => ({
+    //         ...badge,
+    //         badge_type: badge.badge_type || badge.type || 'Achievement'
+    //       }));
+    //     } else if (response && Array.isArray(response.data)) {
+    //       // If response has a data array property
+    //       badges.value = response.data.map(badge => ({
+    //         ...badge,
+    //         badge_type: badge.badge_type || badge.type || 'Achievement'
+    //       }));
+    //     } else if (response && typeof response === 'object') {
+    //       // If response is a single object or has a different structure
+    //       // Try to extract badges if they exist in the response
+    //       const badgeData = response.data || response;
           
-          if (Array.isArray(badgeData)) {
-            badges.value = badgeData.map(badge => ({
-              ...badge,
-              badge_type: badge.badge_type || badge.type || 'Achievement'
-            }));
-          } else {
-            // If it's a single badge object
-            badges.value = [{ 
-              ...badgeData,
-              badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-            }];
-          }
-        } else {
-          badges.value = [];
-          message.value = 'No badges found for this user.';
-        }
+    //       if (Array.isArray(badgeData)) {
+    //         badges.value = badgeData.map(badge => ({
+    //           ...badge,
+    //           badge_type: badge.badge_type || badge.type || 'Achievement'
+    //         }));
+    //       } else {
+    //         // If it's a single badge object
+    //         badges.value = [{ 
+    //           ...badgeData,
+    //           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+    //         }];
+    //       }
+    //     } else {
+    //       badges.value = [];
+    //       message.value = 'No badges found for this user.';
+    //     }
         
-        console.log('Processed badges:', badges.value);
+    //     console.log('Processed badges:', badges.value);
         
+
         if (badges.value.length === 0) {
           message.value = 'No badges found for this user.';
         }
@@ -481,6 +583,21 @@ badgeProgressList.value = badgeProgress;
         loading.value = false;
       }
     };
+
+    //     if (badges.value.length === 0) {
+    //       message.value = 'No badges found for this user.';
+    //     }
+
+    //   } catch (error) {
+    //     console.error('Error fetching badges:', error);
+    //     message.value = 'Failed to load your badges. Please try again.';
+    //     badges.value = [];
+    //   } finally {
+    //     loading.value = false;
+    //   }
+    // };
+    
+
     const fetchTasks = async () => {
       try {
         const response = await taskService.getAllTasks();
@@ -828,7 +945,7 @@ badgeProgressList.value = badgeProgress;
 
 
 .task-item, .event-item {
-  background-color: white;
+  background-color: rgb(94, 18, 18);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;

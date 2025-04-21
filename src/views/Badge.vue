@@ -199,7 +199,7 @@ const fetchBadges = async () => {
   }
 };
 
-// Format date for display
+
 const formatDate = (dateString) => {
   try {
     const date = new Date(dateString);

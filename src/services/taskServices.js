@@ -34,11 +34,17 @@ const taskService = {
   },
 
   // ✅ Mark a task as complete (submitted for review)
-  markComplete(taskId) {
-    return apiClient.patch(`${TASK_API}/${taskId}/markComplete`);
-  },
+  // markComplete(taskId) {
+  //   return apiClient.patch(`${TASK_API}/${taskId}/markComplete`);
+  // },
+//   completeTask(id) {
+//     return apiClient.post("/task/complete", { studentId: 1, id }); // Use the correct casing: studentId
+// },
 
-  // ✅ Approve a task (admin)
+// In your taskServices.js file
+completeTask(taskId) {
+  return apiClient.post("/task/complete", { studentId: 1, taskId }); // Fix the parameter name to taskId
+},
   approveTask(taskId, approvedBy = "Admin") {
     return apiClient.patch(`${TASK_API}/${taskId}/approve`, { approvedBy });
   },
