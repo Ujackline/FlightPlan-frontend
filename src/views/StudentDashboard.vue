@@ -463,9 +463,9 @@ export default {
     }
 
     // Get all experiences for this semester
-    const all = await experienceServices.getExperiencesBySemester(semester);
-    const allExperiences = all.data || all;
-    console.log("here", allExperiences);
+   // const all = await experienceServices.getExperiencesBySemester(semester);
+   // const allExperiences = all.data || all;
+   // console.log("here", allExperiences);
 
   // 1. Extract student-specific experience progress
 const myData = await experienceServices.getMyExperiences(studentId);
