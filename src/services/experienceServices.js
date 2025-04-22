@@ -8,10 +8,22 @@ export default {
     return response.data;
   },
 
+  async getExperiencesBySemester(semester) {
+    const response = await apiClient.get(`${API_BASE_URL}/semester/${semester}`);
+    return response.data;
+  },
+  
+
   async getExperienceById(experienceId) {
     const response = await apiClient.get(`${API_BASE_URL}/${experienceId}`);
     return response.data;
   },
+
+  // in experienceServices.js
+async getMyExperiences(studentId) {
+  const response = await apiClient.get(`${API_BASE_URL}/my-experiences/${studentId}`);
+  return response.data;
+},
 
   async createExperience(experienceData) {
     const response = await apiClient.post(API_BASE_URL, experienceData);

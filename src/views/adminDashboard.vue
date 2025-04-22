@@ -12,24 +12,30 @@
           <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
             <i class="fas fa-tachometer-alt"></i> Dashboard
           </router-link>
+          <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+          </router-link>
           <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
             <i class="fas fa-tasks"></i> Experiences & Tasks
+            <i class="fas fa-tasks"></i> Experiences & Tasks
           </router-link>
-
-          <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
+                    
+        <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
+        
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
+          
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
             <i class="fas fa-users"></i> Student Flight Plans
           </router-link>
-          <router-link to="/admin/points" class="nav-item" :class="{ active: currentRoute === 'points' }">
+          <router-link to="/admin/pointRedemption" class="nav-item" :class="{ active: currentRoute === 'points' }">
             <i class="fas fa-coins"></i> Point Redemption
           </router-link>
           <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
-            <i class="fas fa-cog"></i> Settings
+          <i class="fas fa-cog"></i> Settings
           </router-link>
+          
           <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
-
             <i class="fas fa-tasks"></i> Tasks
           </router-link>
 
@@ -38,14 +44,16 @@
             <i class="fas fa-tasks"></i> Manage Tasks
           </router-link>
           
+            <router-link to="/admin/adminBadges" class="nav-item" :class="{ active: currentRoute === 'badges' }">
+            <i class="fas fa-cog"></i> Manage Badges
+          </router-link>
+
           <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
             <i class="fas fa-file-alt"></i> Manage Documents
 
            </router-link>
           <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-cog"></i> Manage Users
-
-          </router-link>
 
         </nav>
         <div class="sidebar-footer">
@@ -76,6 +84,7 @@
     </header>
 
     <!-- Admin Dashboard Content -->
+    <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
     <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
         <h2>Admin Dashboard</h2>
 
@@ -258,11 +267,9 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-},
+}
 
 
   },
 };
 </script>
-
-
