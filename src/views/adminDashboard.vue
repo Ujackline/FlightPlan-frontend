@@ -54,6 +54,7 @@
            </router-link>
           <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-cog"></i> Manage Users
+            </router-link>
 
         </nav>
         <div class="sidebar-footer">
