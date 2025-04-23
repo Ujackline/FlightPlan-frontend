@@ -146,7 +146,7 @@ const fetchBadges = async () => {
     }
     
     console.log('Fetching badges for user:', user.id);
-    const response = await badgeServices.getAllUserBadges(user.id);
+    const response = await badgeServices.getAll();
     
     console.log('Badge API response:', response);
     
