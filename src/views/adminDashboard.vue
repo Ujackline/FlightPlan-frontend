@@ -7,6 +7,7 @@
         <div class="admin-info">
           <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
         </div>
+      </div>
         <nav>
           <div class="nav-item">
           <v-icon color="white" class="nav-icon">mdi-briefcase</v-icon>
