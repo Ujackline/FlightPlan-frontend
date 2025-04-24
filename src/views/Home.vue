@@ -152,8 +152,8 @@ export default {
               const student = userResponse.data[0];
               
               // Get semester info
-              if (student.currentSemesterId) {
-                const semesterResponse = await apiClient.get(`/semester/${student.currentSemesterId}`);
+              if (student.semester) {
+                const semesterResponse = await apiClient.get(`/semester/${student.semester}`);
                 currentSemester.value = semesterResponse.data;
                 
                 // Now that we have the semester, get the flight plan

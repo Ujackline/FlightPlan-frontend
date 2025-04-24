@@ -52,5 +52,9 @@ export default {
       // Network error or other issues
       throw new Error('Network error or unexpected issue creating student profile');
     }
+  },
+  async update(id, data) {
+    return apiClient.put(`/student/${id}`, data);
   }
+
 };

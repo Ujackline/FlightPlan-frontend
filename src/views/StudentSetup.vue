@@ -2,25 +2,6 @@
   <div class="student-setup container">
     <h2>Complete Your Profile</h2>
     <form @submit.prevent="submitProfile">
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input 
-          v-model="profile.fName" 
-          id="firstName" 
-          required 
-          placeholder="Enter your first name"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input 
-          v-model="profile.lName" 
-          id="lastName" 
-          required 
-          placeholder="Enter your last name"
-        />
-      </div>
 
       <div class="form-group">
         <label for="studentID">Student ID</label>
@@ -29,17 +10,6 @@
           id="studentID" 
           required 
           placeholder="Enter your student ID"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          v-model="profile.email" 
-          id="email" 
-          type="email"
-          required 
-          placeholder="Enter your student email"
         />
       </div>
 
@@ -55,22 +25,22 @@
 
       <div class="form-group">
         <label for="currentSemester">Current Semester</label>
-        <select v-model="profile.currentSemesterId" id="currentSemester" required>
-          <option value="" disabled>Select your current semester</option>
-          <option v-for="semester in semesters" :key="semester.id" :value="semester.id">
-            {{ semester.name }} ({{ semester.academic_year }})
-          </option>
-        </select>
+        <input 
+          v-model="profile.currentSemester" 
+          id="currentSemester" 
+          required 
+          placeholder="e.g., Spring 2025"
+        />
       </div>
 
       <div class="form-group">
         <label for="gradSemester">Graduation Semester</label>
-        <select v-model="profile.gradSemesterId" id="gradSemester" required>
-          <option value="" disabled>Select your graduation semester</option>
-          <option v-for="semester in graduationSemesters" :key="semester.id" :value="semester.id">
-            {{ semester.name }} ({{ semester.academic_year }})
-          </option>
-        </select>
+        <input 
+          v-model="profile.gradSemester" 
+          id="gradSemester" 
+          required 
+          placeholder="e.g., Fall 2026"
+        />
       </div>
 
       <div class="form-group">
@@ -78,167 +48,101 @@
         <input 
           v-model="profile.cliftonstrengths" 
           id="cliftonstrengths" 
-          placeholder="e.g., Achiever, Learner, Strategic, Futuristic, Communication" 
           required 
+          placeholder="e.g., Achiever, Learner, Strategic"
         />
         <div class="help-text">Enter your top Clifton Strengths, separated by commas</div>
       </div>
 
       <button type="submit" class="submit-btn" :disabled="loading">
-        <span v-if="loading">
-          <span class="spinner"></span> Saving...
-        </span>
+        <span v-if="loading">Saving...</span>
         <span v-else>Complete Profile</span>
       </button>
     </form>
 
-    <div v-if="message" :class="messageClass">
-      {{ message }}
-    </div>
+    <div v-if="message" :class="messageClass">{{ message }}</div>
   </div>
 </template>
 
-<script>
-import { ref, onMounted, computed } from "vue";
-import semesterServices from '../services/semesterServices';
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import studentServices from '../services/studentServices';
-import { useRouter } from "vue-router";
+import Utils from '../config/utils';
 
-export default {
-  name: 'StudentProfileSetup',
-  setup() {
-    const router = useRouter();
-    
-    // State
-    const profile = ref({
-      fName: '',
-      lName: '',
-      studentID: '',
-      email: '',
-      major: '',
-      currentSemesterId: '',
-      gradSemesterId: '',
-      cliftonstrengths: '',
-      points: 0
-    });
-    
-    const semesters = ref([]);
-    const message = ref('');
-    const messageClass = ref('success-msg');
-    const loading = ref(false);
-    
-    // List of majors
-    const majors = [
-      "Computer Science",
-      "Business",
-      "Engineering",
-      "Art",
-      "Marketing",
-      "Natural Sciences",
-      "English",
-      "Education",
-      "History",
-      "Other"
-    ];
-    
-    // Computed properties
-    const graduationSemesters = computed(() => {
-      if (!profile.value.currentSemesterId || !semesters.value.length) {
-        return semesters.value;
-      }
-      
-      const currentIndex = semesters.value.findIndex(s => s.id === parseInt(profile.value.currentSemesterId));
-      if (currentIndex === -1) return semesters.value;
-      
-      return semesters.value.slice(currentIndex + 1);
-    });
-    
-    // Fetch semesters
-    const fetchSemesters = async () => {
-      loading.value = true;
-      message.value = '';
-      
-      try {
-        const response = await semesterServices.getAllSemesters();
-        
-        if (response.data && response.data.length > 0) {
-          // Sort semesters by date
-          semesters.value = response.data.sort((a, b) => {
-            return new Date(a.start_date) - new Date(b.start_date);
-          });
-          
-          // Set default to active semester if available
-          const activeSemester = response.data.find(s => s.is_active);
-          if (activeSemester) {
-            profile.value.currentSemesterId = activeSemester.id;
-          }
-        } else {
-          message.value = 'No semesters found. Please contact an administrator.';
-          messageClass.value = 'error-msg';
-        }
-      } catch (error) {
-        console.error('Error fetching semesters:', error);
-        message.value = error.message || 'Failed to load semesters. Please try refreshing the page.';
-        messageClass.value = 'error-msg';
-      } finally {
-        loading.value = false;
-      }
-    };
+const router = useRouter();
 
-    // Submit profile
-    const submitProfile = async () => {
+const profile = ref({
+  studentID: '',
+  major: '',
+  currentSemester: '',
+  gradSemester: '',
+  cliftonstrengths: ''
+});
+
+const majors = [
+  "Computer Science",
+  "Business",
+  "Engineering",
+  "Art",
+  "Marketing",
+  "Natural Sciences",
+  "English",
+  "Education",
+  "History",
+  "Other"
+];
+
+const loading = ref(false);
+const message = ref('');
+const messageClass = ref('success-msg');
+
+const submitProfile = async () => {
   try {
-    const profileData = {
-      fName: profile.value.fName.trim(),
-      lName: profile.value.lName.trim(),
-      email: profile.value.email.trim(),
-      studentID: profile.value.studentID.trim(),
-      major: profile.value.major.trim(),
-      currentSemesterId: parseInt(profile.value.currentSemesterId),
-      gradSemesterId: parseInt(profile.value.gradSemesterId),
-      cliftonstrengths: profile.value.cliftonstrengths.trim()
-    };
+    loading.value = true;
+    message.value = '';
 
-    const response = await studentServices.createStudentProfile(profileData);
+    if (!profile.value.currentSemester || !profile.value.gradSemester) {
+      message.value = 'Both current and graduation semesters are required.';
+      messageClass.value = 'error-msg';
+      loading.value = false;
+      return;
+    }
 
-    // Handle both creation scenarios
-    message.value = response.userAssociated 
-      ? 'Profile created and associated with existing user!' 
-      : 'Profile created successfully!';
-    
+    const user = Utils.getStore('user');
+
+    const payload = {
+  id: user.id,
+  fName: user.fName,
+  lName: user.lName,
+  email: user.email,
+  studentID: profile.value.studentID.trim(),
+  major: profile.value.major.trim(),
+  semester: profile.value.currentSemester.trim(),      // ✅ maps to backend "semester"
+  grad_semester: profile.value.gradSemester.trim(),    // ✅ maps to backend "grad_semester"
+  cliftonstrengths: profile.value.cliftonstrengths.trim()
+};
+
+
+    await studentServices.createStudentProfile(payload);
+
+    message.value = '✅ Profile completed successfully! Redirecting...';
     messageClass.value = 'success-msg';
 
     setTimeout(() => {
-      router.push('/home');
+      router.push('/student/StudentDashboard');
     }, 1500);
-
-  } catch (error) {
-    console.error('Full error creating profile:', error);
-    
-    message.value = error.message || 'Failed to create profile. Please try again.';
+  } catch (err) {
+    console.error("Error saving profile:", err);
+    message.value = "Something went wrong while saving your profile.";
     messageClass.value = 'error-msg';
   } finally {
     loading.value = false;
   }
 };
-    // Initialize
-    onMounted(() => {
-      fetchSemesters();
-    });
-    
-    return {
-      profile,
-      semesters,
-      message,
-      messageClass,
-      loading,
-      majors,
-      graduationSemesters,
-      submitProfile
-    };
-  }
-};
 </script>
+
+
 
 
 

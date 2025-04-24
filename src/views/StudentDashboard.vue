@@ -7,15 +7,15 @@
           <v-icon color="white" size="x-large">mdi-school</v-icon>
         </div>
       </div>
+      
       <div class="nav-item">
-
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -44,13 +44,13 @@
         <input type="text" placeholder="">
         <div class="profile">
           <div class="profile-pic">
-            <img src="https://via.placeholder.com/40" alt="Profile">
+            <img src="/public/default-profile.png" alt="Profile" class="profile-img">
           </div>
           
           <div class="profile-info">
             <div class="profile-name">{{ firstName}} {{ lastName }}</div>
-         
-            <div class="profile-year">{{ studentYear || 'Senior' }}</div>
+            <div class="profile-year">{{ studentYear }}</div>
+
           </div>
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
@@ -226,6 +226,12 @@ export default {
     const isAdmin = ref(false);
     const studentSemester = ref('');
 
+
+
+
+
+
+    
     // State management
     const studentId = ref(null);
     const studentName = ref('');
@@ -247,7 +253,29 @@ export default {
     const currentUser = ref(null);
     const badgeProgressList = ref([]);
 
-    
+    const semesterIndex = (semesterStr) => {
+  if (!semesterStr) return null;
+
+  const [term, year] = semesterStr.split(' ');
+  const base = parseInt(year) * 2;
+  return term.toLowerCase() === 'spring' ? base : base + 1;
+};
+
+const calculateStudentYear = (current, graduation) => {
+  const currentIndex = semesterIndex(current);
+  const gradIndex = semesterIndex(graduation);
+
+  if (currentIndex === null || gradIndex === null) return 'Senior'; // fallback
+
+  const semestersLeft = gradIndex - currentIndex;
+
+  if (semestersLeft <= 2) return 'Senior';
+  else if (semestersLeft <= 4) return 'Junior';
+  else if (semestersLeft <= 6) return 'Sophomore';
+  else return 'Freshman';
+};
+
+
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
 
@@ -291,8 +319,7 @@ export default {
         console.log('User data from store:', userData);
       } else {
         console.warn('No user data found in store');
-        // You might want to redirect to login page if no user is found
-        // router.push('/login');
+    
       }
     };
    
@@ -309,6 +336,8 @@ export default {
           lastName.value = storeUser.lName || storeUser.lastName;
           isAdmin.value = storeUser.role === 'admin'; // ✅ Set role
           studentSemester.value = storeUser.semester || storeUser.grad_semester || ''; // ✅ Set semester
+
+          studentYear.value = calculateStudentYear(storeUser.semester, storeUser.grad_semester);
 
           return storeUser;
         }
@@ -348,230 +377,79 @@ export default {
 
     
     const fetchExperiences = async () => {
-    try {
+  try {
     const storedUser = Utils.getStore("user");
     const studentId = storedUser?.id;
-    console.log(studentId);
-    console.log("her", storedUser)
+    console.log("Student ID:", studentId);
 
     if (!studentId) {
       console.warn("No student ID found.");
       return;
     }
 
-    // ✅ Get full student object from DB
     const student = await studentServices.getStudentById(studentId);
     const semester = student.semester || student.grad_semester;
-    console.log("semester", semester);
-      try {
-        const response = await experienceServices.getExperiences();
-        experiences.value = response.data || response;
-        console.log('Experiences loaded:', experiences.value);
-        
-        // Calculate points from experiences
-        const experiencePoints = experiences.value
-          .filter(exp => exp.status === 'Approved')
-          .reduce((sum, exp) => sum + (exp.points || 0), 0);
-        
-        pointsBreakdown.value.experiences = experiencePoints;
-        updateTotalPoints();
-      } catch (error) {
-        console.error('Error fetching experiences:', error);
-        experiences.value = [];
-      }
-    };
+    console.log("Semester:", semester);
 
-    const fetchBadges = async () => {
-  try {
-    loading.value = true;
-    message.value = '';
-    
-    const user = currentUser.value || await getCurrentUser();
-    
-    if (!user || !user.id) {
-      message.value = 'User not found. Please log in again.';
-      loading.value = false;
-      return;
-    }
-    
-    console.log('Fetching badges for user:', user.id);
-    const response = await badgeServices.getAllUserBadges(user.id);
-    
-    console.log('Badge API response:', response);
-    
-    // Handle different possible data structures
-    if (Array.isArray(response)) {
-      // If response is directly an array
-      badges.value = response.map(badge => ({
-        ...badge,
-        badge_type: badge.badge_type || badge.type || 'Achievement'
-      }));
-    } else if (response && Array.isArray(response.data)) {
-      // If response has a data array property
-      badges.value = response.data.map(badge => ({
-        ...badge,
-        badge_type: badge.badge_type || badge.type || 'Achievement'
-      }));
-    } else if (response && typeof response === 'object') {
-      // If response is a single object or has a different structure
-      // Try to extract badges if they exist in the response
-      const badgeData = response.data || response;
-      
-      if (Array.isArray(badgeData)) {
-        badges.value = badgeData.map(badge => ({
-          ...badge,
-          badge_type: badge.badge_type || badge.type || 'Achievement'
-        }));
-      } else {
-        // If it's a single badge object
-        badges.value = [{ 
-          ...badgeData,
-          badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-        }];
-      }
-    } else {
-      badges.value = [];
-      message.value = 'No badges found for this user.';
-    }
-    
-    console.log('Processed badges:', badges.value);
-    
-    if (badges.value.length === 0) {
-      message.value = 'No badges found for this user.';
-    }
-  } catch (error) {
-    console.error('Error fetching badges:', error);
-    message.value = 'Failed to load your badges. Please try again.';
-    badges.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
-
-    
     if (!semester) {
       console.warn("Student record is missing semester info.");
       return;
     }
 
-    // Get all experiences for this semester
+    // ✅ Get all semester-specific experiences
     const all = await experienceServices.getExperiencesBySemester(semester);
     const allExperiences = all.data || all;
-    console.log("here", allExperiences);
+    console.log("All experiences:", allExperiences);
 
-  // 1. Extract student-specific experience progress
-const myData = await experienceServices.getMyExperiences(studentId);
-const studentExperiences = myData || []; // <-- assuming it's already a flat array of objects
-const badgeProgress = myData.badgeProgress || [];
+    // ✅ Get student-specific experience data
+    const myData = await experienceServices.getMyExperiences(studentId);
+    const studentExperiences = myData || [];
+    const badgeProgress = myData.badgeProgress || [];
 
-// ✅ 2. Merge student progress with all experiences
-const merged = allExperiences.map(exp => {
-  // Find matching student experience based on nested experience.id
-  const match = studentExperiences.find(se =>
-    se.experience?.id === exp.id
-  );
+    console.log("Student Experiences:", studentExperiences);
 
-  return {
-    ...exp,
-    status: match?.status || 'Incomplete',
-    approvedBy: match?.approvedBy || null,
-    completionDate: match?.CompletionDate || null,
-    pointsEarned: match?.pointsEarned || 0,
-    completed: match?.status === 'Approved',
-    studentExperienceId: match?.id || null
-  };
-});
+    // ✅ Merge student progress with global experiences
+    const merged = allExperiences.map(exp => {
+      const match = studentExperiences.find(se =>
+        se.experience?.id === exp.id
+      );
 
-// ✅ 3. Set state
-experiences.value = merged;
-badgeProgressList.value = badgeProgress;
+      return {
+        ...exp,
+        status: match?.status || 'Incomplete',
+        approvedBy: match?.approvedBy || null,
+        completionDate: match?.CompletionDate || null,
+        pointsEarned: match?.pointsEarned || 0,
+        completed: match?.status === 'Approved',
+        studentExperienceId: match?.id || null
+      };
+    });
+
+    // ✅ Store merged list
     experiences.value = merged;
+    badgeProgressList.value = badgeProgress;
+
+    // ✅ Calculate experience points from approved
     const experiencePoints = merged
       .filter(exp => exp.completed)
       .reduce((sum, exp) => sum + (exp.pointsEarned || 0), 0);
 
     pointsBreakdown.value.experiences = experiencePoints;
-    badgeProgressList.value = badgeProgress;
+
+    // ✅ Recalculate total points
     updateTotalPoints();
 
   } catch (error) {
-    console.error("Error fetching experiences:", error);
+    console.error("❌ Error fetching experiences:", error);
     experiences.value = [];
   }
-
-};    
-    // Function to fetch badges
+};
+ // Function to fetch badges
 
     const fetchBadges = async () => {
       try {
         loading.value = true;
         message.value = '';
-
-    // const fetchBadges = async () => {
-    //   try {
-
-    //     //const response = await axios.get('/flight-plan-t9/event');
-    //     this.badges = response.data || [];
-
-    //     loading.value = true;
-    //     message.value = '';
-
-        
-    //     const user = currentUser.value || await getCurrentUser();
-        
-    //     if (!user || !user.id) {
-    //       message.value = 'User not found. Please log in again.';
-    //       loading.value = false;
-    //       return;
-    //     }
-
-        
-
-        
-    //     console.log('Fetching badges for user:', user.id);
-    //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
-        
-    //     console.log('Badge API response:', response);
-        
-    //     // Handle different possible data structures
-    //     if (Array.isArray(response)) {
-    //       // If response is directly an array
-    //       badges.value = response.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && Array.isArray(response.data)) {
-    //       // If response has a data array property
-    //       badges.value = response.data.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && typeof response === 'object') {
-    //       // If response is a single object or has a different structure
-    //       // Try to extract badges if they exist in the response
-    //       const badgeData = response.data || response;
-          
-    //       if (Array.isArray(badgeData)) {
-    //         badges.value = badgeData.map(badge => ({
-    //           ...badge,
-    //           badge_type: badge.badge_type || badge.type || 'Achievement'
-    //         }));
-    //       } else {
-    //         // If it's a single badge object
-    //         badges.value = [{ 
-    //           ...badgeData,
-    //           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-    //         }];
-    //       }
-    //     } else {
-    //       badges.value = [];
-    //       message.value = 'No badges found for this user.';
-    //     }
-        
-    //     console.log('Processed badges:', badges.value);
-        
-
         if (badges.value.length === 0) {
           message.value = 'No badges found for this user.';
         }
@@ -584,18 +462,6 @@ badgeProgressList.value = badgeProgress;
       }
     };
 
-    //     if (badges.value.length === 0) {
-    //       message.value = 'No badges found for this user.';
-    //     }
-
-    //   } catch (error) {
-    //     console.error('Error fetching badges:', error);
-    //     message.value = 'Failed to load your badges. Please try again.';
-    //     badges.value = [];
-    //   } finally {
-    //     loading.value = false;
-    //   }
-    // };
     
 
     const fetchTasks = async () => {
@@ -715,6 +581,13 @@ badgeProgressList.value = badgeProgress;
   display: flex;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
+
+.profile-img {
+  width: 100px;
+  height: auto;
+  border-radius: 50%; /* optional: makes it circular */
+}
+
 
 /* Sidebar Styles */
 .sidebar {
