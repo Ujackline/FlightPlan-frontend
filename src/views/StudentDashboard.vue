@@ -235,214 +235,173 @@
     CareerResources
   },
   setup() {
-  const store = useStore();
-  
-  // State management
-  const studentId = ref(null);
-  const studentName = ref('');
-  const studentSemester = ref('');
-  const progressPercentage = ref(65);
-  const totalPoints = ref(0);
-  const pointsBreakdown = ref({ tasks: 0, events: 0, experiences: 0 });
-  const experiences = ref([]);
-  const badges = ref([]);
-  const tasks = ref([]);
-  const registeredEvents = ref([]);
-  const notifications = ref(0);
-  const firstName = ref(null);
-  const lastName = ref(null);
-  const error = ref(null);
-  const loading = ref(true);
-  const message = ref('');
-  const currentUser = ref(null);
- 
-  
-  // Badge display count control
-  const displayedBadgeCount = ref(6); // Default to showing 6 badges
- 
-  const toggleBadgeCount = () => {
-    displayedBadgeCount.value = displayedBadgeCount.value === 6 ? 12 : 6;
-  };
-  
-  // Computed properties
-  const user = computed(() => store.getters.getLoginUserInfo);
-  
-  // Methods
-  const formatDate = (dateString) => {
+    const store = useStore();
+    const isAdmin = ref(false);
+    const studentSemester = ref('');
+
+    // State management
+    const studentId = ref(null);
+    const studentName = ref('');
+    const studentYear = ref('');
+    const progressPercentage = ref(65);
+    const totalPoints = ref(0);
+    const pointsBreakdown = ref({ tasks: 0, events: 0, experiences: 0 });
+    const experiences = ref([]);
+    const badges = ref([]);
+    const tasks = ref([]);
+    const registeredEvents = ref([]);
+    const notifications = ref(0);
+    const firstName = ref(null);
+    const lastName = ref(null);
+    const semester= ref(null);
+    const error = ref(null);
+    const loading = ref(true);
+    const message = ref('');
+    const currentUser = ref(null);
+    const badgeProgressList = ref([]);
+
+    
+    // Badge display count control
+    const displayedBadgeCount = ref(6); // Default to showing 6 badges
+
+    const toggleBadgeCount = () => {
+      displayedBadgeCount.value = displayedBadgeCount.value === 6 ? 12 : 6;
+    };
+    
+    // Computed properties
+    const user = computed(() => store.getters.getLoginUserInfo);
+    
+    // Methods
+    const formatDate = (dateString) => {
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          return 'Unknown date';
+        }
+        
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString(undefined, options);
+      } catch (e) {
+        return 'Unknown date';
+      }
+    };
+    
+    const formatTime = (timeString) => {
+      try {
+        const time = new Date(timeString);
+        return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        return timeString;
+      }
+    };
+    
+    const setUserFromStore = () => {
+      const userData = user.value;
+      if (userData) {
+        studentId.value = userData.id || null;
+        studentName.value = userData.name || 'Student';
+        studentYear.value = userData.year || '3rd year';
+        console.log('User data from store:', userData);
+      } else {
+        console.warn('No user data found in store');
+        // You might want to redirect to login page if no user is found
+        // router.push('/login');
+      }
+    };
+   
+    // Comprehensive function to get current user from all available sources
+    const getCurrentUser = async () => {
+      try {
+        // Try to get from store first
+        const storeUser = store.getters.getLoginUserInfo;
+        
+        if (storeUser && storeUser.id) {
+          console.log('User found in store:', storeUser.id);
+          currentUser.value = storeUser;
+          firstName.value = storeUser.fName || storeUser.firstName;
+          lastName.value = storeUser.lName || storeUser.lastName;
+          isAdmin.value = storeUser.role === 'admin'; // ✅ Set role
+          studentSemester.value = storeUser.semester || storeUser.grad_semester || ''; // ✅ Set semester
+
+          return storeUser;
+        }
+        
+        // If not in store, try localStorage
+        const storedUser = Utils.getStore("user");
+        if (storedUser && (storedUser.id || storedUser.userId)) {
+          console.log('User found in localStorage:', storedUser);
+          currentUser.value = storedUser;
+          firstName.value = storedUser.fName || storedUser.firstName;
+          lastName.value = storedUser.lName || storedUser.lastName;
+          return storedUser;
+        }
+        
+        // If not in localStorage, try API
+        console.log('User not found in store or localStorage, attempting to fetch from API');
+        message.value = 'Retrieving user data...';
+        
+        const response = await studentServices.getStudentById();
+        
+        if (response && response.id) {
+          console.log('User fetched from API:', response.id);
+          currentUser.value = response;
+          firstName.value = response.fName || response.firstName;
+          lastName.value = response.lName || response.lastName;
+          return response;
+        } else {
+          throw new Error('Could not retrieve user information');
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+        message.value = 'Unable to determine current user. Please log in again.';
+        loading.value = false;
+        return null;
+      }
+    };
+
+    
+    const fetchExperiences = async () => {
   try {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
-  return 'Unknown date';
-  }
-  
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return date.toLocaleDateString(undefined, options);
-  } catch (e) {
-  return 'Unknown date';
-  }
-  };
-  
-  const formatTime = (timeString) => {
-  try {
-  const time = new Date(timeString);
-  return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch (e) {
-  return timeString;
-  }
-  };
-  
-  // Simple check if description has an image URL (very permissive pattern)
-  const hasImageUrl = (description) => {
-    if (!description) return false;
-    // Check for both standard image URLs and LinkedIn URLs
-    return /https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)/i.test(description) || 
-           /https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i.test(description);
-  };
-  
-  // Direct extraction of the first URL in the description
-  const extractImageUrl = (description) => {
-    if (!description) return '';
-    
-    // Try to match standard image URLs
-    let match = description.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s]*)?/i);
-    if (match) return match[0];
-    
-    // Try to match LinkedIn media URLs even without file extension
-    match = description.match(/https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i);
-    return match ? match[0] : '';
-  };
-  
-  // Handle image load success
-  const onImageLoad = (event) => {
-    console.log("Image loaded successfully");
-    event.target.style.opacity = 1;
-  };
-  
-  // Simple error handler for images
-  const handleImageError = (event, badge) => {
-    console.error(`Failed to load image for badge: ${badge?.name || 'Unknown'}`, event);
-    event.target.style.display = 'none';
-    
-    // Add fallback icon
-    const parent = event.target.parentNode;
-    
-    // Create appropriate SVG based on badge type
-    let svgEl;
-    if (badge && badge.badge_type === 'Career') {
-      svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      svgEl.setAttribute("viewBox", "0 0 24 24");
-      svgEl.setAttribute("width", "24");
-      svgEl.setAttribute("height", "24");
-      svgEl.setAttribute("fill", "white");
-      
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", "M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z");
-      svgEl.appendChild(path);
-    } else {
-      svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      svgEl.setAttribute("viewBox", "0 0 24 24");
-      svgEl.setAttribute("width", "24");
-      svgEl.setAttribute("height", "24");
-      svgEl.setAttribute("fill", "white");
-      
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", "M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 14.63 21 12.55 21 10V7c0-1.1-.9-2-2-2z");
-      svgEl.appendChild(path);
+    const storedUser = Utils.getStore("user");
+    const studentId = storedUser?.id;
+    console.log(studentId);
+    console.log("her", storedUser);
+
+    if (!studentId) {
+      console.warn("No student ID found.");
+      return;
     }
+
+    // Your fetch logic here (e.g., API call)
     
-    parent.appendChild(svgEl);
-  };
-  
-  const setUserFromStore = () => {
-  const userData = user.value;
-  if (userData) {
-  studentId.value = userData.id || null;
-  studentName.value = userData.name || 'Student';
-  studentSemester.value = userData.year || '3rd year';
-  console.log('User data from store:', userData);
-  } else {
-  console.warn('No user data found in store');
-  }
-  };
-  
-  // Comprehensive function to get current user from all available sources
-  const getCurrentUser = async () => {
-  try {
-  // Try to get from store first
-  const storeUser = store.getters.getLoginUserInfo;
-  
-  if (storeUser && storeUser.id) {
-  console.log('User found in store:', storeUser.id);
-  currentUser.value = storeUser;
-  firstName.value = storeUser.fName || storeUser.firstName;
-  lastName.value = storeUser.lName || storeUser.lastName;
-  return storeUser;
-  }
-  
-  // If not in store, try localStorage
-  const storedUser = Utils.getStore("user");
-  if (storedUser && (storedUser.id || storedUser.userId)) {
-  console.log('User found in localStorage:', storedUser);
-  currentUser.value = storedUser;
-  firstName.value = storedUser.fName || storedUser.firstName;
-  lastName.value = storedUser.lName || storedUser.lastName;
-  return storedUser;
-  }
-  
-  // If not in localStorage, try API
-  console.log('User not found in store or localStorage, attempting to fetch from API');
-  message.value = 'Retrieving user data...';
-  
-  const response = await studentServices.getStudentById();
-  
-  if (response && response.id) {
-  console.log('User fetched from API:', response.id);
-  currentUser.value = response;
-  firstName.value = response.fName || response.firstName;
-  lastName.value = response.lName || response.lastName;
-  return response;
-  } else {
-  throw new Error('Could not retrieve user information');
-  }
   } catch (error) {
-  console.error('Error getting current user:', error);
-  message.value = 'Unable to determine current user. Please log in again.';
-  loading.value = false;
-  return null;
+    console.error("Error fetching experiences:", error);
   }
- };
-  const fetchStudentSemester = async () => {
-  try {
-  const response = await semesterServices.getActiveSemester;
-  studentSemester.value = response.data || response;
-  console.log('Current Semester loaded:', studentSemester.value);
-  } catch (error) {
-  console.error('Error fetching current semester:', error);
-  studentSemester.value = '';
-  }
- };
-  const fetchExperiences = async () => {
-  try {
-  const response = await experienceServices.getExperiences();
-  experiences.value = response.data || response;
-  console.log('Experiences loaded:', experiences.value);
-  
-  // Calculate points from experiences
-  const experiencePoints = experiences.value
-  .filter(exp => exp.status === 'Approved')
-  .reduce((sum, exp) => sum + (exp.points || 0), 0);
-  
-  pointsBreakdown.value.experiences = experiencePoints;
-  updateTotalPoints();
-  } catch (error) {
-  console.error('Error fetching experiences:', error);
-  experiences.value = [];
-  }
-  };
- 
-  const fetchBadges = async () => {
+
+
+    // ✅ Get full student object from DB
+    const student = await studentServices.getStudentById(studentId);
+    const semester = student.semester || student.grad_semester;
+    console.log("semester", semester);
+      try {
+        const response = await experienceServices.getExperiences();
+        experiences.value = response.data || response;
+        console.log('Experiences loaded:', experiences.value);
+        
+        // Calculate points from experiences
+        const experiencePoints = experiences.value
+          .filter(exp => exp.status === 'Approved')
+          .reduce((sum, exp) => sum + (exp.points || 0), 0);
+        
+        pointsBreakdown.value.experiences = experiencePoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching experiences:', error);
+        experiences.value = [];
+      }
+    };
+//
+    const fetchBadges = async () => {
   try {
   loading.value = true;
   message.value = '';
@@ -507,125 +466,254 @@
   } finally {
   loading.value = false;
   }
- };
- 
- 
- const fetchTasks = async () => {
-  try {
-  const response = await taskService.getAllTasks();
-  tasks.value = response.data || [];
-  console.log('Tasks loaded:', tasks.value);
-  
-  // Calculate points from completed tasks
-  const taskPoints = tasks.value
-  .filter(task => task.completed)
-  .reduce((sum, task) => sum + (task.NumOfPoints || 0), 0);
-  
-  pointsBreakdown.value.tasks = taskPoints;
-  updateTotalPoints();
-  } catch (error) {
-  console.error('Error fetching tasks:', error);
-  tasks.value = [];
-  }
- };
- const fetchStudentPoints = async () => {
-  try {
-  const user = currentUser.value || await getCurrentUser();
-  
-  if (user && user.id) {
-  const studentData = await studentServices.getStudentByUserId(user.id);
-  if (studentData && typeof studentData.points === 'number') {
-  totalPoints.value = studentData.points;
-  console.log('Student points loaded:', totalPoints.value);
-  }
-  }
-  } catch (error) {
-  console.error('Error fetching student points:', error);
-  // Keep using calculated points if we can't fetch the actual value
-  }
- };
-  const fetchRegisteredEvents = async () => {
-  try {
-  if (studentId.value) {
-  const response = await eventServices.getRegisteredEvents(studentId.value);
-  registeredEvents.value = response.data || [];
-  console.log('Registered events loaded:', registeredEvents.value);
-  
-  const eventPoints = registeredEvents.value.length * 75; 
-  
-  pointsBreakdown.value.events = eventPoints;
-  updateTotalPoints();
-  } else {
-  // Load from localStorage if not logged in
-  const stored = localStorage.getItem('eventRegistrations');
-  if (stored) {
-  const localRegistrations = JSON.parse(stored);
-  // Get full event details
-  const allEvents = await eventServices.getAll();
-  registeredEvents.value = allEvents.data.filter(event => 
-  localRegistrations.includes(event.id)
+};
+
+
+    
+    if (!semester) {
+      console.warn("Student record is missing semester info.");
+      return;
+    }
+
+    // Get all experiences for this semester
+    const all = await experienceServices.getExperiencesBySemester(semester);
+    const allExperiences = all.data || all;
+    console.log("here", allExperiences);
+
+  // 1. Extract student-specific experience progress
+const myData = await experienceServices.getMyExperiences(studentId);
+const studentExperiences = myData || []; // <-- assuming it's already a flat array of objects
+const badgeProgress = myData.badgeProgress || [];
+
+// ✅ 2. Merge student progress with all experiences
+const merged = allExperiences.map(exp => {
+  // Find matching student experience based on nested experience.id
+  const match = studentExperiences.find(se =>
+    se.experience?.id === exp.id
   );
-  }
-  }
-  } catch (error) {
-  console.error('Error fetching registered events:', error);
-  registeredEvents.value = [];
-  }
-  };
-  
-  const updateTotalPoints = () => {
-  totalPoints.value = 
-  pointsBreakdown.value.tasks + 
-  pointsBreakdown.value.events + 
-  pointsBreakdown.value.experiences;
-  
-  // Update progress percentage based on points
-  // Assuming 1000 points is 100% completion
-  progressPercentage.value = Math.min(Math.round((totalPoints.value / 1000) * 100), 100);
-  };
-  
-  const refreshDashboard = async () => {
-  await getCurrentUser(); // Get user data first
-  
-  await Promise.all([
-  fetchExperiences(),
-  fetchBadges(),
-  fetchTasks(),
-  fetchStudentPoints,
-  fetchRegisteredEvents(),
-  fetchStudentSemester()
-  
-  ]);
-  };
-  
-  onMounted(() => {
-  refreshDashboard();
-  });
-  
+
   return {
-  studentId,
-  firstName,
-  lastName,
-  studentName,
-  studentSemester,
-  progressPercentage,
-  totalPoints,
-  pointsBreakdown,
-  experiences,
-  badges,
-  tasks,
-  registeredEvents,
-  notifications,
-  displayedBadgeCount,
-  toggleBadgeCount,
-  formatDate,
-  formatTime,
-  refreshDashboard,
-  hasImageUrl,
-  extractImageUrl,
-  onImageLoad,
-  handleImageError
+    ...exp,
+    status: match?.status || 'Incomplete',
+    approvedBy: match?.approvedBy || null,
+    completionDate: match?.CompletionDate || null,
+    pointsEarned: match?.pointsEarned || 0,
+    completed: match?.status === 'Approved',
+    studentExperienceId: match?.id || null
   };
+});
+
+// ✅ 3. Set state
+experiences.value = merged;
+badgeProgressList.value = badgeProgress;
+    experiences.value = merged;
+    const experiencePoints = merged
+      .filter(exp => exp.completed)
+      .reduce((sum, exp) => sum + (exp.pointsEarned || 0), 0);
+
+    pointsBreakdown.value.experiences = experiencePoints;
+    badgeProgressList.value = badgeProgress;
+    updateTotalPoints();
+
+  } catch (error) {
+    console.error("Error fetching experiences:", error);
+    experiences.value = [];
+  }
+
+};    
+    // Function to fetch badges
+
+    const fetchBadges = async () => {
+      try {
+        loading.value = true;
+        message.value = '';
+
+    // const fetchBadges = async () => {
+    //   try {
+
+    //     //const response = await axios.get('/flight-plan-t9/event');
+    //     this.badges = response.data || [];
+
+    //     loading.value = true;
+    //     message.value = '';
+
+        
+    //     const user = currentUser.value || await getCurrentUser();
+        
+    //     if (!user || !user.id) {
+    //       message.value = 'User not found. Please log in again.';
+    //       loading.value = false;
+    //       return;
+    //     }
+
+        
+
+        
+    //     console.log('Fetching badges for user:', user.id);
+    //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
+        
+    //     console.log('Badge API response:', response);
+        
+    //     // Handle different possible data structures
+    //     if (Array.isArray(response)) {
+    //       // If response is directly an array
+    //       badges.value = response.map(badge => ({
+    //         ...badge,
+    //         badge_type: badge.badge_type || badge.type || 'Achievement'
+    //       }));
+    //     } else if (response && Array.isArray(response.data)) {
+    //       // If response has a data array property
+    //       badges.value = response.data.map(badge => ({
+    //         ...badge,
+    //         badge_type: badge.badge_type || badge.type || 'Achievement'
+    //       }));
+    //     } else if (response && typeof response === 'object') {
+    //       // If response is a single object or has a different structure
+    //       // Try to extract badges if they exist in the response
+    //       const badgeData = response.data || response;
+          
+    //       if (Array.isArray(badgeData)) {
+    //         badges.value = badgeData.map(badge => ({
+    //           ...badge,
+    //           badge_type: badge.badge_type || badge.type || 'Achievement'
+    //         }));
+    //       } else {
+    //         // If it's a single badge object
+    //         badges.value = [{ 
+    //           ...badgeData,
+    //           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+    //         }];
+    //       }
+    //     } else {
+    //       badges.value = [];
+    //       message.value = 'No badges found for this user.';
+    //     }
+        
+    //     console.log('Processed badges:', badges.value);
+        
+
+        if (badges.value.length === 0) {
+          message.value = 'No badges found for this user.';
+        }
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        message.value = 'Failed to load your badges. Please try again.';
+        badges.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    //     if (badges.value.length === 0) {
+    //       message.value = 'No badges found for this user.';
+    //     }
+
+    //   } catch (error) {
+    //     console.error('Error fetching badges:', error);
+    //     message.value = 'Failed to load your badges. Please try again.';
+    //     badges.value = [];
+    //   } finally {
+    //     loading.value = false;
+    //   }
+    // };
+    
+
+    const fetchTasks = async () => {
+      try {
+        const response = await taskService.getAllTasks();
+        tasks.value = response.data || [];
+        console.log('Tasks loaded:', tasks.value);
+        
+        // Calculate points from completed tasks
+        const taskPoints = tasks.value
+          .filter(task => task.completed)
+          .length * 50; // Assuming each task is worth 50 points
+        
+        pointsBreakdown.value.tasks = taskPoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        tasks.value = [];
+      }
+    };
+    
+    const fetchRegisteredEvents = async () => {
+      try {
+        if (studentId.value) {
+          const response = await eventServices.getRegisteredEvents(studentId.value);
+          registeredEvents.value = response.data || [];
+          console.log('Registered events loaded:', registeredEvents.value);
+          
+          const eventPoints = registeredEvents.value.length * 75; 
+          
+          pointsBreakdown.value.events = eventPoints;
+          updateTotalPoints();
+        } else {
+          // Load from localStorage if not logged in
+          const stored = localStorage.getItem('eventRegistrations');
+          if (stored) {
+            const localRegistrations = JSON.parse(stored);
+            // Get full event details
+            const allEvents = await eventServices.getAll();
+            registeredEvents.value = allEvents.data.filter(event => 
+              localRegistrations.includes(event.id)
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching registered events:', error);
+        registeredEvents.value = [];
+      }
+    };
+    
+    const updateTotalPoints = () => {
+      totalPoints.value = 
+        pointsBreakdown.value.tasks + 
+        pointsBreakdown.value.events + 
+        pointsBreakdown.value.experiences;
+      
+      // Update progress percentage based on points
+      // Assuming 1000 points is 100% completion
+      progressPercentage.value = Math.min(Math.round((totalPoints.value / 1000) * 100), 100);
+    };
+    
+    const refreshDashboard = async () => {
+      await getCurrentUser(); // Get user data first
+      
+      await Promise.all([
+        fetchExperiences(),
+        fetchBadges(),
+        fetchTasks(),
+        fetchRegisteredEvents()
+      ]);
+    };
+    
+    onMounted(() => {
+      refreshDashboard();
+    });
+    
+    return {
+      studentId,
+      firstName,
+      lastName,
+      studentName,
+      studentYear,
+      isAdmin,
+      studentSemester,
+      progressPercentage,
+      totalPoints,
+      pointsBreakdown,
+      experiences,
+      badges,
+      tasks,
+      registeredEvents,
+      notifications,
+      displayedBadgeCount,
+      toggleBadgeCount,
+      formatDate,
+      formatTime,
+      refreshDashboard,
+    };
   }
  };
  </script>
