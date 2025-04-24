@@ -9,6 +9,7 @@ export default {
     },
     
     // Get one event by ID
+
     getOne(eventId) {
         return apiClient.get(`${baseURL}/${eventId}`);
     },
