@@ -16,6 +16,16 @@ export default {
     }
   },
 
+  async getLeaderboard() {
+    try {
+      const response = await apiClient.get(`${API_BASE_URL}/leaderboard`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      throw error;
+    }
+  },
+
   async getStudents() {
     try {
       const response = await apiClient.get(API_BASE_URL);

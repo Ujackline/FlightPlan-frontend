@@ -32,6 +32,16 @@
         <router-link to="/events" class="nav-text" style="color: white; text-decoration: none;">Event Registration</router-link>
       </div>
 
+      <div class="nav-item">
+        <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
+         <router-link to="/leaderboard" class="nav-text" style="color: white; text-decoration: none;">View Leaderboard</router-link>
+        </div>
+
+        <div class="nav-item">
+          <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
+         <router-link to="/report" class="nav-text" style="color: white; text-decoration: none;">Need Help or Found a Bug?</router-link>
+        </div>
+        
       <div class="sidebar-spacer"></div>
     </div>
 
