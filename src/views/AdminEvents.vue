@@ -888,6 +888,7 @@ export default {
     }
   }
 };
+//
 </script>
 <style scoped>
 .admin-events-container {
