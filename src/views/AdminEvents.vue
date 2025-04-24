@@ -1,7 +1,7 @@
 <template>
   <div class="admin-events-container">
     <h1>Event Management</h1>
-
+    
    <!-- Form -->
 <section v-if="showForm" class="event-list">
   <h3>{{ editing ? "Edit Event" : "Add New Event" }}</h3>
@@ -43,9 +43,9 @@
   <h3>Pending Attendance Approvals</h3>
   <div v-for="approval in pendingApprovals" :key="`${approval.eventId}-${approval.studentId}`" class="approval-item">
     <div class="approval-info">
-      <span class="student-name">{{ approval.studentName }}</span>
-      <span class="event-name">{{ approval.eventName }}</span>
-      <span class="verification-date">{{ formatDate(approval.verificationDate) }}</span>
+      <div class="student-name">{{ approval.studentName }}</div>
+      <div class="event-name">{{ approval.eventName }}</div>
+      <div class="verification-date">{{ formatDate(approval.verificationDate) }}</div>
     </div>
     <div class="points-input">
       <label for="points">Points:</label>
@@ -252,7 +252,6 @@
 </div>
   </div>
 </template>
-//
 <script>
 import eventServices from '../services/eventServices';
 import studentServices from '../services/studentServices';
@@ -786,7 +785,9 @@ export default {
         // Close the modal if this was from the event detail view
         if (this.selectedEvent && this.selectedEvent.id === eventId) {
           this.selectedEvent = null;
-        }// Refresh events to show updated statuses
+        }
+        
+        // Refresh events to show updated statuses
         this.fetchEvents();
       } catch (error) {
         console.error("Error rejecting attendance:", error);
@@ -839,7 +840,6 @@ export default {
           const ampm = hours >= 12 ? 'PM' : 'AM';
           const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
           return `${displayHours}:${minutes} ${ampm}`;
-          console.log("test");
         }
         
         // It's a date string
@@ -1482,7 +1482,122 @@ textarea {
   transition: all 0.2s ease;
   box-shadow: 0 2px 5px rgba(112, 142, 154, 0.3);
 }
+.approval-section {
+  margin: 25px 0;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 
+.approval-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.approval-info {
+  flex: 2;
+  min-width: 200px;
+}
+
+.student-name {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: #48111c;
+}
+
+.event-name {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.verification-date {
+  font-size: 13px;
+  color: #888;
+}
+
+.points-input {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+}
+
+.points-input label {
+  margin-right: 10px;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.points-input input {
+  width: 80px;
+  padding: 8px;
+}
+
+.approval-actions {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.approve-button, .reject-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.approve-button {
+  background-color: #48111c;
+  color: white;
+}
+
+.approve-button:hover {
+  background-color: #5d1625;
+}
+
+.reject-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.reject-button:hover {
+  background-color: #c82333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .approval-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .approval-info, .points-input, .approval-actions {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .points-input {
+    padding: 10px 0;
+  }
+  
+  .approval-actions {
+    justify-content: space-between;
+  }
+}
 .tracking-button:hover {
   background-color: #5a7985;
   transform: translateY(-2px);
