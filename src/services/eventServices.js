@@ -1,6 +1,6 @@
 import apiClient from "./services";
 
-const baseURL = "/event";
+const baseURL = "/events";
 
 export default {
     // Get all events
