@@ -376,7 +376,7 @@ const calculateStudentYear = (current, graduation) => {
     };
 
     
-    const fetchExperiences = async () => {
+  const fetchExperiences = async () => {
   try {
     const storedUser = Utils.getStore("user");
     const studentId = storedUser?.id;
@@ -413,6 +413,91 @@ const calculateStudentYear = (current, graduation) => {
       const match = studentExperiences.find(se =>
         se.experience?.id === exp.id
       );
+
+
+   
+//
+    const fetchBadges = async () => {
+  try {
+    loading.value = true;
+    message.value = '';
+    
+    const user = currentUser.value || await getCurrentUser();
+    
+    if (!user || !user.id) {
+      message.value = 'User not found. Please log in again.';
+      loading.value = false;
+      return;
+    }
+    
+    console.log('Fetching badges for user:', user.id);
+    const response = await badgeServices.getAllUserBadges(user.id);
+    
+    console.log('Badge API response:', response);
+    
+    // Handle different possible data structures
+    if (Array.isArray(response)) {
+      // If response is directly an array
+      badges.value = response.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || badge.type || 'Achievement'
+      }));
+    } else if (response && Array.isArray(response.data)) {
+      // If response has a data array property
+      badges.value = response.data.map(badge => ({
+        ...badge,
+        badge_type: badge.badge_type || badge.type || 'Achievement'
+      }));
+    } else if (response && typeof response === 'object') {
+      // If response is a single object or has a different structure
+      // Try to extract badges if they exist in the response
+      const badgeData = response.data || response;
+      
+      if (Array.isArray(badgeData)) {
+        badges.value = badgeData.map(badge => ({
+          ...badge,
+          badge_type: badge.badge_type || badge.type || 'Achievement'
+        }));
+      } else {
+        // If it's a single badge object
+        badges.value = [{ 
+          ...badgeData,
+          badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+        }];
+      }
+    } else {
+      badges.value = [];
+      message.value = 'No badges found for this user.';
+    }
+    
+    console.log('Processed badges:', badges.value);
+    
+    if (badges.value.length === 0) {
+      message.value = 'No badges found for this user.';
+    }
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    message.value = 'Failed to load your badges. Please try again.';
+    badges.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+
+    
+    if (!semester) {
+      console.warn("Student record is missing semester info.");
+      return;
+    }
+
+    // Get all experiences for this semester
+   // const all = await experienceServices.getExperiencesBySemester(semester);
+   // const allExperiences = all.data || all;
+   // console.log("here", allExperiences);
+
+  // 1. Extract student-specific experience progress
+
 
       return {
         ...exp,
