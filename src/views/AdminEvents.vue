@@ -531,22 +531,11 @@ export default {
             recipients = this.emailRecipients.split(',').map(email => email.trim()).filter(Boolean);
           }
           
-          // Send emails (in a real app, this would be an API call)
-          // await this.$axios.post('/api/notifications/email', {
-          //   recipients,
-          //   subject: `Attendance Code for ${this.selectedEvent.name}`,
-          //   message
-          // });
           
           console.log(`Sending email to ${recipients.length} recipients:`, message);
         } else if (this.sendMethod === 'sms') {
           recipients = this.smsRecipients.split(',').map(phone => phone.trim()).filter(Boolean);
           
-          // Send SMS (in a real app, this would be an API call)
-          // await this.$axios.post('/api/notifications/sms', {
-          //   recipients,
-          //   message
-          // });
           
           console.log(`Sending SMS to ${recipients.length} recipients:`, message);
         }
