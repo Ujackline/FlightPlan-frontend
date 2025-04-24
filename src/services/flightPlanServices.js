@@ -6,7 +6,10 @@ export default {
     console.log('Fetching flight plan for:', { studentId, semester });
     return apiClient.get(`/flightplan/student/${studentId}/semester/${semester}`);
   },
-  
+
+calculateStudentYear(studentId, currentSemester, gradSemester) {
+  return apiClient.get(`/flightplan/calculate-year/${studentId}?currentSemester=${encodeURIComponent(currentSemester)}&gradSemester=${encodeURIComponent(gradSemester)}`);
+},
 
 getFlightPlanTasks(flightPlanId) {
   

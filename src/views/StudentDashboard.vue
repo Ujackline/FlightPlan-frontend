@@ -22,10 +22,7 @@
         <router-link to="/badge" class="nav-text" style="color: white; text-decoration: none;">My Badges</router-link>
       </div>
 
-      <div class="nav-item">
-        <v-icon color="white" class="nav-icon">mdi-chart-bar</v-icon>
-        <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">My Points</router-link>
-      </div>
+
    
       <div class="nav-item">
         <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
@@ -47,9 +44,9 @@
           </div>
           
           <div class="profile-info">
-  <div class="profile-name">{{ firstName }} {{ lastName }}</div>
-  <div class="profile-year">{{ studentSemester }}</div>
-</div>
+        <div class="profile-name">{{ firstName }} {{ lastName }}</div>
+        <div class="profile-year">{{ formattedStudentYear }}</div>
+          </div>
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
             <div v-if="notifications > 0" class="notification-badge"></div>
@@ -207,6 +204,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import taskService from '../services/taskServices';
 import badgeServices from '../services/badgeServices';
+import flightPlanServices from '../services/flightPlanServices';
 import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
 import eventServices from '../services/eventServices';
@@ -221,6 +219,7 @@ export default {
     // State management
     const studentId = ref(null);
     const studentName = ref('');
+    const studentYear = ref('');
     const studentSemester = ref('');
     const progressPercentage = ref(65);
     const totalPoints = ref(0);
@@ -247,7 +246,47 @@ export default {
     
     // Computed properties
     const user = computed(() => store.getters.getLoginUserInfo);
+
+    const fetchStudentYear = async () => {
+  try {
+    const user = currentUser.value || await getCurrentUser();
     
+    if (!user || !user.id) {
+      console.error('No user found for year calculation');
+      return;
+    }
+    
+    // Get the student data including graduation semester
+    const studentData = await studentServices.getStudentByUserId(user.id);
+    
+    if (studentData && studentData.grad_semester) {
+      // Get current semester from the store or local storage
+      // Since semesterServices is gone, we need an alternative source
+      let currentSemester = store.getters.getCurrentSemester;
+      
+    
+      // Call the new endpoint
+      const response = await flightPlanServices.calculateStudentYear(
+        studentData.id,
+        currentSemester,
+        studentData.grad_semester
+      );
+      
+      studentYear.value = response.data?.studentYear || '';
+      console.log('Student year calculated:', studentYear.value);
+    } else {
+      // Fallback to year from student data if available
+      studentYear.value = studentData?.year ? 
+        (studentData.year === '1' ? 'Freshman' : 
+         studentData.year === '2' ? 'Sophomore' : 
+         studentData.year === '3' ? 'Junior' : 
+         studentData.year === '4' ? 'Senior' : studentData.year) : '';
+    }
+  } catch (error) {
+    console.error('Error fetching student year:', error);
+    studentYear.value = '';
+  }
+};
     // Methods
     const formatDate = (dateString) => {
       try {
@@ -330,16 +369,7 @@ export default {
         return null;
       }
     };
-    const fetchStudentSemester = async () => {
-  try {
-    const response = await semesterServices.getActiveSemester;
-    studentSemester.value = response.data || response;
-    console.log('Current Semester loaded:', studentSemester.value);
-  } catch (error) {
-    console.error('Error fetching current semester:', error);
-    studentSemester.value = '';
-  }
-};
+
     const fetchExperiences = async () => {
       try {
         const response = await experienceServices.getExperiences();
@@ -489,6 +519,9 @@ const fetchStudentPoints = async () => {
         registeredEvents.value = [];
       }
     };
+    const formattedStudentYear = computed(() => {
+  return studentYear.value || studentSemester.value || '';
+});
     
     const updateTotalPoints = () => {
       totalPoints.value = 
@@ -510,7 +543,8 @@ const fetchStudentPoints = async () => {
         fetchTasks(),
         fetchStudentPoints,
         fetchRegisteredEvents(),
-        fetchStudentSemester()
+        fetchStudentYear()
+      
       
       ]);
     };
@@ -537,6 +571,7 @@ const fetchStudentPoints = async () => {
       toggleBadgeCount,
       formatDate,
       formatTime,
+      formattedStudentYear, 
       refreshDashboard,
     };
   }
