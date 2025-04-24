@@ -1,213 +1,128 @@
 <template>
-  <div class="dashboard-container">
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="logo-container">
-      <div class="logo">
-        <v-icon color="white" size="x-large">mdi-school</v-icon>
-      </div>
-    </div>
-    <div class="nav-item">
-      <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-      <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
-    </div>
-   
-    <div class="nav-item">
-      <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
-      <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
-    </div>
-   
-    <div class="nav-item">
-      <v-icon color="white" class="nav-icon">mdi-medal</v-icon>
-      <router-link to="/badge" class="nav-text" style="color: white; text-decoration: none;">My Badges</router-link>
-    </div>
-   
+  <div class="admin-dashboard">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>Flight Plan</h1>
+        <div class="admin-info">
+          <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
+        </div>
+        <nav>
+          <div class="nav-item">
+          <v-icon color="white" class="nav-icon">mdi-briefcase</v-icon>
+            <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">Experience Management</router-link>
+          </div>
 
-    
-    <div class="nav-item">
-      <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
-      <router-link to="/events" class="nav-text" style="color: white; text-decoration: none;">Event Registration</router-link>
-    </div>
-   
-    <div class="sidebar-spacer"></div>
-  </div>
-   
-  <!-- Main Content -->
-  <div class="main-content">
-    
-    <!-- Header with Search and Profile -->
-    <div class="header">
-      <input type="text" placeholder="">
-      <div class="profile">
-        <div class="profile-pic">
-          <img src="https://via.placeholder.com/40" alt="Profile">
-        </div>
-        
-        <div class="profile-info">
-          <div class="profile-name">{{ firstName }} {{ lastName }}</div>
-    
-        </div>
-        <div class="notification-icon">
-          <v-icon>mdi-bell</v-icon>
-          <div v-if="notifications > 0" class="notification-badge"></div>
-        </div>
-      </div>
-    </div>
-   
-    <!-- Points Section -->
-    <div class="points-card">
-      <h2 class="card-title">Total Points Earned</h2>
-      <p class="total-points">{{ totalPoints }}</p>
-      <div class="points-breakdown">
-        <span>Tasks: {{ pointsBreakdown.tasks }}</span>
-        <span>Events: {{ pointsBreakdown.events }}</span>
-        <span>Experiences: {{ pointsBreakdown.experiences }}</span>
-      </div>
-    </div>
-   
-    
-    <div class="dashboard-grid">
-      <!-- My Experiences -->
-      <div class="card-container">
-        <div class="card-header">
-          <h2 class="card-title">My Experiences</h2>
-          <router-link to="/experience" class="see-all">Manage Experiences →</router-link>
-        </div>
-        <div class="experiences-list">
-          <div v-for="exp in experiences.slice(0, 3)" :key="exp.id" class="experience-item">
-            <div class="experience-title">{{ exp.name }}</div>
-            <div class="experience-details">{{ exp.status }}</div>
-            <div class="badge-category" v-if="exp.category">{{ exp.category }}</div>
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-calendar</v-icon>
+            <router-link to="/admin/AdminEvents" class="nav-text" style="color: white; text-decoration: none;">Event Management</router-link>
           </div>
-          <div v-if="experiences.length === 0" class="empty-state">
-            No experiences added yet
-          </div>
-        </div>
-      </div>
-     
-      <!-- My Badges -->
-      <div class="card-container">
-        <div class="card-header">
-          <h2 class="card-title">My Badges</h2>
-          <router-link to="/badge" class="see-all">View All Badges →</router-link>
-        </div>
-        
-        <!-- Badge count indicator -->
-        <div class="badge-count">Showing {{ Math.min(badges.length, displayedBadgeCount) }} of {{ badges.length }} badges</div>
-        
-        <div class="badges-container">
-          <div v-for="(badge, index) in badges.slice(0, displayedBadgeCount)" :key="index" class="badge-item" :class="badge.badge_type.toLowerCase()">
-            <!-- DIRECT IMAGE DISPLAY -->
-            <div v-if="hasImageUrl(badge.description)" class="image-badge-container">
-              <img 
-                :src="extractImageUrl(badge.description)" 
-                alt="Badge image" 
-                class="badge-image"
-                @error="handleImageError($event, badge)" 
-                @load="onImageLoad"
-                referrerpolicy="no-referrer"
-              />
-            </div>
-            <!-- Default badge icons if no image -->
-            <template v-else>
-              <!-- Workforce Debut -->
-              <svg v-if="badge.name === 'Workforce Debut'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
-              </svg>
-            
-              <!-- Interview Master -->
-              <svg v-else-if="badge.name === 'Interview Master'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-              </svg>
-            
-              <!-- Resume Builder -->
-              <svg v-else-if="badge.name === 'Resume Builder'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM12 18H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V8h8v2zm-3-5V3.5L18.5 9H13V5z" />
-              </svg>
-            
-              <!-- Interview Ready -->
-              <svg v-else-if="badge.name === 'Interview Ready'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z" />
-              </svg>
-            
-              <!-- Network Starter -->
-              <svg v-else-if="badge.name === 'Network Starter'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-              </svg>
-            
-              <!-- Portfolio Creator -->
-              <svg v-else-if="badge.name === 'Portfolio Creator'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
-              </svg>
-            
-              <!-- Default icon if no specific icon is defined -->
-              <i v-else :class="badge.badge_type === 'Career' ? 'fas fa-briefcase' : 'fas fa-trophy'"></i>
-            </template>
-            
-            <div class="badge-tooltip">{{ badge.name }}</div>
-          </div>
-          <div v-if="badges.length === 0" class="empty-state">
-            No badges earned yet
-          </div>
-        </div>
-        
-        <!-- Show more/less badges button -->
-        <div v-if="badges.length > 6" class="show-more-container">
-          <button 
-            @click="toggleBadgeCount" 
-            class="show-more-btn"
-          >
-            {{ displayedBadgeCount === 6 ? 'Show More Badges' : 'Show Fewer Badges' }}
-          </button>
-        </div>
-      </div>
-      
-      
-      <!-- Completed Tasks -->
-      <div class="card-container">
-        <div class="card-header">
-          <h2 class="card-title">Completed Tasks</h2>
-          <router-link to="/task" class="see-all">View All →</router-link>
-        </div>
-        <div class="tasks-list">
-          <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
-            <!-- Use taskName as primary with name as fallback -->
-            <div class="task-title">{{ task.taskName || task.name || 'Unnamed Task' }}</div>
-            <div class="task-date">{{ task.completionDate ? formatDate(task.completionDate) : 'Completed' }}</div>
-          </div>
-          <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
-            No completed tasks
-          </div>
-        </div>
-      </div>
-     
-      <!-- Completed Events -->
-      <div class="card-container">
-        <div class="card-header">
-        
-          <h2 class="card-title">Registered Events</h2>
-          <router-link to="/event" class="see-all">View All →</router-link>
-        </div>
-        <div class="events-list">
-          <div v-for="event in registeredEvents.slice(0, 3)" :key="event.id" class="event-item">
-            <div class="event-title">{{ event.name }}</div>
-            <div class="event-date">{{ formatDate(event.date) }}</div>
-            <div class="event-location">{{ event.location }}</div>
-          </div>
-          <div v-if="registeredEvents.length === 0" class="empty-state">
-            No registered events
-          </div>
-        </div>
-      </div>
 
-       
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-account-multiple</v-icon>
+            <router-link to="/admin/students" class="nav-text" style="color: white; text-decoration: none;">Student Flight Plans</router-link>
+          </div>
 
-      <!-- Career Resources Component -->
-      <CareerResources />
-      
+          <div class="nav-item">
+          <i class="fas fa-coins nav-icon" style="color: white;"></i>
+          <router-link to="/admin/pointRedemption" class="nav-text" style="color: white; text-decoration: none;">Point Redemption</router-link>
+          </div>
 
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-clipboard-text</v-icon>
+            <router-link to="/admin/view-task" class="nav-text" style="color: white; text-decoration: none;">Task Management</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-medal</v-icon>
+            <router-link to="/admin/adminBadges" class="nav-text" style="color: white; text-decoration: none;">Manage Badges</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-file-document</v-icon>
+            <router-link to="/admin/dashboard/documents" class="nav-text" style="color: white; text-decoration: none;">Manage Documents</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-account-cog</v-icon>
+            <router-link to="/admin/manageusers" class="nav-text" style="color: white; text-decoration: none;">Manage Users</router-link>
+          </div>
+        </nav>
+      </div>
     </div>
-  </div>
+  
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search..." v-model="searchQuery" @input="handleSearch" />
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="notifications">
+          <div class="notification-icon">
+            <i class="fas fa-bell"></i>
+            <span class="badge" v-if="experienceNotifications && experienceNotifications.length > 0">
+              {{ experienceNotifications.length }}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Router View for Child Routes -->
+      <router-view v-if="$route.name !== 'adminDashboard'"></router-view>
+
+      <!-- Admin Dashboard Content -->
+      <div v-if="$route.name === 'adminDashboard'" class="dashboard-content">
+        <h2>Admin Dashboard</h2>
+
+        <!-- Experience Notifications -->
+        <div class="experience-notifications">
+          <h3>Experience Approval Requests</h3>
+
+          <!-- ✅ Show confirmation if experience was just approved -->
+          <p v-if="successMessage" class="success-message">
+            ✅ {{ successMessage }}
+          </p>
+
+          <div v-if="experienceNotifications.length > 0">
+            <ul class="notification-list">
+              <li v-for="note in experienceNotifications" :key="note.id" class="notification-item">
+                <div class="notification-text">
+                  <strong>{{ note.message }}</strong>
+                  <p class="timestamp">{{ formatDate(note.createdAt) }}</p>
+                </div>
+                <div class="notification-actions">
+                  <button @click="viewExperience(note.experienceId)" class="view-btn">View</button>
+                  <button @click="approveExperience(note)" class="approve-btn">Approve</button>
+                  <button @click="rejectExperience(note)" class="reject-btn">Reject</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <p v-else>No experience notifications.</p>
+        </div>
+
+        <!-- ✅ Modal to show experience details -->
+        <div v-if="selectedExperience" class="modal-overlay">
+          <div class="modal">
+            <h3>{{ selectedExperience.name }}</h3>
+            <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
+            <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
+            <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
+            <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
+            <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+            <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
+            <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
+            <button @click="selectedExperience = null" class="close-btn">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -231,9 +146,8 @@ export default {
   },
   setup() {
     const store = useStore();
+
     const isAdmin = ref(false);
-
-
     // State management
     const studentId = ref(null);
     const studentName = ref('');
@@ -254,7 +168,29 @@ export default {
     const currentUser = ref(null);
     const badgeProgressList = ref([]);
 
-    
+    const semesterIndex = (semesterStr) => {
+  if (!semesterStr) return null;
+
+  const [term, year] = semesterStr.split(' ');
+  const base = parseInt(year) * 2;
+  return term.toLowerCase() === 'spring' ? base : base + 1;
+};
+
+const calculateStudentYear = (current, graduation) => {
+  const currentIndex = semesterIndex(current);
+  const gradIndex = semesterIndex(graduation);
+
+  if (currentIndex === null || gradIndex === null) return 'Senior'; // fallback
+
+  const semestersLeft = gradIndex - currentIndex;
+
+  if (semestersLeft <= 2) return 'Senior';
+  else if (semestersLeft <= 4) return 'Junior';
+  else if (semestersLeft <= 6) return 'Sophomore';
+  else return 'Freshman';
+};
+
+
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
 
@@ -320,6 +256,7 @@ export default {
         console.log('User data from store:', userData);
       } else {
         console.warn('No user data found in store');
+
       }
     };
    
@@ -334,7 +271,9 @@ export default {
           currentUser.value = storeUser;
           firstName.value = storeUser.fName || storeUser.firstName;
           lastName.value = storeUser.lName || storeUser.lastName;
-          isAdmin.value = storeUser.role === 'admin';
+          isAdmin.value = storeUser.role === 'admin'; // ✅ Set role
+          studentSemester.value = storeUser.semester || storeUser.grad_semester || ''; // ✅ Set semester
+          studentYear.value = calculateStudentYear(storeUser.semester, storeUser.grad_semester);
           return storeUser;
         }
         
@@ -507,6 +446,86 @@ export default {
       }
     };
 
+
+
+      return {
+        ...exp,
+        status: match?.status || 'Incomplete',
+        approvedBy: match?.approvedBy || null,
+        completionDate: match?.CompletionDate || null,
+        pointsEarned: match?.pointsEarned || 0,
+        completed: match?.status === 'Approved',
+        studentExperienceId: match?.id || null
+      };
+    });
+
+    const fetchBadges = async () => {
+      try {
+        loading.value = true;
+        message.value = '';
+        
+        const user = currentUser.value || await getCurrentUser();
+        
+        if (!user || !user.id) {
+          message.value = 'User not found. Please log in again.';
+          loading.value = false;
+          return;
+        }
+        
+        console.log('Fetching badges for user:', user.id);
+        const response = await badgeServices.getAllUserBadges(user.id);
+        
+        console.log('Badge API response:', response);
+        
+        // Handle different possible data structures
+        if (Array.isArray(response)) {
+          // If response is directly an array
+          badges.value = response.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && Array.isArray(response.data)) {
+          // If response has a data array property
+          badges.value = response.data.map(badge => ({
+            ...badge,
+            badge_type: badge.badge_type || badge.type || 'Achievement'
+          }));
+        } else if (response && typeof response === 'object') {
+          // If response is a single object or has a different structure
+          // Try to extract badges if they exist in the response
+          const badgeData = response.data || response;
+          
+          if (Array.isArray(badgeData)) {
+            badges.value = badgeData.map(badge => ({
+              ...badge,
+              badge_type: badge.badge_type || badge.type || 'Achievement'
+            }));
+          } else {
+            // If it's a single badge object
+            badges.value = [{ 
+              ...badgeData,
+              badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
+            }];
+          }
+        } else {
+          badges.value = [];
+          message.value = 'No badges found for this user.';
+        }
+        
+        console.log('Processed badges:', badges.value);
+        
+        if (badges.value.length === 0) {
+          message.value = 'No badges found for this user.';
+        }
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        message.value = 'Failed to load your badges. Please try again.';
+        badges.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
     const fetchTasks = async () => {
       try {
         const response = await taskService.getAllTasks();
@@ -523,6 +542,19 @@ export default {
       } catch (error) {
         console.error('Error fetching tasks:', error);
         tasks.value = [];
+      }
+    };
+    
+const fetchStudentPoints = async () => {
+  try {
+    const user = currentUser.value || await getCurrentUser();
+    
+    if (user && user.id) {
+      const studentData = await studentServices.getStudentByUserId(user.id);
+      if (studentData && typeof studentData.points === 'number') {
+        totalPoints.value = studentData.points;
+        console.log('Student points loaded:', totalPoints.value);
+
       }
     };
     
@@ -609,7 +641,6 @@ export default {
   }
 };
 </script>
- 
 
  <style scoped>
  * {
@@ -1033,4 +1064,5 @@ export default {
   }
  }
  </style>
+ 
  

@@ -14,15 +14,28 @@ import "@mdi/font/css/materialdesignicons.css";
 const myCustomLightTheme = {
   dark: false,
   colors: {
-    primary: "#80162B",
-    secondary: "#E1E1E1",
-    accent: "#47121D",
-    success: "#47121D",
-    error: "#EE5044",
-    teal: "#63BAC0",
-    blue: "#196CA2",
-    yellow: "#F8C545",
-    darkblue: "#032F45",
+    background: "#FFFFFF",
+    surface: "#FFFFFF",
+    primary: "#1976D2",
+    secondary: "#424242",
+    error: "#FF5252",
+    info: "#2196F3",
+    success: "#4CAF50",
+    warning: "#FB8C00",
+  },
+};
+
+const myCustomDarkTheme = {
+  dark: true,
+  colors: {
+    background: "#121212",
+    surface: "#1E1E1E",
+    primary: "#90CAF9",
+    secondary: "#424242",
+    error: "#FF5252",
+    info: "#2196F3",
+    success: "#4CAF50",
+    warning: "#FB8C00",
   },
 };
 
@@ -31,11 +44,13 @@ const vuetify = createVuetify({
     defaultTheme: "myCustomLightTheme",
     themes: {
       myCustomLightTheme,
+      myCustomDarkTheme,
     },
   },
   icons: {
     defaultSet: "mdi",
   },
 });
+
 
 export default vuetify;

@@ -8,56 +8,48 @@
           <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
         </div>
       </div>
-      <nav>
-        <router-link to="/admin/AdminDashboard" class="nav-item" :class="{ active: currentRoute === 'AdminDashboard' }">
-          <i class="fas fa-tachometer-alt"></i> Dashboard
-        </router-link>
+        <nav>
+          <div class="nav-item">
+          <v-icon color="white" class="nav-icon">mdi-briefcase</v-icon>
+            <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">Experience Management</router-link>
+          </div>
 
-        <router-link to="/experience" class="nav-item" :class="{ active: currentRoute === 'experience' }">
-          <i class="fas fa-tasks"></i> Experiences & Tasks
-        </router-link>
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-calendar</v-icon>
+            <router-link to="/admin/AdminEvents" class="nav-text" style="color: white; text-decoration: none;">Event Management</router-link>
+          </div>
 
-        <router-link to="/admin/AdminEvents" class="nav-item" :class="{ active: currentRoute === 'AdminEvents' }">
-          <i class="fas fa-calendar-alt"></i> Event Management
-        </router-link>
-        
-        <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
-          <i class="fas fa-users"></i> Student Flight Plans
-        </router-link>
-        
-        <router-link to="/admin/pointRedemption" class="nav-item" :class="{ active: currentRoute === 'points' }">
-          <i class="fas fa-coins"></i> Point Redemption
-        </router-link>
-        
-        <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
-          <i class="fas fa-cog"></i> Settings
-        </router-link>
-        
-        <router-link to="/admin/view-task" class="nav-item" :class="{ active: currentRoute === 'view-task' }">
-          <i class="fas fa-tasks"></i> Tasks
-        </router-link>
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-account-multiple</v-icon>
+            <router-link to="/admin/students" class="nav-text" style="color: white; text-decoration: none;">Student Flight Plans</router-link>
+          </div>
 
-        <router-link to="/task" class="nav-item" :class="{ active: currentRoute === 'task' }">
-          <i class="fas fa-tasks"></i> Manage Tasks
-        </router-link>
-        
-        <router-link to="/admin/adminBadges" class="nav-item" :class="{ active: currentRoute === 'badges' }">
-          <i class="fas fa-cog"></i> Manage Badges
-        </router-link>
+          <div class="nav-item">
+          <i class="fas fa-coins nav-icon" style="color: white;"></i>
+          <router-link to="/admin/pointRedemption" class="nav-text" style="color: white; text-decoration: none;">Point Redemption</router-link>
+          </div>
 
-        <router-link to="/admin/dashboard/documents" class="nav-item" :class="{ active: currentRoute === 'adminDocuments' }">
-          <i class="fas fa-file-alt"></i> Manage Documents
-        </router-link>
-        
-        <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
-          <i class="fas fa-cog"></i> Manage Users
-        </router-link>
-      </nav>
-      <div class="sidebar-footer">
-        <button @click="logout" class="logout-btn">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-      </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-clipboard-text</v-icon>
+            <router-link to="/admin/view-task" class="nav-text" style="color: white; text-decoration: none;">Task Management</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-medal</v-icon>
+            <router-link to="/admin/adminBadges" class="nav-text" style="color: white; text-decoration: none;">Manage Badges</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-file-document</v-icon>
+            <router-link to="/admin/dashboard/documents" class="nav-text" style="color: white; text-decoration: none;">Manage Documents</router-link>
+          </div>
+
+          <div class="nav-item">
+            <v-icon color="white" class="nav-icon">mdi-account-cog</v-icon>
+            <router-link to="/admin/manageusers" class="nav-text" style="color: white; text-decoration: none;">Manage Users</router-link>
+          </div>
+        </nav>
     </div>
   
     <!-- Main Content Area -->
@@ -89,6 +81,7 @@
 
         <!-- Experience Notifications -->
         <div class="experience-notifications">
+
           <h3>Experience Approval Requests</h3>
 
           <!-- ✅ Show confirmation if experience was just approved -->
@@ -284,16 +277,12 @@ formatDate(dateString) {
 }
 
 .sidebar {
-  background-color: #47121D;
-  color: white;
-  width: 250px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  padding: 20px 0;
+  background-color: #8B2332;
+  width: 220px;
+  padding: 30px 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .sidebar-header {
@@ -322,6 +311,17 @@ nav {
   color: white;
   text-decoration: none;
   transition: background-color 0.3s;
+}
+
+
+.nav-icon {
+  margin-right: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-text {
+  font-size: 14px;
 }
 
 .nav-item:hover {

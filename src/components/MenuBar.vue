@@ -91,6 +91,7 @@
                 <v-btn depressed rounded text @click="logout">
                   Logout
                 </v-btn>
+                
                 <v-divider class="my-3"></v-divider>
                 <themeToggle @toggle-theme="$emit('toggle-theme')" />
               </div>

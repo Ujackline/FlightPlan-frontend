@@ -26,6 +26,7 @@ import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
 import AdminBadge from "../views/adminBadge.vue";
 import AdminEvents from "../views/AdminEvents.vue";
+import AttendenceTracking from "../views/AttendenceTracking.vue";
 
 
 
@@ -131,17 +132,17 @@ const router = createRouter({
       meta: { requiresAdmin: true }
     }, 
     {
-      path: '/admin/users',
+      path: '/admin/manageusers',
       name: 'manageusers',
       component: ManageUser,
       meta: { requiresAdmin: true }
     },
-    // {
-    //   path: '/admin/adminEvents',
-    //   name: 'adminEvents',
-    //   component: Events,
-    //   meta: { requiresAdmin: true }
-    // },
+    {
+      path: '/admin/attendance-tracking',
+      name: 'attendance-tracking',
+      component: AttendenceTracking,
+      meta: { requiresAdmin: true }  
+    },
 
     {
       path: '/admin/adminBadges',

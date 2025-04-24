@@ -51,6 +51,9 @@ export default {
       throw new Error('Network error or unexpected issue creating student profile');
     }
   },
+
+  async update(id, data) {
+    return apiClient.put(`/student/${id}`, data);
   
 
   async updateStudentPoints(studentId, newPointsTotal) {
@@ -64,4 +67,5 @@ export default {
       throw error;
     }
   }
+
 };

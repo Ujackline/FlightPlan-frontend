@@ -2,6 +2,7 @@
   <div class="student-setup container">
     <h2>Complete Your Profile</h2>
     <form @submit.prevent="submitProfile">
+
       <div class="form-group">
         <label for="studentID">Student ID</label>
         <input 
@@ -21,25 +22,25 @@
           </option>
         </select>
       </div>
-      
+
       <div class="form-group">
-        <label for="semester">Current Semester</label>
-        <select v-model="profile.semester" id="semester" required>
-          <option value="" disabled>Select your current semester</option>
-          <option v-for="semester in semesterOptions" :key="semester" :value="semester">
-            {{ semester }}
-          </option>
-        </select>
+        <label for="currentSemester">Current Semester</label>
+        <input 
+          v-model="profile.currentSemester" 
+          id="currentSemester" 
+          required 
+          placeholder="e.g., Spring 2025"
+        />
       </div>
 
       <div class="form-group">
-        <label for="grad_semester">Graduation Semester</label>
-        <select v-model="profile.grad_semester" id="grad_semester" required>
-          <option value="" disabled>Select your graduation semester</option>
-          <option v-for="semester in graduationOptions" :key="semester" :value="semester">
-            {{ semester }}
-          </option>
-        </select>
+        <label for="gradSemester">Graduation Semester</label>
+        <input 
+          v-model="profile.gradSemester" 
+          id="gradSemester" 
+          required 
+          placeholder="e.g., Fall 2026"
+        />
       </div>
 
       <div class="form-group">
@@ -47,120 +48,104 @@
         <input 
           v-model="profile.cliftonstrengths" 
           id="cliftonstrengths" 
-          placeholder="e.g., Achiever, Learner, Strategic, Futuristic, Communication" 
           required 
+          placeholder="e.g., Achiever, Learner, Strategic"
         />
         <div class="help-text">Enter your top Clifton Strengths, separated by commas</div>
       </div>
 
-      <button type="submit" class="submit-btn">Save Profile</button>
+      <button type="submit" class="submit-btn" :disabled="loading">
+        <span v-if="loading">Saving...</span>
+        <span v-else>Complete Profile</span>
+      </button>
     </form>
 
-    <div v-if="message" class="success-msg">
-      {{ message }}
-    </div>
+    <div v-if="message" :class="messageClass">{{ message }}</div>
   </div>
 </template>
 
-<script>
-import apiClient from '../services/services';
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import studentServices from '../services/studentServices';
 import Utils from '../config/utils';
 
-export default {
-  name: 'StudentProfileSetup',
-  data() {
-    return {
-      profile: {
-        studentID: '',
-        major: '',
-        semester: '',
-        grad_semester: '',
-        cliftonstrengths: '',
-      },
-      majors: [
-        "Computer Science",
-        "Business",
-        "Engineering",
-        "Art",
-        "Marketing",
-        "Natural Sciences",
-        "English",
-        "Education",
-        "History",
-        "Other"
-      ],
-      message: '',
-      semesterOptions: [
-        "Fall 2025",
-        "Spring 2026",
-        "Summer 2026",
-        "Fall 2026",
-        "Spring 2027",
-        "Summer 2027",
-        "Fall 2027",
-        "Spring 2028",
-        "Summer 2028",
-        "Fall 2028",
-        "Spring 2029",
-        "Summer 2029",
-        "Fall 2029",
-        "Spring 2030",
-        "Summer 2030",
-        "Fall 2030"
-      ]
-    };
-  },
-  computed: {
-    graduationOptions() {
-      if (!this.profile.semester) {
-        return this.semesterOptions;
-      }
-      
-      const currentIndex = this.semesterOptions.findIndex(s => s === this.profile.semester);
-      if (currentIndex === -1) return this.semesterOptions;
-      
-      return this.semesterOptions.slice(currentIndex + 1);
-    }
-  },
-  
-  methods: {
-    async submitProfile() {
-      try {
-        const user = Utils.getStore('user');
-        const response = await apiClient.post('/student', {
-          id: user.id,
-          fName: user.fName,
-          lName: user.lName,
-          email: user.email,
-          ...this.profile
-        });
+const router = useRouter();
 
-        this.message = 'Profile completed successfully! Redirecting...';
-        
-        // Create flight plan
-        try {
-          await apiClient.post('/flightplan', {
-            name: `${user.fName}'s Flight Plan - ${this.profile.semester}`,
-            semester: this.profile.semester,
-            grad_semester: this.profile.grad_semester,
-            studentId: response.data.id || user.id
-          });
-        } catch (flightPlanError) {
-          console.error('Error creating flight plan:', flightPlanError);
-          // Continue since profile was created successfully
-        }
-        
-        setTimeout(() => {
-          this.$router.push('/home');
-        }, 2000);
-      } catch (error) {
-        console.error('Error saving profile:', error);
-        alert('Something went wrong. Please try again.');
-      }
+const profile = ref({
+  studentID: '',
+  major: '',
+  currentSemester: '',
+  gradSemester: '',
+  cliftonstrengths: ''
+});
+
+const majors = [
+  "Computer Science",
+  "Business",
+  "Engineering",
+  "Art",
+  "Marketing",
+  "Natural Sciences",
+  "English",
+  "Education",
+  "History",
+  "Other"
+];
+
+const loading = ref(false);
+const message = ref('');
+const messageClass = ref('success-msg');
+
+const submitProfile = async () => {
+  try {
+    loading.value = true;
+    message.value = '';
+
+    if (!profile.value.currentSemester || !profile.value.gradSemester) {
+      message.value = 'Both current and graduation semesters are required.';
+      messageClass.value = 'error-msg';
+      loading.value = false;
+      return;
     }
+
+    const user = Utils.getStore('user');
+
+    const payload = {
+  id: user.id,
+  fName: user.fName,
+  lName: user.lName,
+  email: user.email,
+  studentID: profile.value.studentID.trim(),
+  major: profile.value.major.trim(),
+  semester: profile.value.currentSemester.trim(),      // ✅ maps to backend "semester"
+  grad_semester: profile.value.gradSemester.trim(),    // ✅ maps to backend "grad_semester"
+  cliftonstrengths: profile.value.cliftonstrengths.trim()
+};
+
+
+    await studentServices.createStudentProfile(payload);
+
+    message.value = '✅ Profile completed successfully! Redirecting...';
+    messageClass.value = 'success-msg';
+
+    setTimeout(() => {
+      router.push('/student/StudentDashboard');
+    }, 1500);
+  } catch (err) {
+    console.error("Error saving profile:", err);
+    message.value = "Something went wrong while saving your profile.";
+    messageClass.value = 'error-msg';
+  } finally {
+    loading.value = false;
   }
 };
 </script>
+
+
+
+
+
 
 <style scoped>
 .container {
@@ -225,8 +210,13 @@ input:focus, select:focus {
   transition: background-color 0.3s;
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
   background-color: #741D29;
+}
+
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .success-msg {
@@ -247,5 +237,20 @@ input:focus, select:focus {
   border: 1px solid #f5c6cb;
   border-radius: 4px;
   text-align: center;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

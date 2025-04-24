@@ -34,7 +34,7 @@
 
 <!-- Experience Cards -->
 <section v-if="experiences.length > 0" class="experience-list">
-  <div v-for="exp in experiences" :key="exp.id" class="experience-item-row">
+  <div v-for="exp in experiences.filter(e => e && e.id)" :key="exp.id" class="experience-item-row">
     <!-- Name -->
     <div class="experience-name">
       {{ exp.name }}
@@ -283,6 +283,7 @@ async confirmDelete() {
         const response = await experienceServices.createExperience(this.experience);
         this.experiences.push(response.data);
         this.resetForm();
+        this.fetchExperiences();
       } catch (error) {
         console.error("Error adding experience:", error);
       }
