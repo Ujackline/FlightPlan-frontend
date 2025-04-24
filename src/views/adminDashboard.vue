@@ -140,7 +140,7 @@
 
     </div>
 </div>
-
+</div>
   </div>
 </template>
 
@@ -279,12 +279,11 @@ formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
+},
 
 
   },
-  
-}
+};
 </script>
 
 <style scoped>
@@ -410,5 +409,6 @@ nav {
     font-size: 0.9em;
 }
 </style>
+
 
 

@@ -8,7 +8,7 @@ dns.setDefaultResultOrder("verbatim");
 export default () => {
   const baseURL =
 
-  process.env.APP_ENV === "development" ? "/" : "flightplan";
+  process.env.APP_ENV === "development" ? "/" : "/2025/flight-plan/t9/";
    
 
 

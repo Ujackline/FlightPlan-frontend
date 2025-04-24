@@ -347,40 +347,47 @@ export default {
     };
 
     
-    const fetchExperiences = async () => {
-    try {
+  const fetchExperiences = async () => {
+  try {
     const storedUser = Utils.getStore("user");
     const studentId = storedUser?.id;
-    console.log(studentId);
-    console.log("her", storedUser)
+    console.log("Student ID:", studentId);
 
     if (!studentId) {
       console.warn("No student ID found.");
       return;
     }
 
-    // ✅ Get full student object from DB
     const student = await studentServices.getStudentById(studentId);
     const semester = student.semester || student.grad_semester;
-    console.log("semester", semester);
-      try {
-        const response = await experienceServices.getExperiences();
-        experiences.value = response.data || response;
-        console.log('Experiences loaded:', experiences.value);
-        
-        // Calculate points from experiences
-        const experiencePoints = experiences.value
-          .filter(exp => exp.status === 'Approved')
-          .reduce((sum, exp) => sum + (exp.points || 0), 0);
-        
-        pointsBreakdown.value.experiences = experiencePoints;
-        updateTotalPoints();
-      } catch (error) {
-        console.error('Error fetching experiences:', error);
-        experiences.value = [];
-      }
-    };
+    console.log("Semester:", semester);
 
+    if (!semester) {
+      console.warn("Student record is missing semester info.");
+      return;
+    }
+
+    // ✅ Get all semester-specific experiences
+    const all = await experienceServices.getExperiencesBySemester(semester);
+    const allExperiences = all.data || all;
+    console.log("All experiences:", allExperiences);
+
+    // ✅ Get student-specific experience data
+    const myData = await experienceServices.getMyExperiences(studentId);
+    const studentExperiences = myData || [];
+    const badgeProgress = myData.badgeProgress || [];
+
+    console.log("Student Experiences:", studentExperiences);
+
+    // ✅ Merge student progress with global experiences
+    const merged = allExperiences.map(exp => {
+      const match = studentExperiences.find(se =>
+        se.experience?.id === exp.id
+      );
+
+
+   
+//
     const fetchBadges = async () => {
   try {
     loading.value = true;
@@ -456,21 +463,12 @@ export default {
     }
 
     // Get all experiences for this semester
-    const all = await experienceServices.getExperiencesBySemester(semester);
-    const allExperiences = all.data || all;
-    console.log("here", allExperiences);
+   // const all = await experienceServices.getExperiencesBySemester(semester);
+   // const allExperiences = all.data || all;
+   // console.log("here", allExperiences);
 
   // 1. Extract student-specific experience progress
-const myData = await experienceServices.getMyExperiences(studentId);
-const studentExperiences = myData || []; // <-- assuming it's already a flat array of objects
-const badgeProgress = myData.badgeProgress || [];
 
-// ✅ 2. Merge student progress with all experiences
-const merged = allExperiences.map(exp => {
-  // Find matching student experience based on nested experience.id
-  const match = studentExperiences.find(se =>
-    se.experience?.id === exp.id
-  );
 
   return {
     ...exp,
