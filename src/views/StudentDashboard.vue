@@ -7,6 +7,7 @@
           <v-icon color="white" size="x-large">mdi-school</v-icon>
         </div>
       </div>
+      
       <div class="nav-item">
         <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
         <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
@@ -43,13 +44,14 @@
         <input type="text" placeholder="">
         <div class="profile">
           <div class="profile-pic">
-            <img src="https://via.placeholder.com/40" alt="Profile">
+            <img src="/public/default-profile.png" alt="Profile" class="profile-img">
           </div>
-          
-          <div class="profile-info">
-  <div class="profile-name">{{ firstName }} {{ lastName }}</div>
-  <div class="profile-year">{{ studentSemester }}</div>
-</div>
+        
+
+          <div class="profile-name">{{ firstName }} {{ lastName }}</div>
+          <div class="profile-year">{{ studentSemester }}</div>
+        </div>
+
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
             <div v-if="notifications > 0" class="notification-badge"></div>
@@ -217,6 +219,10 @@ export default {
   name: 'StudentDashboard',
   setup() {
     const store = useStore();
+
+    const isAdmin = ref(false);
+    const studentSemester = ref('');
+
     
     // State management
     const studentId = ref(null);
@@ -237,7 +243,29 @@ export default {
     const message = ref('');
     const currentUser = ref(null);
 
-    
+    const semesterIndex = (semesterStr) => {
+  if (!semesterStr) return null;
+
+  const [term, year] = semesterStr.split(' ');
+  const base = parseInt(year) * 2;
+  return term.toLowerCase() === 'spring' ? base : base + 1;
+};
+
+const calculateStudentYear = (current, graduation) => {
+  const currentIndex = semesterIndex(current);
+  const gradIndex = semesterIndex(graduation);
+
+  if (currentIndex === null || gradIndex === null) return 'Senior'; // fallback
+
+  const semestersLeft = gradIndex - currentIndex;
+
+  if (semestersLeft <= 2) return 'Senior';
+  else if (semestersLeft <= 4) return 'Junior';
+  else if (semestersLeft <= 6) return 'Sophomore';
+  else return 'Freshman';
+};
+
+
     // Badge display count control
     const displayedBadgeCount = ref(6); // Default to showing 6 badges
 
@@ -281,6 +309,7 @@ export default {
         console.log('User data from store:', userData);
       } else {
         console.warn('No user data found in store');
+
       }
     };
    
@@ -295,6 +324,13 @@ export default {
           currentUser.value = storeUser;
           firstName.value = storeUser.fName || storeUser.firstName;
           lastName.value = storeUser.lName || storeUser.lastName;
+
+          isAdmin.value = storeUser.role === 'admin'; // ✅ Set role
+          studentSemester.value = storeUser.semester || storeUser.grad_semester || ''; // ✅ Set semester
+
+          studentYear.value = calculateStudentYear(storeUser.semester, storeUser.grad_semester);
+
+
           return storeUser;
         }
         
@@ -433,6 +469,44 @@ const fetchTasks = async () => {
     tasks.value = response.data || [];
     console.log('Tasks loaded:', tasks.value);
     
+
+    if (!semester) {
+      console.warn("Student record is missing semester info.");
+      return;
+    }
+
+    // Get all experiences for this semester
+   // const all = await experienceServices.getExperiencesBySemester(semester);
+   // const allExperiences = all.data || all;
+   // console.log("here", allExperiences);
+
+  // 1. Extract student-specific experience progress
+
+
+      return {
+        ...exp,
+        status: match?.status || 'Incomplete',
+        approvedBy: match?.approvedBy || null,
+        completionDate: match?.CompletionDate || null,
+        pointsEarned: match?.pointsEarned || 0,
+        completed: match?.status === 'Approved',
+        studentExperienceId: match?.id || null
+      };
+    });
+
+    // ✅ Store merged list
+    experiences.value = merged;
+    badgeProgressList.value = badgeProgress;
+
+    // ✅ Calculate experience points from approved
+    const experiencePoints = merged
+      .filter(exp => exp.completed)
+      .reduce((sum, exp) => sum + (exp.pointsEarned || 0), 0);
+
+    pointsBreakdown.value.experiences = experiencePoints;
+
+    // ✅ Recalculate total points
+
     // Calculate points from completed tasks
     const taskPoints = tasks.value
       .filter(task => task.completed)
@@ -441,6 +515,30 @@ const fetchTasks = async () => {
     pointsBreakdown.value.tasks = taskPoints;
     updateTotalPoints();
   } catch (error) {
+
+    console.error("❌ Error fetching experiences:", error);
+    experiences.value = [];
+  }
+};
+ // Function to fetch badges
+
+    const fetchBadges = async () => {
+      try {
+        loading.value = true;
+        message.value = '';
+        if (badges.value.length === 0) {
+          message.value = 'No badges found for this user.';
+        }
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+        message.value = 'Failed to load your badges. Please try again.';
+        badges.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+
     console.error('Error fetching tasks:', error);
     tasks.value = [];
   }
@@ -560,6 +658,13 @@ const fetchStudentPoints = async () => {
   display: flex;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
+
+.profile-img {
+  width: 100px;
+  height: auto;
+  border-radius: 50%; /* optional: makes it circular */
+}
+
 
 /* Sidebar Styles */
 .sidebar {

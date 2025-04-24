@@ -89,7 +89,7 @@
               </div>
               
               <div v-else-if="!showCompletedTasks && tasksToDisplay.length === 0" class="empty-tasks">
-                <p>All tasks completed! 🎉</p>
+                <p>All tasks completed! </p>
               </div>
               
               <div v-else v-for="task in tasksToDisplay" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
@@ -307,6 +307,29 @@ const fetchUserData = async () => {
           currentSemester.value = student.semester;
         }
         
+
+        if (storedUser && storedUser.fName) {
+          firstName.value = storedUser.fName;
+          
+          // Fetch the student's data to get current semester
+          try {
+            const userResponse = await apiClient.get(`/student?id=${storedUser.id}`);
+            if (userResponse.data && userResponse.data.length > 0) {
+              const student = userResponse.data[0];
+              
+              // Get semester info
+              if (student.semester) {
+                const semesterResponse = await apiClient.get(`/semester/${student.semester}`);
+                currentSemester.value = semesterResponse.data;
+                
+                // Now that we have the semester, get the flight plan
+                fetchFlightPlanAndTasks(storedUser.id, currentSemester.value.name);
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching student data:', error);
+          }
+
         // Initialize points property
         if (student.points !== undefined) {
           points.value = parseInt(student.points || 0);
@@ -314,6 +337,7 @@ const fetchUserData = async () => {
         } else {
           points.value = 0;
           console.log('No points found in student record, initializing to 0');
+
         }
         
         // Continue with flight plan retrieval
