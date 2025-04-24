@@ -7,7 +7,7 @@ import StudentDashboard from "../views/StudentDashboard.vue";
 import Task from "../views/task.vue";
 import Badge from "../views/Badge.vue";
 import Experience from "../views/Experience.vue";
-import AdminDashboard from "../views/adminDashboard.vue";
+//import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
@@ -22,7 +22,7 @@ import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
 import AttendanceTracking from "../views/AttendanceTracking.vue";
-
+//
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [

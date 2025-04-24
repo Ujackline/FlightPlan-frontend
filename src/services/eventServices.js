@@ -234,7 +234,18 @@ getPendingApprovals() {
 approveAttendance(eventId, studentId, data) {
   return apiClient.post(`${API_BASE_URL}/${eventId}/students/${studentId}/approve`, data);
 },
-
+// Add this to your eventServices.js file
+// Only implement the method to get a single student
+async getStudent(id) {
+  try {
+    // Use the endpoint for a single student
+    const response = await apiClient.get(`/student/${id}`);
+    return response;
+  } catch (error) {
+    console.error(`Error fetching student ${id}:`, error);
+    return { data: null }; // Return null data on error
+  }
+},
 rejectAttendance(eventId, studentId) {
   return apiClient.post(`${API_BASE_URL}/${eventId}/students/${studentId}/reject`);
 },
@@ -243,4 +254,5 @@ rejectAttendance(eventId, studentId) {
     return this.registerStudent(eventId, studentId);
   }
 };
+
 

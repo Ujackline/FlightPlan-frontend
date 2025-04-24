@@ -252,7 +252,7 @@
 </div>
   </div>
 </template>
-
+//
 <script>
 import eventServices from '../services/eventServices';
 import studentServices from '../services/studentServices';
