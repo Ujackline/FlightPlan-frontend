@@ -161,8 +161,8 @@
         </div>
         
 
-       
-       <!-- Completed Tasks -->
+ 
+<!-- Completed Tasks -->
 <div class="card-container">
   <div class="card-header">
     <h2 class="card-title">Completed Tasks</h2>
@@ -170,15 +170,15 @@
   </div>
   <div class="tasks-list">
     <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
-      <div class="task-title">{{ task.name }}</div>
-      <div class="task-date">{{ formatDate(task.completionDate) || 'Completed' }}</div>
+      <!-- Use taskName as primary with name as fallback -->
+      <div class="task-title">{{ task.taskName || task.name || 'Unnamed Task' }}</div>
+      <div class="task-date">{{ task.completionDate ? formatDate(task.completionDate) : 'Completed' }}</div>
     </div>
     <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
       No completed tasks
     </div>
   </div>
 </div>
-
         <!-- Completed Events -->
         <div class="card-container">
           <div class="card-header">

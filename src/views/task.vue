@@ -1,269 +1,7 @@
-<!-- <template>
-  <div class="task-container">
-    <h2>Task List</h2>
-    
-    <p v-if="loading">Loading tasks...</p>
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="!loading && tasks.length === 0">No tasks available.</p>
-
-    <table v-if="!loading && tasks.length > 0" class="task-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="task in tasks" :key="task.id">
-          <td>{{ task.id }}</td>
-          <td>{{ task.name }}</td>
-          <td>{{ task.description }}</td>
-          <td>
-            <button class="edit-btn" @click="editTask(task)">Edit</button>
-            <button class="delete-btn" @click="deleteTask(task.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
-<script>
-import { ref, onMounted } from "vue";
-import task from "../services/task";
-
-export default {
-  setup() {
-    const tasks = ref([]);
-    const loading = ref(true);
-    const error = ref(null);
-
-    // Fetch tasks from API
-    const fetchTasks = async () => {
-      try {
-        const response = await task.getAllTasks();
-        tasks.value = response.data;
-      } catch (err) {
-        error.value = "Failed to fetch tasks.";
-        console.error("Error fetching tasks:", err);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    // Delete a task
-    const deleteTask = async (id) => {
-      if (!confirm("Are you sure you want to delete this task?")) return;
-      try {
-        await task.deleteTask(id);
-        tasks.value = tasks.value.filter(task => task.id !== id); // Update state
-      } catch (err) {
-        console.error("Error deleting task:", err);
-      }
-    };
-
-    // Edit task (placeholder function)
-    const editTask = (task) => {
-      alert(`Edit functionality not implemented yet for task: ${task.name}`);
-    };
-
-    onMounted(fetchTasks);
-
-    return { tasks, loading, error, deleteTask, editTask };
-  }
-};
-</script>
-
-<style scoped>
-.task-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
-}
-
-.task-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.task-table th, .task-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-}
-
-.task-table th {
-  background-color: #f4f4f4;
-}
-
-.edit-btn, .delete-btn {
-  padding: 8px 12px;
-  margin: 5px;
-  border: none;
-  cursor: pointer;
-}
-
-.edit-btn {
-  background-color: #ffc107;
-  color: #fff;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-  color: #fff;
-}
-</style> -->
-<!-- 
 <template>
   <div class="task-container">
-    <h2>Task List</h2>
-
-    <p v-if="loading" class="loading">Loading tasks...</p>
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="!loading && tasks.length === 0">No tasks available.</p>
-
-    <table v-if="!loading && tasks.length > 0" class="task-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Points</th>
-          <th>Complete</th> 
-               </tr>
-      </thead>
-      <tbody>
-        <tr v-for="task in tasks" :key="task.id">
-          <td>{{ task.id }}</td>
-          <td>{{ task.taskName }}</td>
-          <td>{{ task.description || 'No description' }}</td>
-          <td>{{ task.NumOfPoints }}</td> 
-          <td>
-            <input 
-              type="checkbox" 
-              :checked="task.completed"
-              @change="toggleCompletion(task)" 
-            />
-          </td>
-
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
-<script>
-import { ref, onMounted } from "vue";
-import task from "../services/task";
-
-export default {
-  setup() {
-    const tasks = ref([]);
-    const loading = ref(true);
-    const error = ref(null);
-
-    const fetchTasks = async () => {
-      try {
-        const response = await task.getAllTasks();
-        tasks.value = response.data;
-      } catch (err) {
-        error.value = err.response?.data?.message || "Failed to fetch tasks.";
-        console.error("Error fetching tasks:", err);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-
-    const toggleCompletion = async (task) => {
-
-      try {
-        const response = await taskService.completeTask(task.id, !task.completed);
-        if (response.data.success) {
-          task.completed = !task.completed;
-          task.points = response.data.newTotalPoints; // Update UI with new total points
-        }
-      } catch (err) {
-        console.error("Error updating task completion:", err);
-      }
-    };
-
-    onMounted(fetchTasks);
-
-    return { tasks, loading, error, toggleCompletion  };
-  }
-};
-</script>
-
-<style scoped>
-.task-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
-}
-
-.loading {
-  font-size: 18px;
-  color: #ff007bf4;
-}
-
-.error {
-  color: red;
-}
-
-.task-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.task-table th, .task-table td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-}
-
-.task-table th {
-  background-color: #f4f4f4;
-}
-
-.edit-btn, .delete-btn {
-  padding: 8px 12px;
-  margin: 5px;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
-  border-radius: 5px;
-}
-
-.edit-btn {
-  background-color: #ffc107;
-  color: #fff;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-.edit-btn:hover {
-  background-color: #e0a800;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-</style>
- -->
-
- <template>
-  <div class="task-container">
     <div class="header-section">
-      <h2>Task List</h2>
+      <h2>Completed Tasks</h2>
       <div class="decoration-line"></div>
     </div>
 
@@ -276,13 +14,13 @@ export default {
         <span class="error-icon">!</span>
         {{ error }}
       </p>
-      <p v-if="!loading && tasks.length === 0" class="empty-message">
+      <p v-if="!loading && completedTasks.length === 0" class="empty-message">
         <span class="empty-icon">📋</span>
-        No tasks available.
+        No completed tasks available.
       </p>
     </div>
 
-    <div v-if="!loading && tasks.length > 0" class="table-container">
+    <div v-if="!loading && completedTasks.length > 0" class="table-container">
       <table class="task-table">
         <thead>
           <tr>
@@ -290,24 +28,17 @@ export default {
             <th>Task Name</th>
             <th>Description</th>
             <th>Points</th>
-            <th>Complete</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="task in tasks" :key="task.id" :class="{ 'completed-task': task.completed }">
+          <tr v-for="task in completedTasks" :key="task.id" class="completed-task">
             <td class="task-id">{{ task.id }}</td>
             <td class="task-name">{{ task.taskName }}</td>
             <td class="task-description">{{ task.description || 'No description' }}</td>
             <td class="task-points">{{ task.NumOfPoints }}</td>
             <td class="task-complete">
-              <label class="checkbox-container">
-                <input 
-                  type="checkbox" 
-                  :checked="task.completed"
-                  @change="toggleCompletion(task)" 
-                />
-                <span class="checkmark"></span>
-              </label>
+              <span class="status-badge">Completed</span>
             </td>
           </tr>
         </tbody>
@@ -317,46 +48,8 @@ export default {
 </template>
 
 <script>
-// import { ref, onMounted } from "vue";
-// import task from "../services/taskServices";
-
-// export default {
-//   setup() {
-//     const tasks = ref([]);
-//     const loading = ref(true);
-//     const error = ref(null);
-
-//     const fetchTasks = async () => {
-//       try {
-//         const response = await task.getAllTasks();
-//         tasks.value = response.data;
-//       } catch (err) {
-//         error.value = err.response?.data?.message || "Failed to fetch tasks.";
-//         console.error("Error fetching tasks:", err);
-//       } finally {
-//         loading.value = false;
-//       }
-//     };
-
-//     const toggleCompletion = async (task) => {
-//   try {
-//     const response = await task.completeTask(1, task.id); // Call the actual service
-//     if (response.data.success) {
-//       task.completed = true;
-//       task.points = response.data.newTotalPoints || task.points;
-//     }
-//   } catch (err) {
-//     console.error("Error updating task completion:", err);
-//   }
-// };
-
-//     onMounted(fetchTasks);
-
-//     return { tasks, loading, error, toggleCompletion };
-//   }
-// };
-import { ref, onMounted } from "vue";
-import taskService from "../services/taskServices"; // Rename to taskService instead of task
+import { ref, computed, onMounted } from "vue";
+import taskService from "../services/taskServices";
 
 export default {
   setup() {
@@ -364,10 +57,22 @@ export default {
     const loading = ref(true);
     const error = ref(null);
 
+    // Computed property to filter only completed tasks
+    const completedTasks = computed(() => {
+      return tasks.value.filter(task => 
+        task.completed === true || 
+        task.status === 'Approved' || 
+        task.status === 'approved'
+      );
+    });
+
     const fetchTasks = async () => {
       try {
-        const response = await taskService.getAllTasks();
+        loading.value = true;
+        const response = await taskService.getStudentTasks;
         tasks.value = response.data;
+        console.log("Fetched all tasks:", tasks.value);
+        console.log("Completed tasks:", completedTasks.value);
       } catch (err) {
         error.value = err.response?.data?.message || "Failed to fetch tasks.";
         console.error("Error fetching tasks:", err);
@@ -376,21 +81,14 @@ export default {
       }
     };
 
-    const toggleCompletion = async (taskItem) => {
-      try {
-        const response = await taskService.completeTask(taskItem.id);
-        if (response.data.success) {
-          taskItem.completed = !taskItem.completed;
-          // Update points if needed
-        }
-      } catch (err) {
-        console.error("Error updating task completion:", err);
-      }
-    };
-
     onMounted(fetchTasks);
 
-    return { tasks, loading, error, toggleCompletion };
+    return { 
+      tasks, 
+      completedTasks, // Return the computed property
+      loading, 
+      error 
+    };
   }
 };
 </script>
@@ -571,69 +269,18 @@ export default {
 
 .task-complete {
   text-align: center;
-  width: 80px;
+  width: 100px;
 }
 
-/* Custom checkbox */
-.checkbox-container {
-  display: block;
-  position: relative;
-  padding-left: 26px;
-  cursor: pointer;
-  font-size: 16px;
-  user-select: none;
-  margin: 0 auto;
-  width: 20px;
-  height: 20px;
-}
-
-.checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-.checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 20px;
-  width: 20px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.checkbox-container:hover input ~ .checkmark {
-  background-color: #e0e0e0;
-}
-
-.checkbox-container input:checked ~ .checkmark {
-  background-color: #800020;
-  border-color: #800020;
-}
-
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-.checkbox-container input:checked ~ .checkmark:after {
-  display: block;
-}
-
-.checkbox-container .checkmark:after {
-  left: 7px;
-  top: 3px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+/* Status badge styling */
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #4CAF50;
+  border-radius: 12px;
 }
 
 /* Responsive styles */
