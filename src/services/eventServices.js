@@ -1,6 +1,6 @@
 import apiClient from "./services";
 
-const baseURL = "/event";
+const baseURL = "/events";
 
 export default {
     // Get all events
@@ -9,6 +9,7 @@ export default {
     },
     
     // Get one event by ID
+
     getOne(eventId) {
         return apiClient.get(`${baseURL}/${eventId}`);
     },

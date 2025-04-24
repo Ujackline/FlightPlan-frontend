@@ -1,31 +1,4 @@
-.empty-message {
-  text-align: center;
-  padding: 30px 20px;
-  background-color: #d5dfe7;
-  border-radius: 8px;
-  color: #708e9a;
-  font-size: 18px;
-  margin: 20px 0;
-  border: 2px dashed #708e9a;
-}.points-earned {
-  font-weight: bold;
-  color: #708e9a;
-  font-size: 16px;
-  background: rgba(112, 142, 154, 0.1);
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  margin-top: 10px;
-}.completed-tag {
-  background-color: #708e9a;
-  color: white;
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-weight: bold;
-  margin: 5px 0;
-  font-size: 0.9em;
-}<template>
+<template>
   <div class="events-container">
     <!-- Section to display available events -->
     <div v-if="!showMyEvents && !showCompletedEvents">
@@ -737,15 +710,15 @@ export default {
   padding: 10px;
   border-radius: 8px;
   color: white;
-  background-color: #48111c; /* Dark maroon as requested */
+  background-color: #48111c; 
 }
 
 .registered-title {
-  background-color: #f68d76; /* As requested */
+  background-color: #336cb6;
 }
 
 .completed-title {
-  background-color: #708e9a; /* Changed from green to the blue-gray you provided */
+  background-color: #708e9a;
 }
 
 .event-list {

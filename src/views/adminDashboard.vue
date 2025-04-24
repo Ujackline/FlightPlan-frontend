@@ -1,12 +1,11 @@
 <template>
   <div class="admin-dashboard">
-      <!-- Sidebar Navigation -->
-      <div class="sidebar">
-        <div class="sidebar-header">
-          <h1>Flight Plan</h1>
-          <div class="admin-info">
-            <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
-          </div>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>Flight Plan</h1>
+        <div class="admin-info">
+          <div class="admin-name">{{ admin.fName }} {{ admin.lName }}</div>
         </div>
         <nav>
           <div class="nav-item">
@@ -50,84 +49,80 @@
             <router-link to="/admin/manageusers" class="nav-text" style="color: white; text-decoration: none;">Manage Users</router-link>
           </div>
         </nav>
-        
-      </div>
+    </div>
   
-     <!-- Main Content Area -->
-<div class="main-content">
-    <!-- Top Navigation Bar -->
-    <header class="top-nav">
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
         <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search..." v-model="searchQuery" @input="handleSearch" />
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search..." v-model="searchQuery" @input="handleSearch" />
         </div>
 
         <!-- Notifications Section -->
         <div class="notifications">
-            <div class="notification-icon">
-                <i class="fas fa-bell"></i>
-                <span class="badge" v-if="experienceNotifications && experienceNotifications.length > 0">
-                    {{ experienceNotifications.length }}
-                </span>
-            </div>
+          <div class="notification-icon">
+            <i class="fas fa-bell"></i>
+            <span class="badge" v-if="experienceNotifications && experienceNotifications.length > 0">
+              {{ experienceNotifications.length }}
+            </span>
+          </div>
         </div>
-    </header>
+      </header>
 
-    <!-- Router View for Child Routes -->
-    <router-view v-if="$route.name !== 'adminDashboard'"></router-view>
+      <!-- Router View for Child Routes -->
+      <router-view v-if="$route.name !== 'adminDashboard'"></router-view>
 
-    <!-- Admin Dashboard Content -->
-    <div v-if="$route.name === 'adminDashboard'" class="dashboard-content">
+      <!-- Admin Dashboard Content -->
+      <div v-if="$route.name === 'adminDashboard'" class="dashboard-content">
         <h2>Admin Dashboard</h2>
-
-       
 
         <!-- Experience Notifications -->
         <div class="experience-notifications">
-  <h3>Experience Approval Requests</h3>
 
-  <!--  Show confirmation if experience was just approved -->
-  <p v-if="successMessage" class="success-message">
-  ✅ {{ successMessage }}
-  </p>
+          <h3>Experience Approval Requests</h3>
 
-  <div v-if="experienceNotifications.length > 0">
-    <ul class="notification-list">
-      <li v-for="note in experienceNotifications" :key="note.id" class="notification-item">
-        <div class="notification-text">
-          <strong>{{ note.message }}</strong>
-          <p class="timestamp">{{ formatDate(note.createdAt) }}</p>
+          <!-- ✅ Show confirmation if experience was just approved -->
+          <p v-if="successMessage" class="success-message">
+            ✅ {{ successMessage }}
+          </p>
+
+          <div v-if="experienceNotifications.length > 0">
+            <ul class="notification-list">
+              <li v-for="note in experienceNotifications" :key="note.id" class="notification-item">
+                <div class="notification-text">
+                  <strong>{{ note.message }}</strong>
+                  <p class="timestamp">{{ formatDate(note.createdAt) }}</p>
+                </div>
+                <div class="notification-actions">
+                  <button @click="viewExperience(note.experienceId)" class="view-btn">View</button>
+                  <button @click="approveExperience(note)" class="approve-btn">Approve</button>
+                  <button @click="rejectExperience(note)" class="reject-btn">Reject</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <p v-else>No experience notifications.</p>
         </div>
-        <div class="notification-actions">
-          <button @click="viewExperience(note.experienceId)" class="view-btn">View</button>
-          <button @click="approveExperience(note)" class="approve-btn">Approve</button>
-          <button @click="rejectExperience(note)" class="reject-btn">Reject</button>
+
+        <!-- ✅ Modal to show experience details -->
+        <div v-if="selectedExperience" class="modal-overlay">
+          <div class="modal">
+            <h3>{{ selectedExperience.name }}</h3>
+            <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
+            <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
+            <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
+            <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
+            <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
+            <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
+            <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
+            <button @click="selectedExperience = null" class="close-btn">Close</button>
+          </div>
         </div>
-      </li>
-    </ul>
-  </div>
-
-  <p v-else>No experience notifications.</p>
-</div>
-
-<!-- ✅ Modal to show experience details -->
-<div v-if="selectedExperience" class="modal-overlay">
-  <div class="modal">
-    <h3>{{ selectedExperience.name }}</h3>
-    <p><strong>Category:</strong> {{ selectedExperience.category }}</p>
-    <p><strong>Description:</strong> {{ selectedExperience.description }}</p>
-    <p><strong>Type:</strong> {{ selectedExperience.type }}</p>
-    <p><strong>Clifton Strength:</strong> {{ selectedExperience.cliftonStrength }}</p>
-    <p><strong>Major:</strong> {{ selectedExperience.major }}</p>
-    <p><strong>Points:</strong> {{ selectedExperience.points }}</p>
-    <p><strong>Status:</strong> {{ selectedExperience.status }}</p>
-    <button @click="selectedExperience = null" class="close-btn">Close</button>
-  </div>
-</div>
-
+      </div>
     </div>
-</div>
-</div>
   </div>
 </template>
 

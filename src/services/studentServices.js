@@ -4,14 +4,12 @@ import apiClient from "./services";
 const API_BASE_URL = "/student";
 
 export default {
-  async getStudentById(studentId) {
+  async getStudentByUserId(userId) {
     try {
-      // If no studentId is provided, get the current logged-in student
-      const endpoint = studentId ? `${API_BASE_URL}/${studentId}` : `${API_BASE_URL}/current`;
-      const response = await apiClient.get(endpoint);
+      const response = await apiClient.get(`${API_BASE_URL}/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching student data:", error);
+      console.error("Error fetching student by userId:", error);
       throw error;
     }
   },
@@ -53,8 +51,21 @@ export default {
       throw new Error('Network error or unexpected issue creating student profile');
     }
   },
+
   async update(id, data) {
     return apiClient.put(`/student/${id}`, data);
+  
+
+  async updateStudentPoints(studentId, newPointsTotal) {
+    try {
+      const response = await apiClient.patch(`${API_BASE_URL}/${studentId}/points`, {
+        points: newPointsTotal
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating student points:', error);
+      throw error;
+    }
   }
 
 };
