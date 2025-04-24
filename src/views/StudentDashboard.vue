@@ -8,14 +8,13 @@
         </div>
       </div>
       <div class="nav-item">
-
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Profile</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/profile" class="nav-text" style="color: white; text-decoration: none;">My Profile</router-link>
       </div>
 
       <div class="nav-item">
-        <v-icon color="black" class="nav-icon">mdi-clipboard-check</v-icon>
-        <router-link to="/task" class="nav-text" style="color: black; text-decoration: none;">My Tasks</router-link>
+        <v-icon color="white" class="nav-icon">mdi-clipboard-check</v-icon>
+        <router-link to="/task" class="nav-text" style="color: white; text-decoration: none;">My Tasks</router-link>
       </div>
 
       <div class="nav-item">
@@ -25,7 +24,7 @@
 
       <div class="nav-item">
         <v-icon color="white" class="nav-icon">mdi-chart-bar</v-icon>
-        <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">My Experience</router-link>
+        <router-link to="/experience" class="nav-text" style="color: white; text-decoration: none;">My Points</router-link>
       </div>
    
       <div class="nav-item">
@@ -48,10 +47,9 @@
           </div>
           
           <div class="profile-info">
-            <div class="profile-name">{{ firstName}} {{ lastName }}</div>
-         
-            <div class="profile-year">{{ studentYear || 'Senior' }}</div>
-          </div>
+  <div class="profile-name">{{ firstName }} {{ lastName }}</div>
+  <div class="profile-year">{{ studentSemester }}</div>
+</div>
           <div class="notification-icon">
             <v-icon>mdi-bell</v-icon>
             <div v-if="notifications > 0" class="notification-badge"></div>
@@ -85,13 +83,7 @@
         <div class="card-container">
           <div class="card-header">
             <h2 class="card-title">My Experiences</h2>
-            <!-- <router-link to="/experience" class="see-all">Manage Experiences →</router-link> -->
-            <router-link :to=" `/experience?semester=${studentSemester}`" class="see-all">
-              Manage Experiences 
-            </router-link>
-
-
-          
+            <router-link to="/experience" class="see-all">Manage Experiences →</router-link>
           </div>
           <div class="experiences-list">
             <div v-for="exp in experiences.slice(0, 3)" :key="exp.id" class="experience-item">
@@ -169,29 +161,30 @@
         </div>
         
 
-        <!-- Completed Tasks -->
-        <div class="card-container">
-          <div class="card-header">
-            <h2 class="card-title">Completed Tasks</h2>
-            <router-link to="/task" class="see-all">View All →</router-link>
-          </div>
-          <div class="tasks-list">
-            <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
-              <div class="task-title">{{ task.name }}</div>
-              <div class="task-date">{{ task.description || 'No description' }}</div>
-            </div>
-            <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
-              No completed tasks
-            </div>
-          </div>
-        </div>
-
+ 
+<!-- Completed Tasks -->
+<div class="card-container">
+  <div class="card-header">
+    <h2 class="card-title">Completed Tasks</h2>
+    <router-link to="/task" class="see-all">View All →</router-link>
+  </div>
+  <div class="tasks-list">
+    <div v-for="task in tasks.filter(t => t.completed).slice(0, 3)" :key="task.id" class="task-item">
+      <!-- Use taskName as primary with name as fallback -->
+      <div class="task-title">{{ task.taskName || task.name || 'Unnamed Task' }}</div>
+      <div class="task-date">{{ task.completionDate ? formatDate(task.completionDate) : 'Completed' }}</div>
+    </div>
+    <div v-if="tasks.filter(t => t.completed).length === 0" class="empty-state">
+      No completed tasks
+    </div>
+  </div>
+</div>
         <!-- Completed Events -->
         <div class="card-container">
           <div class="card-header">
 
             <h2 class="card-title">Registered Events</h2>
-            <router-link to="/Events" class="see-all">View All →</router-link>
+            <router-link to="/event" class="see-all">View All →</router-link>
           </div>
           <div class="events-list">
             <div v-for="event in registeredEvents.slice(0, 3)" :key="event.id" class="event-item">
@@ -218,18 +211,17 @@ import studentServices from '../services/studentServices';
 import experienceServices from '../services/experienceServices';
 import eventServices from '../services/eventServices';
 import Utils from '../config/utils';
+import semesterServices from '../services/semesterServices';
 
 export default {
   name: 'StudentDashboard',
   setup() {
     const store = useStore();
-    const isAdmin = ref(false);
-    const studentSemester = ref('');
-
+    
     // State management
     const studentId = ref(null);
     const studentName = ref('');
-    const studentYear = ref('');
+    const studentSemester = ref('');
     const progressPercentage = ref(65);
     const totalPoints = ref(0);
     const pointsBreakdown = ref({ tasks: 0, events: 0, experiences: 0 });
@@ -240,12 +232,10 @@ export default {
     const notifications = ref(0);
     const firstName = ref(null);
     const lastName = ref(null);
-    const semester= ref(null);
     const error = ref(null);
     const loading = ref(true);
     const message = ref('');
     const currentUser = ref(null);
-    const badgeProgressList = ref([]);
 
     
     // Badge display count control
@@ -287,12 +277,10 @@ export default {
       if (userData) {
         studentId.value = userData.id || null;
         studentName.value = userData.name || 'Student';
-        studentYear.value = userData.year || '3rd year';
+        studentSemester.value = userData.year || '3rd year';
         console.log('User data from store:', userData);
       } else {
         console.warn('No user data found in store');
-        // You might want to redirect to login page if no user is found
-        // router.push('/login');
       }
     };
    
@@ -307,9 +295,6 @@ export default {
           currentUser.value = storeUser;
           firstName.value = storeUser.fName || storeUser.firstName;
           lastName.value = storeUser.lName || storeUser.lastName;
-          isAdmin.value = storeUser.role === 'admin'; // ✅ Set role
-          studentSemester.value = storeUser.semester || storeUser.grad_semester || ''; // ✅ Set semester
-
           return storeUser;
         }
         
@@ -345,49 +330,35 @@ export default {
         return null;
       }
     };
-
-    
-  const fetchExperiences = async () => {
+    const fetchStudentSemester = async () => {
   try {
-    const storedUser = Utils.getStore("user");
-    const studentId = storedUser?.id;
-    console.log("Student ID:", studentId);
+    const response = await semesterServices.getActiveSemester;
+    studentSemester.value = response.data || response;
+    console.log('Current Semester loaded:', studentSemester.value);
+  } catch (error) {
+    console.error('Error fetching current semester:', error);
+    studentSemester.value = '';
+  }
+};
+    const fetchExperiences = async () => {
+      try {
+        const response = await experienceServices.getExperiences();
+        experiences.value = response.data || response;
+        console.log('Experiences loaded:', experiences.value);
+        
+        // Calculate points from experiences
+        const experiencePoints = experiences.value
+          .filter(exp => exp.status === 'Approved')
+          .reduce((sum, exp) => sum + (exp.points || 0), 0);
+        
+        pointsBreakdown.value.experiences = experiencePoints;
+        updateTotalPoints();
+      } catch (error) {
+        console.error('Error fetching experiences:', error);
+        experiences.value = [];
+      }
+    };
 
-    if (!studentId) {
-      console.warn("No student ID found.");
-      return;
-    }
-
-    const student = await studentServices.getStudentById(studentId);
-    const semester = student.semester || student.grad_semester;
-    console.log("Semester:", semester);
-
-    if (!semester) {
-      console.warn("Student record is missing semester info.");
-      return;
-    }
-
-    // ✅ Get all semester-specific experiences
-    const all = await experienceServices.getExperiencesBySemester(semester);
-    const allExperiences = all.data || all;
-    console.log("All experiences:", allExperiences);
-
-    // ✅ Get student-specific experience data
-    const myData = await experienceServices.getMyExperiences(studentId);
-    const studentExperiences = myData || [];
-    const badgeProgress = myData.badgeProgress || [];
-
-    console.log("Student Experiences:", studentExperiences);
-
-    // ✅ Merge student progress with global experiences
-    const merged = allExperiences.map(exp => {
-      const match = studentExperiences.find(se =>
-        se.experience?.id === exp.id
-      );
-
-
-   
-//
     const fetchBadges = async () => {
   try {
     loading.value = true;
@@ -456,165 +427,40 @@ export default {
 };
 
 
+const fetchTasks = async () => {
+  try {
+    const response = await taskService.getAllTasks();
+    tasks.value = response.data || [];
+    console.log('Tasks loaded:', tasks.value);
     
-    if (!semester) {
-      console.warn("Student record is missing semester info.");
-      return;
-    }
-
-    // Get all experiences for this semester
-   // const all = await experienceServices.getExperiencesBySemester(semester);
-   // const allExperiences = all.data || all;
-   // console.log("here", allExperiences);
-
-  // 1. Extract student-specific experience progress
-
-
-  return {
-    ...exp,
-    status: match?.status || 'Incomplete',
-    approvedBy: match?.approvedBy || null,
-    completionDate: match?.CompletionDate || null,
-    pointsEarned: match?.pointsEarned || 0,
-    completed: match?.status === 'Approved',
-    studentExperienceId: match?.id || null
-  };
-});
-
-// ✅ 3. Set state
-experiences.value = merged;
-badgeProgressList.value = badgeProgress;
-    experiences.value = merged;
-    const experiencePoints = merged
-      .filter(exp => exp.completed)
-      .reduce((sum, exp) => sum + (exp.pointsEarned || 0), 0);
-
-    pointsBreakdown.value.experiences = experiencePoints;
-    badgeProgressList.value = badgeProgress;
+    // Calculate points from completed tasks
+    const taskPoints = tasks.value
+      .filter(task => task.completed)
+      .reduce((sum, task) => sum + (task.NumOfPoints || 0), 0);
+    
+    pointsBreakdown.value.tasks = taskPoints;
     updateTotalPoints();
-
   } catch (error) {
-    console.error("Error fetching experiences:", error);
-    experiences.value = [];
+    console.error('Error fetching tasks:', error);
+    tasks.value = [];
   }
-
-};    
-    // Function to fetch badges
-
-    const fetchBadges = async () => {
-      try {
-        loading.value = true;
-        message.value = '';
-
-    // const fetchBadges = async () => {
-    //   try {
-
-    //     //const response = await axios.get('/flight-plan-t9/event');
-    //     this.badges = response.data || [];
-
-    //     loading.value = true;
-    //     message.value = '';
-
-        
-    //     const user = currentUser.value || await getCurrentUser();
-        
-    //     if (!user || !user.id) {
-    //       message.value = 'User not found. Please log in again.';
-    //       loading.value = false;
-    //       return;
-    //     }
-
-        
-
-        
-    //     console.log('Fetching badges for user:', user.id);
-    //     const badgeResponse  = await badgeServices.getAllUserBadges(user.id);
-        
-    //     console.log('Badge API response:', response);
-        
-    //     // Handle different possible data structures
-    //     if (Array.isArray(response)) {
-    //       // If response is directly an array
-    //       badges.value = response.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && Array.isArray(response.data)) {
-    //       // If response has a data array property
-    //       badges.value = response.data.map(badge => ({
-    //         ...badge,
-    //         badge_type: badge.badge_type || badge.type || 'Achievement'
-    //       }));
-    //     } else if (response && typeof response === 'object') {
-    //       // If response is a single object or has a different structure
-    //       // Try to extract badges if they exist in the response
-    //       const badgeData = response.data || response;
-          
-    //       if (Array.isArray(badgeData)) {
-    //         badges.value = badgeData.map(badge => ({
-    //           ...badge,
-    //           badge_type: badge.badge_type || badge.type || 'Achievement'
-    //         }));
-    //       } else {
-    //         // If it's a single badge object
-    //         badges.value = [{ 
-    //           ...badgeData,
-    //           badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-    //         }];
-    //       }
-    //     } else {
-    //       badges.value = [];
-    //       message.value = 'No badges found for this user.';
-    //     }
-        
-    //     console.log('Processed badges:', badges.value);
-        
-
-        if (badges.value.length === 0) {
-          message.value = 'No badges found for this user.';
-        }
-      } catch (error) {
-        console.error('Error fetching badges:', error);
-        message.value = 'Failed to load your badges. Please try again.';
-        badges.value = [];
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    //     if (badges.value.length === 0) {
-    //       message.value = 'No badges found for this user.';
-    //     }
-
-    //   } catch (error) {
-    //     console.error('Error fetching badges:', error);
-    //     message.value = 'Failed to load your badges. Please try again.';
-    //     badges.value = [];
-    //   } finally {
-    //     loading.value = false;
-    //   }
-    // };
+};
+const fetchStudentPoints = async () => {
+  try {
+    const user = currentUser.value || await getCurrentUser();
     
-
-    const fetchTasks = async () => {
-      try {
-        const response = await taskService.getAllTasks();
-        tasks.value = response.data || [];
-        console.log('Tasks loaded:', tasks.value);
-        
-        // Calculate points from completed tasks
-        const taskPoints = tasks.value
-          .filter(task => task.completed)
-          .length * 50; // Assuming each task is worth 50 points
-        
-        pointsBreakdown.value.tasks = taskPoints;
-        updateTotalPoints();
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        tasks.value = [];
+    if (user && user.id) {
+      const studentData = await studentServices.getStudentByUserId(user.id);
+      if (studentData && typeof studentData.points === 'number') {
+        totalPoints.value = studentData.points;
+        console.log('Student points loaded:', totalPoints.value);
       }
-    };
-    
+    }
+  } catch (error) {
+    console.error('Error fetching student points:', error);
+    // Keep using calculated points if we can't fetch the actual value
+  }
+};
     const fetchRegisteredEvents = async () => {
       try {
         if (studentId.value) {
@@ -662,7 +508,10 @@ badgeProgressList.value = badgeProgress;
         fetchExperiences(),
         fetchBadges(),
         fetchTasks(),
-        fetchRegisteredEvents()
+        fetchStudentPoints,
+        fetchRegisteredEvents(),
+        fetchStudentSemester()
+      
       ]);
     };
     
@@ -675,8 +524,6 @@ badgeProgressList.value = badgeProgress;
       firstName,
       lastName,
       studentName,
-      studentYear,
-      isAdmin,
       studentSemester,
       progressPercentage,
       totalPoints,
@@ -716,7 +563,7 @@ badgeProgressList.value = badgeProgress;
 
 /* Sidebar Styles */
 .sidebar {
-  background-color: #8B2332;
+  background-color: #660000;
   width: 220px;
   padding: 30px 0;
   display: flex;
@@ -725,7 +572,7 @@ badgeProgressList.value = badgeProgress;
 }
 
 .logo-container {
-  background-color: #8B2332;
+  background-color: #660000;
   width: 90px;
   height: 90px;
   border-radius: 15px;
@@ -838,7 +685,7 @@ badgeProgressList.value = badgeProgress;
 
 /* Welcome Banner */
 .welcome-banner {
-  background-color: #8B2332;
+  background-color: #660000;
   border-radius: 15px;
   padding: 30px;
   color: white;
@@ -943,7 +790,7 @@ badgeProgressList.value = badgeProgress;
 
 
 .task-item, .event-item {
-  background-color: rgb(94, 18, 18);
+  background-color: rgb(255, 255, 255);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 10px;

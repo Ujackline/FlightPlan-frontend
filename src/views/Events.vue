@@ -737,15 +737,15 @@ export default {
   padding: 10px;
   border-radius: 8px;
   color: white;
-  background-color: #48111c; /* Dark maroon as requested */
+  background-color: #48111c; 
 }
 
 .registered-title {
-  background-color: #f68d76; /* As requested */
+  background-color: #336cb6;
 }
 
 .completed-title {
-  background-color: #708e9a; /* Changed from green to the blue-gray you provided */
+  background-color: #708e9a;
 }
 
 .event-list {

@@ -1,10 +1,10 @@
+
 <template>
   <div class="dashboard-container">
     <!-- Welcome Banner -->
     <div class="welcome-banner">
       <h2>Welcome, {{ firstName }}!</h2>
       <p>Track your progress and achievements</p>
-      <p v-if="currentSemester" class="current-semester">Current Semester: {{ currentSemester.name }}</p>
     </div>
     
     <!-- Main content area with 3 columns -->
@@ -23,21 +23,48 @@
           
           <!-- Circular Points Gauge -->
           <div class="gauge-container">
-            <CircularPoints :points="points" :maxPoints="100" />
+            <CircularPoints :points="totalPoints" :maxPoints="100" />
           </div>
           
-          <p class="points-subtitle">Total earned points</p>
-          <center>
-            <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
-          </center>
+          <p class="points-subtitle">Total earned points: {{ totalPoints }}</p>
+         
         </div>
       </div>
+
+      <!-- Custom Confirmation Dialog -->
+<div v-if="showConfirmationDialog" class="dialog-overlay">
+  <div class="dialog-box">
+    <h3 class="dialog-title">Confirm Task Completion</h3>
+    <p class="dialog-message">Are you sure you want to mark "{{ currentTask?.name || currentTask?.taskName }}" as completed? This action cannot be undone.</p>
+    <div class="dialog-buttons">
+      <button class="cancel-button" @click="cancelTaskCompletion">Cancel</button>
+      <button class="confirm-button" @click="confirmTaskCompletion">Complete Task</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Success Message -->
+<div v-if="showSuccessMessage" class="dialog-overlay">
+  <div class="dialog-box success-dialog">
+    <div class="success-icon">✓</div>
+    <h3 class="dialog-title">Task Completed!</h3>
+    <p class="dialog-message">{{ completedTaskName }} has been marked as complete.</p>
+    <p class="points-earned">You earned {{ completedTaskPoints }} points!</p>
+    <div class="dialog-buttons">
+      <button class="confirm-button" @click="closeSuccessMessage">OK</button>
+    </div>
+  </div>
+</div>
       
       <!-- Center Column: Flight Plan Tasks -->
       <div class="dashboard-column center-column">
         <div class="column-card1">
           <div class="card-header1">
-            <h3 class="column-title1">Flight Plan</h3>
+            <div class="flight-plan-header">
+              <h3 class="column-title1">Flight Plan</h3>
+              <span v-if="currentSemester" class="current-semester-tag">{{ currentSemester }}</span>
+            </div>
             <div class="decoration-line"></div>
           </div>
           
@@ -53,19 +80,28 @@
                 <p>Loading tasks...</p>
               </div>
               
-              <div v-else-if="tasks.length === 0" class="empty-tasks">
+              <div v-else-if="flightPlanTasks.length === 0" class="empty-tasks">
                 <p>No tasks available in your flight plan</p>
               </div>
               
-              <div v-else v-for="task in tasks" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
-                <div class="task-name">{{ task.taskName }}</div>
+              <div v-else-if="showCompletedTasks && tasksToDisplay.length === 0" class="empty-tasks">
+                <p>No completed tasks yet</p>
+              </div>
+              
+              <div v-else-if="!showCompletedTasks && tasksToDisplay.length === 0" class="empty-tasks">
+                <p>All tasks completed! 🎉</p>
+              </div>
+              
+              <div v-else v-for="task in tasksToDisplay" :key="task.id" class="task-item" :class="{ 'completed-task': task.completed }">
+                <div class="task-name">{{ task.name }}</div>
                 <div class="task-points">{{ task.NumOfPoints }}</div>
                 <div class="task-complete">
                   <label class="checkbox-container">
-                    <input 
+                    <input  
                       type="checkbox" 
-                      :checked="task.completed"
+                      v-model="task.completed" 
                       @change="toggleCompletion(task)" 
+                      :disabled="task.completed" 
                     />
                     <span class="checkmark"></span>
                   </label>
@@ -73,9 +109,9 @@
               </div>
             </div>
             
-            <button class="view-button">
-              <span class="button-icon">✓</span>
-              View Completed Tasks
+            <button class="view-button" @click="toggleTasksView">
+              
+              {{ showCompletedTasks ? 'View Active Tasks' : 'View Completed Tasks' }}
             </button>
           </div>
         </div>
@@ -89,7 +125,7 @@
           </div>
           
           <div class="events-list">
-            <div v-if="loading && events.length === 0" class="empty-state">
+            <div v-if="eventsLoading" class="empty-state">
               Loading events...
             </div>
             <div v-else-if="events.length === 0" class="empty-state">
@@ -99,7 +135,7 @@
               <div class="event-title">{{ event.name }}</div>
               <div class="event-date">{{ formatDate(event.date) }}</div>
               <div class="event-location" v-if="event.location">{{ event.location }}</div>
-              <div class="event-category" v-if="event.category">{{ event.category }}</div>
+              <div class="event-category" v-if="event.event_type">{{ event.event_type }}</div>
             </div>
           </div>
           <button class="view-button" @click="$router.push('/events')">View All Events</button>
@@ -108,133 +144,377 @@
     </div>
   </div>
 </template>
-
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import CircularPoints from '../components/CircularPoints.vue';
 import Utils from '../config/utils';
-import eventServices from '../services/eventServices';
-import taskService from "../services/taskServices";
-import flightPlanService from "../services/flightPlanServices";
 import apiClient from '../services/services';
+import taskService from "../services/taskServices";
+import flightPlanServices from "../services/flightPlanServices";
+import studentServices from "../services/studentServices";
 
 export default {
   components: {
     CircularPoints
   },
+
   setup() {
     const firstName = ref('');
-    const progress = ref(10);
-    const points = ref(24);
+    const progress = ref(0);
+    const points = ref(0);
     const tasks = ref([]);
+    const flightPlanTasks = ref([]);
     const events = ref([]);
     const loading = ref(false);
+    const eventsLoading = ref(false);
     const error = ref(null);
-    const currentSemester = ref(null);
+    const currentSemester = ref('Fall 2025');
+    const currentFlightPlanId = ref(null);
+    const showCompletedTasks = ref(false);
+    const completedTaskName = ref('');
+    const completedTaskPoints = ref(0);
+  
+    const showErrorDialog = ref(false);
+    const errorMessage = ref('');
+    const showConfirmationDialog = ref(false);
+    const showSuccessMessage = ref(false);
+    const currentTask = ref(null);
+
+const cancelTaskCompletion = () => {
+  showConfirmationDialog.value = false;
+  currentTask.value = null;
+};
+
+
+const confirmTaskCompletion = async () => {
+  try {
+    showConfirmationDialog.value = false;
     
+    const task = currentTask.value;
+    if (!task) return;
+    
+    completedTaskName.value = task.name || task.taskName;
+    const pointsToAdd = parseInt(task.NumOfPoints || 0);
+    completedTaskPoints.value = pointsToAdd;
+    
+    console.log(`Completing task: ${task.id} with name ${completedTaskName.value}, worth ${pointsToAdd} points`);
+    
+    // Update the task in the local array FIRST to give immediate UI feedback
+    const taskIndex = flightPlanTasks.value.findIndex(t => t.id === task.id);
+    if (taskIndex !== -1) {
+      // Create a new object to ensure Vue reactivity
+      flightPlanTasks.value[taskIndex] = {
+        ...flightPlanTasks.value[taskIndex],
+        completed: true,
+        status: 'Approved'
+      };
+      
+      // Update progress immediately
+      updateProgress();
+    }
+    
+    // Call the API to complete the task
+    const response = await taskService.completeTask(task.id);
+    console.log('API response for task completion:', response);
+    
+    // Check if the API call was successful
+    if (response?.success === true || response?.data?.success === true) {
+      // Show the success message
+      showSuccessMessage.value = true;
+      
+      // Update the student points in the database
+      await updateStudentPoints();
+      
+      // No need to immediately update points.value since we're using a computed property
+    } else {
+      console.error("Task completion API failed:", response);
+      // If API call failed, revert the local change
+      if (taskIndex !== -1) {
+        flightPlanTasks.value[taskIndex] = {
+          ...flightPlanTasks.value[taskIndex],
+          completed: false,
+          status: 'Incomplete'
+        };
+        updateProgress();
+      }
+      alert("There was an error completing this task. Please try again later.");
+    }
+  } catch (err) {
+    console.error("Error in confirmTaskCompletion:", err);
+    alert("There was an error completing this task. Please try again later.");
+  }
+};
+
+
+// Update the close success message function
+const closeSuccessMessage = () => {
+  showSuccessMessage.value = false;
+  currentTask.value = null; // Reset current task when dialog closes
+};
+    
+    // Compute filtered tasks based on completion status
+    const activeTasks = computed(() => {
+      return flightPlanTasks.value.filter(task => !task.mark);
+    });
+    
+    const tasksToDisplay = computed(() => {
+  console.log("All tasks:", flightPlanTasks.value);
+  
+  const completedTasks = flightPlanTasks.value.filter(task => {
+    // Check for completed status in any possible format
+    return (
+      task.completed === true || 
+      task.status === 'Approved' || 
+      task.status === 'approved'
+    );
+  });
+  
+  const activeTasks = flightPlanTasks.value.filter(task => {
+    // Make sure none of the completed conditions match
+    return (
+      task.completed !== true && 
+      task.status !== 'Approved' && 
+      task.status !== 'approved'
+    );
+  });
+  
+  console.log("Completed tasks:", completedTasks.length);
+  console.log("Active tasks:", activeTasks.length);
+  
+  return showCompletedTasks.value ? completedTasks : activeTasks;
+});
     const formatDate = (dateString) => {
+      if (!dateString) return '';
       const options = { month: 'short', day: 'numeric' };
       return new Date(dateString).toLocaleDateString(undefined, options);
     };
     
-    const fetchUserData = async () => {
-      try {
-        loading.value = true;
-        const storedUser = Utils.getStore("user");
+
+const fetchUserData = async () => {
+  try {
+    const storedUser = Utils.getStore("user");
+    
+    if (storedUser && storedUser.fName) {
+      firstName.value = storedUser.fName;
+      
+      // Get the student data
+      const student = await studentServices.getStudentByUserId(storedUser.id);
+      console.log('Student data loaded:', student);
+      
+      if (student) {
+        // Set current semester
+        if (student.semester) {
+          currentSemester.value = student.semester;
+        }
         
-        if (storedUser && storedUser.fName) {
-          firstName.value = storedUser.fName;
+        // Initialize points property
+        if (student.points !== undefined) {
+          points.value = parseInt(student.points || 0);
+          console.log(`Initial points loaded from student record: ${points.value}`);
+        } else {
+          points.value = 0;
+          console.log('No points found in student record, initializing to 0');
+        }
+        
+        // Continue with flight plan retrieval
+        await fetchUserFlightPlan(storedUser.id);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+  }
+};
+    
+    // Fetch the user's current flight plan
+    const fetchUserFlightPlan = async (userId) => {
+      try {
+        console.log('Fetching flight plan for user:', userId);
+
+        // Get the student data using studentServices
+        const student = await studentServices.getStudentByUserId(userId);
+        console.log('Student data:', student);
+
+        if (!student) {
+          console.error('Student data not found');
+          return;
+        }
+        
+        // Use student's semester directly
+        if (student.semester) {
+          currentSemester.value = student.semester;
+        }
+        
+        // Update points
+        if (student.points) {
+          points.value = parseInt(student.points);
+        }
+
+        try {
+          // Get flight plan for this student
+          const response = await flightPlanServices.getFlightPlanBySemester(student.id, student.semester);
           
-          // Fetch the student's data to get current semester
-          try {
-            const userResponse = await apiClient.get(`/student?id=${storedUser.id}`);
-            if (userResponse.data && userResponse.data.length > 0) {
-              const student = userResponse.data[0];
-              
-              // Get semester info
-              if (student.currentSemesterId) {
-                const semesterResponse = await apiClient.get(`/semester/${student.currentSemesterId}`);
-                currentSemester.value = semesterResponse.data;
-                
-                // Now that we have the semester, get the flight plan
-                fetchFlightPlanAndTasks(storedUser.id, currentSemester.value.name);
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching student data:', error);
+          console.log('Flight plan response:', response);
+          
+          if (response.data && response.data.id) {
+            currentFlightPlanId.value = response.data.id;
+            console.log('Set current flight plan ID:', currentFlightPlanId.value);
+            
+            // Fetch tasks now that we have a flight plan ID
+            await fetchTasks();
+          } else {
+            console.warn('No flight plan found for this student');
+            flightPlanTasks.value = [];
           }
+        } catch (error) {
+          console.error('Error fetching flight plan:', 
+            error.response?.data || error.message, 
+            error.response?.status
+          );
+          flightPlanTasks.value = [];
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        loading.value = false;
+        console.error('Error in fetchUserFlightPlan:', error);
       }
     };
+    
 
-    const fetchFlightPlanAndTasks = async (userId, semester) => {
-      try {
-        loading.value = true;
-        
-        // Get flight plan using your service
-        const flightPlanResponse = await flightPlanService.getFlightPlanBySemester(userId, semester);
-        console.log('Flight plan response:', flightPlanResponse);
-        
-        if (flightPlanResponse.data) {
-          // Get tasks for this flight plan
-          const flightPlan = flightPlanResponse.data;
-          const tasksResponse = await taskService.getAllTasks();
-          
-          // Filter and format tasks for this flight plan
-          // Note: This assumes the tasks are related to the flight plan
-          // You may need to adjust this based on your API response structure
-          tasks.value = tasksResponse.data.map(task => ({
-            id: task.id,
-            taskName: task.taskName || task.name,
-            NumOfPoints: task.NumOfPoints || 0,
-            completed: task.completed || false
-          }));
-          
-          // Calculate progress
-          if (tasks.value.length > 0) {
-            const completedTasks = tasks.value.filter(task => task.completed).length;
-            progress.value = Math.round((completedTasks / tasks.value.length) * 100);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching flight plan and tasks:', error);
-      } finally {
-        loading.value = false;
-      }
-    };
+// Fetch tasks for the flight plan
+const fetchTasks = async () => {
+  try {
+    loading.value = true;
+    
+    if (!currentFlightPlanId.value) {
+      console.warn('No flight plan ID available - cannot fetch tasks');
+      flightPlanTasks.value = [];
+      return;
+    }
+    
+    console.log('Fetching tasks for flight plan ID:', currentFlightPlanId.value);
+    
+    const response = await flightPlanServices.getFlightPlanTasks(currentFlightPlanId.value);
+    console.log('Flight plan tasks response:', response);
+    
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      // Use Vue's reactivity system to ensure changes are detected
+      flightPlanTasks.value = response.data.map(task => {
+        return {
+          ...task,
+          // Explicitly set completed as a boolean
+          completed: task.status === 'Approved' || task.completed === true
+        };
+      });
+      
+      console.log("Processed tasks with explicit completed property:", flightPlanTasks.value);
+      
+      // Calculate progress
+      updateProgress();
+    } else {
+      console.log('No tasks found for this flight plan');
+      flightPlanTasks.value = [];
+    }
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    flightPlanTasks.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+    // Function to update progress calculation
 
+const updateProgress = () => {
+  if (flightPlanTasks.value.length > 0) {
+    const completedCount = flightPlanTasks.value.filter(
+      task => task.completed === true || task.status === 'Approved'
+    ).length;
+    progress.value = Math.round((completedCount / flightPlanTasks.value.length) * 100);
+    
+    console.log(`Progress updated: ${completedCount} of ${flightPlanTasks.value.length} tasks completed (${progress.value}%)`);
+  } else {
+    progress.value = 0;
+  }
+};
+    
+    // Fetch events
     const fetchEvents = async () => {
       try {
-        const response = await eventServices.getAll();
-        this.events = response.data;
-      } catch (error) {
-        console.error('Failed to fetch events', error);
-        this.showMessage('Failed to load events.', 'error');
-      }finally {
-        loading.value = false;
-      }
-    };
-
-
-    const toggleCompletion = async (task) => {
-      try {
-        const response = await taskService.completeTask(task.id);
-        console.log('Task completion response:', response);
+        eventsLoading.value = true;
         
-        if (response.data && response.data.success) {
-          task.completed = !task.completed;
-          
-          // Recalculate progress
-          const completedTasks = tasks.value.filter(t => t.completed).length;
-          progress.value = Math.round((completedTasks / tasks.value.length) * 100);
+        // Get events directly
+        const response = await apiClient.get('/event');
+        console.log('Events response:', response);
+        
+        if (response.data && Array.isArray(response.data)) {
+          events.value = response.data.slice(0, 5); // Limit to 5 most recent events
         }
       } catch (err) {
-        console.error("Error updating task completion:", err);
+        console.error("Error fetching events:", err);
+      } finally {
+        eventsLoading.value = false;
       }
+    };
+    
+
+
+// Toggle task completion
+const toggleCompletion = async (task) => {
+  try {
+    // If task is already completed, show message and prevent unchecking
+    // if (task.completed) {
+    //   return; 
+    // }
+    
+    // Set current task and show confirmation dialog
+    currentTask.value = task;
+    showConfirmationDialog.value = true;
+  } catch (err) {
+    console.error("Unexpected error in toggleCompletion:", err);
+  }
+};
+const totalPoints = computed(() => {
+  // Calculate points from completed tasks
+  const completedTasksPoints = flightPlanTasks.value
+    .filter(task => task.completed === true || task.status === 'Approved')
+    .reduce((sum, task) => sum + parseInt(task.NumOfPoints || 0), 0);
+  
+  console.log(`Computed total points from completed tasks: ${completedTasksPoints}`);
+  return completedTasksPoints;
+});
+
+
+// Helper function to update student points
+const updateStudentPoints = async () => {
+  try {
+    const storedUser = Utils.getStore("user");
+    if (!storedUser || !storedUser.id) {
+      console.error("No user found in store");
+      return;
+    }
+    
+    console.log(`Updating student points in database to: ${totalPoints.value}`);
+    
+    const student = await studentServices.getStudentByUserId(storedUser.id);
+    if (!student) {
+      console.error("No student record found");
+      return;
+    }
+    
+    // Update database with computed points total
+    const response = await studentServices.updateStudentPoints(student.id, totalPoints.value);
+    console.log("Student points update response:", response);
+  } catch (err) {
+    console.error("Error updating student points:", err);
+  }
+};
+
+ 
+    // Function to close error dialog
+    const closeErrorDialog = () => {
+      showErrorDialog.value = false;
+    };
+    
+    // Toggle between showing active and completed tasks
+    const toggleTasksView = () => {
+      showCompletedTasks.value = !showCompletedTasks.value;
     };
     
     onMounted(() => {
@@ -243,22 +523,39 @@ export default {
     });
     
     return {
-      firstName,
-      progress,
-      points,
-      tasks,
-      events,
-      loading,
-      error,
-      currentSemester,
-      formatDate,
-      toggleCompletion
-    };
+  firstName,
+  progress,
+  points,
+  totalPoints, // Add this computed property
+  tasks,
+  flightPlanTasks,
+  events,
+  loading,
+  eventsLoading,
+  error,
+  currentSemester,
+  formatDate,
+  toggleCompletion,
+  showConfirmationDialog,
+  showSuccessMessage,
+  currentTask,
+  confirmTaskCompletion,
+  cancelTaskCompletion,
+  closeSuccessMessage,
+  completedTaskName,    
+  completedTaskPoints,  
+  showErrorDialog,
+  errorMessage,
+  closeErrorDialog,
+  showCompletedTasks,
+  toggleTasksView,
+  tasksToDisplay,
+  activeTasks,
+  updateStudentPoints
+};
   }
 };
 </script>
-
-
 
 <style scoped>
 /* Main container */
@@ -282,6 +579,53 @@ export default {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 4px;
+}
+.success-dialog {
+  border-top: 4px solid #4CAF50;
+}
+
+.success-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 15px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 30px;
+  border-radius: 50%;
+}
+
+
+.points-earned {
+  text-align: center;
+  font-weight: 600;
+  font-size: 18px;
+  color: #800020;
+  margin: 15px 0;
+}
+
+.dialog-title {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+.flight-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.current-semester-tag {
+  background-color: #8B2332;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-block;
 }
 
 /* Columns layout */
@@ -480,30 +824,6 @@ export default {
   color: white;
 }
 
-
-
-/* Badges list */
-.badges-list {
-  margin-bottom: 16px;
-}
-
-.badge-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.badge-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 12px;
-  color: white;
-}
 .badge-icon.career {
   background-color: #4169E1;
 }
@@ -560,7 +880,6 @@ export default {
   }
 }
 
-/* // <style scoped> */
 /* Main container styles */
 .column-card1 {
   background-color: #fff;
@@ -722,7 +1041,29 @@ export default {
   background-color: #800020;
   border-color: #800020;
 }
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #800020;
+  border-color: #800020;
+}
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+.checkbox-container .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
 .checkmark:after {
   content: "";
   position: absolute;
@@ -741,6 +1082,78 @@ export default {
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-box {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.confirmation-dialog {
+  border-top: 4px solid #8B2332;
+}
+
+.error-dialog {
+  border-top: 4px solid #d9534f;
+}
+
+.dialog-message {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.confirm-button {
+  background-color: #8B2332;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.confirm-button:hover {
+  background-color: #a32a3a;
 }
 
 /* Button styling */
