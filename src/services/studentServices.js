@@ -3,17 +3,13 @@ import apiClient from "./services";
 const API_BASE_URL = "/student";
 
 export default {
-  async getStudentById(studentId) {
+  async getStudentByUserId(userId) {
     try {
-      const endpoint = studentId ? `${API_BASE_URL}/${studentId}` : `${API_BASE_URL}/current`;
-      const response = await apiClient.get(endpoint);
+      const response = await apiClient.get(`${API_BASE_URL}/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching student data:", error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          "Failed to fetch student data";
-      throw new Error(errorMessage);
+      console.error("Error fetching student by userId:", error);
+      throw error;
     }
   },
 
@@ -80,34 +76,32 @@ export default {
         response: error.response ? JSON.stringify(error.response.data, null, 2) : 'No response',
         status: error.response ? error.response.status : 'No status'
       });
-
-      const errorMessage = error.response?.data?.message || 
-                           error.response?.data?.error || 
-                           'Failed to create student profile';
-      throw new Error(errorMessage);
+      
+      // More comprehensive error handling
+      if (error.response) {
+        // If server responded with an error
+        const errorMessage = error.response.data.message || 
+                             error.response.data.error || 
+                             'Failed to create student profile';
+        
+        throw new Error(errorMessage);
+      }
+      
+      // Network error or other issues
+      throw new Error('Network error or unexpected issue creating student profile');
     }
   },
+  
 
-  // Get student points by ID
-  getStudentPoints(studentId) {
-    console.log(`Getting points for student ID: ${studentId}`);
-    return apiClient.get(`/student/${studentId}/points`)
-      .then(response => {
-        console.log("Student points response:", response.data);
-        return response.data;
-      })
-      .catch(error => {
-        console.error("Error getting student points:", error);
-        // Try using the getStudentById as fallback
-        return this.getStudentById(studentId)
-          .then(student => {
-            console.log("Got student from fallback:", student);
-            return { points: student.points || 0 };
-          })
-          .catch(err => {
-            console.error("Failed to get student points from fallback:", err);
-            return { points: 0 };
-          });
+  async updateStudentPoints(studentId, newPointsTotal) {
+    try {
+      const response = await apiClient.patch(`${API_BASE_URL}/${studentId}/points`, {
+        points: newPointsTotal
       });
+      return response;
+    } catch (error) {
+      console.error('Error updating student points:', error);
+      throw error;
+    }
   }
 };
