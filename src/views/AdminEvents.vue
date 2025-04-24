@@ -839,6 +839,7 @@ export default {
           const ampm = hours >= 12 ? 'PM' : 'AM';
           const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
           return `${displayHours}:${minutes} ${ampm}`;
+          console.log("test");
         }
         
         // It's a date string
