@@ -255,4 +255,3 @@ rejectAttendance(eventId, studentId) {
   }
 };
 
-
