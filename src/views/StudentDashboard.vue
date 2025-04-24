@@ -99,71 +99,86 @@
  
   <!-- My Badges -->
   <div class="card-container">
-  <div class="card-header">
-  <h2 class="card-title">My Badges</h2>
-  <router-link to="/badge" class="see-all">View All Badges →</router-link>
+    <div class="card-header">
+      <h2 class="card-title">My Badges</h2>
+      <router-link to="/badge" class="see-all">View All Badges →</router-link>
+    </div>
+    
+    <!-- Badge count indicator -->
+    <div class="badge-count">Showing {{ Math.min(badges.length, displayedBadgeCount) }} of {{ badges.length }} badges</div>
+    
+    <div class="badges-container">
+      <div v-for="(badge, index) in badges.slice(0, displayedBadgeCount)" :key="index" class="badge-item" :class="badge.badge_type.toLowerCase()">
+        <!-- DIRECT IMAGE DISPLAY -->
+        <div v-if="hasImageUrl(badge.description)" class="image-badge-container">
+          <img 
+            :src="extractImageUrl(badge.description)" 
+            alt="Badge image" 
+            class="badge-image"
+            @error="handleImageError($event, badge)" 
+            @load="onImageLoad"
+            referrerpolicy="no-referrer"
+          />
+        </div>
+        <!-- Default badge icons if no image -->
+        <template v-else>
+          <!-- Workforce Debut -->
+          <svg v-if="badge.name === 'Workforce Debut'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+          </svg>
+        
+          <!-- Interview Master -->
+          <svg v-else-if="badge.name === 'Interview Master'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+          </svg>
+        
+          <!-- Resume Builder -->
+          <svg v-else-if="badge.name === 'Resume Builder'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM12 18H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V8h8v2zm-3-5V3.5L18.5 9H13V5z" />
+          </svg>
+        
+          <!-- Interview Ready -->
+          <svg v-else-if="badge.name === 'Interview Ready'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z" />
+          </svg>
+        
+          <!-- Network Starter -->
+          <svg v-else-if="badge.name === 'Network Starter'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+          </svg>
+        
+          <!-- Portfolio Creator -->
+          <svg v-else-if="badge.name === 'Portfolio Creator'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
+          </svg>
+        
+          <!-- Default icon if no specific icon is defined -->
+          <i v-else :class="badge.badge_type === 'Career' ? 'fas fa-briefcase' : 'fas fa-trophy'"></i>
+        </template>
+        
+        <div class="badge-tooltip">{{ badge.name }}</div>
+      </div>
+      <div v-if="badges.length === 0" class="empty-state">
+        No badges earned yet
+      </div>
+    </div>
+    
+    <!-- Show more/less badges button -->
+    <div v-if="badges.length > 6" class="show-more-container">
+      <button 
+        @click="toggleBadgeCount" 
+        class="show-more-btn"
+      >
+        {{ displayedBadgeCount === 6 ? 'Show More Badges' : 'Show Fewer Badges' }}
+      </button>
+    </div>
   </div>
   
-  <!-- Badge count indicator -->
-  <div class="badge-count">Showing {{ Math.min(badges.length, displayedBadgeCount) }} of {{ badges.length }} badges</div>
+  <!-- Career Resources Component -->
+  <CareerResources />
   
-  <div class="badges-container">
-  <div v-for="(badge, index) in badges.slice(0, displayedBadgeCount)" :key="index" class="badge-item" :class="badge.badge_type.toLowerCase()">
-  <!-- Workforce Debut -->
-  <svg v-if="badge.name === 'Workforce Debut'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
-  </svg>
- 
-  <!-- Interview Master -->
-  <svg v-else-if="badge.name === 'Interview Master'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-  </svg>
- 
-  <!-- Resume Builder -->
-  <svg v-else-if="badge.name === 'Resume Builder'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM12 18H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V8h8v2zm-3-5V3.5L18.5 9H13V5z" />
-  </svg>
- 
-  <!-- Interview Ready -->
-  <svg v-else-if="badge.name === 'Interview Ready'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z" />
-  </svg>
- 
-  <!-- Network Starter -->
-  <svg v-else-if="badge.name === 'Network Starter'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-  </svg>
- 
-  <!-- Portfolio Creator -->
-  <svg v-else-if="badge.name === 'Portfolio Creator'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
-  </svg>
- 
-  <!-- Default icon if no specific icon is defined -->
-  <i v-else :class="badge.badge_type === 'Career' ? 'fas fa-briefcase' : 'fas fa-trophy'"></i>
-  
-  <div class="badge-tooltip">{{ badge.name }}</div>
-  </div>
-  <div v-if="badges.length === 0" class="empty-state">
-  No badges earned yet
-  </div>
-  </div>
-  
-  <!-- Show more/less badges button -->
-  <div v-if="badges.length > 6" class="show-more-container">
-  <button 
-  @click="toggleBadgeCount" 
-  class="show-more-btn"
-  >
-  {{ displayedBadgeCount === 6 ? 'Show More Badges' : 'Show Fewer Badges' }}
-  </button>
-  </div>
-  </div>
-  
- 
-  
- <!-- Completed Tasks -->
- <div class="card-container">
+  <!-- Completed Tasks -->
+  <div class="card-container">
   <div class="card-header">
   <h2 class="card-title">Completed Tasks</h2>
   <router-link to="/task" class="see-all">View All →</router-link>
@@ -212,9 +227,13 @@
  import eventServices from '../services/eventServices';
  import Utils from '../config/utils';
  import semesterServices from '../services/semesterServices';
+ import CareerResources from '../components/CareerResources.vue';
  
  export default {
   name: 'StudentDashboard',
+  components: {
+    CareerResources
+  },
   setup() {
   const store = useStore();
   
@@ -242,7 +261,7 @@
   const displayedBadgeCount = ref(6); // Default to showing 6 badges
  
   const toggleBadgeCount = () => {
-  displayedBadgeCount.value = displayedBadgeCount.value === 6 ? 12 : 6;
+    displayedBadgeCount.value = displayedBadgeCount.value === 6 ? 12 : 6;
   };
   
   // Computed properties
@@ -270,6 +289,70 @@
   } catch (e) {
   return timeString;
   }
+  };
+  
+  // Simple check if description has an image URL (very permissive pattern)
+  const hasImageUrl = (description) => {
+    if (!description) return false;
+    // Check for both standard image URLs and LinkedIn URLs
+    return /https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)/i.test(description) || 
+           /https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i.test(description);
+  };
+  
+  // Direct extraction of the first URL in the description
+  const extractImageUrl = (description) => {
+    if (!description) return '';
+    
+    // Try to match standard image URLs
+    let match = description.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s]*)?/i);
+    if (match) return match[0];
+    
+    // Try to match LinkedIn media URLs even without file extension
+    match = description.match(/https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i);
+    return match ? match[0] : '';
+  };
+  
+  // Handle image load success
+  const onImageLoad = (event) => {
+    console.log("Image loaded successfully");
+    event.target.style.opacity = 1;
+  };
+  
+  // Simple error handler for images
+  const handleImageError = (event, badge) => {
+    console.error(`Failed to load image for badge: ${badge?.name || 'Unknown'}`, event);
+    event.target.style.display = 'none';
+    
+    // Add fallback icon
+    const parent = event.target.parentNode;
+    
+    // Create appropriate SVG based on badge type
+    let svgEl;
+    if (badge && badge.badge_type === 'Career') {
+      svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svgEl.setAttribute("viewBox", "0 0 24 24");
+      svgEl.setAttribute("width", "24");
+      svgEl.setAttribute("height", "24");
+      svgEl.setAttribute("fill", "white");
+      
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z");
+      svgEl.appendChild(path);
+    } else {
+      svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svgEl.setAttribute("viewBox", "0 0 24 24");
+      svgEl.setAttribute("width", "24");
+      svgEl.setAttribute("height", "24");
+      svgEl.setAttribute("fill", "white");
+      
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 14.63 21 12.55 21 10V7c0-1.1-.9-2-2-2z");
+      svgEl.appendChild(path);
+    }
+    
+    parent.appendChild(svgEl);
   };
   
   const setUserFromStore = () => {
@@ -329,7 +412,7 @@
   loading.value = false;
   return null;
   }
-  };
+ };
   const fetchStudentSemester = async () => {
   try {
   const response = await semesterServices.getActiveSemester;
@@ -538,6 +621,10 @@
   formatDate,
   formatTime,
   refreshDashboard,
+  hasImageUrl,
+  extractImageUrl,
+  onImageLoad,
+  handleImageError
   };
   }
  };
@@ -931,6 +1018,38 @@
   color: #888;
   font-style: italic;
   font-size: 14px;
+ }
+ 
+ .badge-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+ }
+ 
+ .image-badge-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+ }
+ 
+ /* Update the grid layout */
+ .dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+ }
+ 
+ @media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
  }
  </style>
  

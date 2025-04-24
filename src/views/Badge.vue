@@ -2,74 +2,82 @@
   <div class="container">
     <div class="header-container">
       <h1 class="my-badges-title">My Badges</h1>
-
       <div class="filter-tabs">
-        <button 
-          class="filter-tab" 
+        <button
+          class="filter-tab"
           :class="{ active: activeFilter === 'ALL BADGE TYPES' }"
           @click="activeFilter = 'ALL BADGE TYPES'"
-        >
-          ALL BADGE TYPES
-        </button>
-        <button 
-          class="filter-tab" 
+        >ALL BADGE TYPES</button>
+        <button
+          class="filter-tab"
           :class="{ active: activeFilter === 'Career' }"
           @click="activeFilter = 'Career'"
-        >
-          CAREER
-        </button>
-        <button 
-          class="filter-tab" 
+        >CAREER</button>
+        <button
+          class="filter-tab"
           :class="{ active: activeFilter === 'Achievement' }"
           @click="activeFilter = 'Achievement'"
+        >ACHIEVEMENT</button>
+        <button
+          class="refresh-button"
+          @click="manualRefresh"
+          :disabled="loading"
         >
-          ACHIEVEMENT
+          <span v-if="loading">Loading...</span>
+          <span v-else>Refresh Badges</span>
         </button>
       </div>
     </div>
 
     <div class="content-area">
-      <!-- Loading state -->
       <div v-if="loading" class="loading-container">
         <div class="spinner"></div>
         <p>Loading badges...</p>
       </div>
 
-      <!-- Error state -->
-      <div v-else-if="message" class="error-container">
+      <div v-if="message" class="error-container">
         <p>{{ message }}</p>
         <button @click="fetchBadges" class="retry-button">Try Again</button>
       </div>
 
-      <!-- No badges state -->
       <div v-else-if="filteredBadges.length === 0" class="no-badges">
-        <div class="trophy-icon">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 22H17V20H7V22ZM12 2C9.27 2 7 4.27 7 7V14H9V7C9 5.35 10.35 4 12 4C13.65 4 15 5.35 15 7V14H17V7C17 4.27 14.73 2 12 2ZM12 18C13.1 18 14 17.1 14 16H10C10 17.1 10.9 18 12 18Z" fill="#cccccc"/>
-          </svg>
-        </div>
         <h3>No badges yet</h3>
-        <p>Complete tasks and milestones to earn badges that showcase your achievements</p>
+        <p v-if="currentUser && currentUser.points == 0">
+          You currently have 0 points. Complete tasks to earn points and unlock badges!
+        </p>
+        <p v-else>
+          Complete tasks to earn badges and track your progress!
+        </p>
       </div>
 
-      <!-- Badges display -->
       <div v-else class="badges-grid">
-        <div v-for="badge in filteredBadges" :key="badge.id" class="badge-card">
-          <!-- Badge icon -->
-          <div class="badge-icon" :class="badge.badge_type.toLowerCase()">
+        <div v-for="(badge, index) in filteredBadges" :key="badge.id || index" class="badge-card">
+          <!-- Image container for badge image -->
+          <div v-if="badge.description && hasImageUrl(badge.description)" class="badge-image-container">
+            <img
+              :src="extractImageUrl(badge.description)"
+              alt="Badge image"
+              class="badge-image"
+              @error="handleImageError"
+              @load="onImageLoad"
+            />
+          </div>
+          <div v-else class="badge-icon" :class="badge.badge_type && badge.badge_type.toLowerCase()">
             <i v-if="badge.badge_type === 'Career'" class="fas fa-briefcase"></i>
             <i v-else class="fas fa-trophy"></i>
           </div>
+
+          <h2 class="badge-title">{{ badge.name || 'Unnamed Badge' }}</h2>
+          <p class="badge-date">Awarded: {{ badge.DateAwarded ? formatDate(badge.DateAwarded) : 'Recently' }}</p>
           
-          <!-- Badge info -->
-          <h2 class="badge-title">{{ badge.name }}</h2>
-          <p class="badge-date">Awarded: {{ formatDate(badge.DateAwarded) }}</p>
-          <p class="badge-description">{{ badge.description }}</p>
-          
-          <!-- Badge type and points -->
+          <!-- Display description without the URL part -->
+          <p class="badge-description">
+            {{ badge.description ? getDescriptionWithoutImageUrl(badge.description) : 'No description available' }}
+          </p>
+
           <div class="badge-footer">
-            <span class="badge-type" :class="badge.badge_type.toLowerCase()">{{ badge.badge_type }}</span>
-            <span class="badge-points">{{ badge.points }} points</span>
+            <span class="badge-type" :class="badge.badge_type && badge.badge_type.toLowerCase()">{{ badge.badge_type || 'Achievement' }}</span>
+            <span class="badge-points">{{ badge.points || 0 }} pts</span>
           </div>
         </div>
       </div>
@@ -90,137 +98,292 @@ const activeFilter = ref('ALL BADGE TYPES');
 const currentUser = ref(null);
 
 const filteredBadges = computed(() => {
-  if (activeFilter.value === 'ALL BADGE TYPES') {
-    return badges.value;
-  }
-  return badges.value.filter(badge => badge.badge_type === activeFilter.value);
+  if (activeFilter.value === 'ALL BADGE TYPES') return badges.value;
+  return badges.value.filter(b => b.badge_type === activeFilter.value);
 });
 
-// Function to get current user
-const getCurrentUser = async () => {
-  try {
-    // Try to get from store first
-    const user = store.getters.getLoginUserInfo;
-    
-    if (user && user.id) {
-      console.log('User found in store:', user.id);
-      currentUser.value = user;
-      return user;
-    } else {
-      // If not in store, try to fetch from API
-      console.log('User not found in store, attempting to fetch from API');
-      message.value = 'Retrieving user data...';
-      
-      // You might need a different endpoint for getting the current user
-      // This is just a placeholder based on your current code
-      const response = await studentServices.getStudentById();
-      
-      if (response && response.id) {
-        console.log('User fetched from API:', response.id);
-        currentUser.value = response;
-        return response;
-      } else {
-        throw new Error('Could not retrieve user information');
-      }
-    }
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    message.value = 'Unable to determine current user. Please log in again.';
-    loading.value = false;
-    return null;
-  }
-};
-
-// Function to fetch badges
 const fetchBadges = async () => {
   try {
     loading.value = true;
     message.value = '';
+
+    // 1. Get the current user from the store
+    const user = store.getters.getLoginUserInfo;
+    currentUser.value = user;
+    const studentId = user?.id;
     
-    const user = currentUser.value || await getCurrentUser();
+    if (!studentId) {
+      console.error("Student ID not found in user info");
+      throw new Error('Student ID not found');
+    }
+
+    // 2. Get up-to-date student info with latest points
+    console.log("Fetching student info...");
+    let currentPoints = 0;
     
-    if (!user || !user.id) {
-      message.value = 'User not found. Please log in again.';
+    try {
+      // First try the direct points method
+      const pointsResponse = await studentServices.getStudentPoints(studentId);
+      if (pointsResponse && pointsResponse.points !== undefined) {
+        currentPoints = parseInt(pointsResponse.points);
+        console.log(`Student points from direct API: ${currentPoints}`);
+      } else {
+        // If that fails, try the email method
+        const studentRes = await studentServices.searchStudentByEmail(user.email);
+        console.log("Student info response:", studentRes);
+        
+        if (studentRes && studentRes.data) {
+          // Store the complete student info
+          const studentInfo = studentRes.data;
+          console.log("Student info:", studentInfo);
+          
+          // Parse points, ensure it's a number
+          currentPoints = parseInt(studentInfo.points || 0);
+          console.log(`Student points from email API: ${currentPoints}`);
+        } else {
+          console.warn("Student info not found in API response");
+          // Fallback to user points from store
+          currentPoints = parseInt(user.points || 0);
+          console.log(`Falling back to store points: ${currentPoints}`);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching student info:", err);
+      // Fallback to user points from store
+      currentPoints = parseInt(user.points || 0);
+      console.log(`Error occurred, using store points: ${currentPoints}`);
+    }
+    
+    console.log(`FINAL Current student points: ${currentPoints}`);
+    
+    // 3. Get all badges in the system
+    console.log("Fetching all badges...");
+    let allBadges = [];
+    
+    try {
+      const allBadgesRes = await badgeServices.getAll();
+      console.log("All badges response:", allBadgesRes);
+      
+      if (allBadgesRes?.data && Array.isArray(allBadgesRes.data)) {
+        allBadges = allBadgesRes.data;
+      } else if (Array.isArray(allBadgesRes)) {
+        allBadges = allBadgesRes;
+      }
+      
+      console.log("All badges:", allBadges);
+    } catch (err) {
+      console.error("Error fetching all badges:", err);
+      allBadges = [];
+    }
+    
+    if (allBadges.length === 0) {
+      console.warn("No badges found in the system");
+      badges.value = [];
+      message.value = 'No badges available in the system.';
       loading.value = false;
       return;
     }
     
-    console.log('Fetching badges for user:', user.id);
-    const response = await badgeServices.getAll();
+    // 4. Determine which badges the student qualifies for based on points
+    console.log("Determining qualifying badges...");
+    const qualifyingBadges = [];
     
-    console.log('Badge API response:', response);
-    
-    // Handle different possible data structures
-    if (Array.isArray(response)) {
-      // If response is directly an array
-      badges.value = response.map(badge => ({
-        ...badge,
-        badge_type: badge.badge_type || badge.type || 'Achievement'
-      }));
-    } else if (response && Array.isArray(response.data)) {
-      // If response has a data array property
-      badges.value = response.data.map(badge => ({
-        ...badge,
-        badge_type: badge.badge_type || badge.type || 'Achievement'
-      }));
-    } else if (response && typeof response === 'object') {
-      // If response is a single object or has a different structure
-      // Try to extract badges if they exist in the response
-      const badgeData = response.data || response;
+    for (const badge of allBadges) {
+      if (!badge) continue;
       
-      if (Array.isArray(badgeData)) {
-        badges.value = badgeData.map(badge => ({
-          ...badge,
-          badge_type: badge.badge_type || badge.type || 'Achievement'
-        }));
+      // Ensure badge points is a number
+      const badgePoints = parseInt(badge.points || 0);
+      console.log(`Badge: ${badge.name}, Required Points: ${badgePoints}, Student Points: ${currentPoints}`);
+      
+      if (currentPoints >= badgePoints) {
+        console.log(`Student qualifies for badge: ${badge.name}`);
+        qualifyingBadges.push(badge);
       } else {
-        // If it's a single badge object
-        badges.value = [{ 
-          ...badgeData,
-          badge_type: badgeData.badge_type || badgeData.type || 'Achievement'
-        }];
+        console.log(`Student does NOT qualify for badge: ${badge.name}`);
       }
-    } else {
-      badges.value = [];
-      message.value = 'No badges found for this user.';
     }
     
-    console.log('Processed badges:', badges.value);
+    console.log(`Student qualifies for ${qualifyingBadges.length} out of ${allBadges.length} badges`);
     
+    // 5. Get the badges the student already has
+    console.log("Fetching student's current badges...");
+    let earnedBadges = [];
+    let earnedIds = [];
+    
+    try {
+      const earnedRes = await badgeServices.getAllUserBadges(studentId);
+      console.log("Student badges response:", earnedRes);
+      
+      if (earnedRes?.data && Array.isArray(earnedRes.data)) {
+        earnedBadges = earnedRes.data;
+      } else if (Array.isArray(earnedRes)) {
+        earnedBadges = earnedRes;
+      }
+      
+      earnedIds = earnedBadges.map(badge => badge?.id).filter(id => id);
+      console.log("Earned badge IDs:", earnedIds);
+    } catch (err) {
+      console.error("Error fetching student badges:", err);
+      earnedBadges = [];
+      earnedIds = [];
+    }
+    
+    console.log(`Student has earned ${earnedBadges.length} badges`);
+    
+    // 6. Determine which qualifying badges need to be awarded
+    const newQualifyingBadges = qualifyingBadges.filter(badge => 
+      badge.id && !earnedIds.includes(badge.id)
+    );
+    
+    console.log(`New qualifying badges to award: ${newQualifyingBadges.length}`);
+    console.log("New qualifying badges:", newQualifyingBadges);
+    
+    // 7. Award new qualifying badges
+    let badgesChanged = false;
+    
+    for (const badge of newQualifyingBadges) {
+      if (!badge.id) continue;
+      
+      try {
+        console.log(`Awarding badge ${badge.id} - ${badge.name} (${badge.points} points)`);
+        await badgeServices.awardBadge({ studentId: studentId, badgeId: badge.id });
+        badgesChanged = true;
+      } catch (err) {
+        console.error(`Error awarding badge ${badge.id}:`, err);
+      }
+    }
+    
+    // 8. Get the final, updated list of badges
+    if (badgesChanged) {
+      try {
+        console.log("Getting updated badge list after changes...");
+        const updatedRes = await badgeServices.getAllUserBadges(studentId);
+        
+        if (updatedRes?.data && Array.isArray(updatedRes.data)) {
+          badges.value = updatedRes.data;
+        } else if (Array.isArray(updatedRes)) {
+          badges.value = updatedRes;
+        } else {
+          badges.value = earnedBadges;
+        }
+      } catch (err) {
+        console.error("Error fetching updated badges:", err);
+        badges.value = earnedBadges;
+      }
+    } else {
+      // If no changes were needed, use what we have
+      badges.value = earnedBadges;
+    }
+    
+    console.log("Final badges to display:", badges.value);
+    
+    // If there are still no badges to display, show all qualifying badges instead
+    if (badges.value.length === 0 && qualifyingBadges.length > 0) {
+      console.log("No badges earned, showing qualifying badges instead");
+      badges.value = qualifyingBadges;
+    }
+
     if (badges.value.length === 0) {
       message.value = 'No badges found for this user.';
     }
   } catch (error) {
-    console.error('Error fetching badges:', error);
-    message.value = 'Failed to load your badges. Please try again.';
+    console.error('Error:', error);
+    message.value = 'Something went wrong while loading badges.';
     badges.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-
-const formatDate = (dateString) => {
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'Unknown date';
-    }
-    
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return date.toLocaleDateString(undefined, options);
-  } catch (e) {
-    return 'Unknown date';
-  }
+const manualRefresh = () => {
+  console.log("Manual refresh triggered");
+  fetchBadges();
 };
 
-// Load badges when component mounts
-onMounted(async () => {
-  console.log('Badges component mounted');
-  await fetchBadges();
+onMounted(fetchBadges);
+
+const formatDate = (str) => new Date(str).toLocaleDateString();
+
+// Improved URL detection regex - without console logs
+const hasImageUrl = (desc) => {
+  if (!desc) return false;
+  
+  // Try various common patterns for image URLs
+  const patterns = [
+    /https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp|svg|bmp)/i,
+    /https?:\/\/[^\s"']+\/image/i,
+    /https?:\/\/[^\s"']+\/badge/i
+  ];
+  
+  for (const pattern of patterns) {
+    if (pattern.test(desc)) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
+const extractImageUrl = (desc) => {
+  if (!desc) return '';
+  
+  // Try all patterns and use the first match
+  const patterns = [
+    /https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp|svg|bmp)/i,
+    /https?:\/\/[^\s"']+\/image[^\s"']*/i,
+    /https?:\/\/[^\s"']+\/badge[^\s"']*/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = desc.match(pattern);
+    if (match && match[0]) {
+      return match[0];
+    }
+  }
+  
+  // If we get here, try a more general approach - extract any URL
+  const generalMatch = desc.match(/https?:\/\/[^\s"']+/i);
+  if (generalMatch && generalMatch[0]) {
+    return generalMatch[0];
+  }
+  
+  return '';
+};
+
+const getDescriptionWithoutImageUrl = (desc) => {
+  if (!desc) return '';
+  const url = extractImageUrl(desc);
+  if (!url) return desc;
+  
+  // Remove the URL from the description
+  return desc.replace(url, '').trim();
+};
+
+// Improved image handling without console logs
+const onImageLoad = e => {
+  e.target.style.opacity = 1;
+  e.target.classList.add('loaded');
+};
+
+const handleImageError = e => {
+  // Try a different placeholder service
+  e.target.src = 'https://via.placeholder.com/80x80?text=Badge';
+  e.target.style.opacity = 1;
+};
+
+const forceRefresh = () => {
+  loading.value = true;
+  setTimeout(() => {
+    fetchBadges();
+  }, 500);
+};
+
+// Remove the watch effect and other added code
+
+defineExpose({
+  refreshBadges: forceRefresh
 });
 </script>
-
 
 <style scoped>
 .container {
@@ -228,190 +391,159 @@ onMounted(async () => {
   margin: 0 auto;
   padding: 20px;
 }
-
 .header-container {
   margin-bottom: 2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
 }
-
-.my-badges-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0;
-}
-
 .filter-tabs {
   display: flex;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-
 .filter-tab {
   padding: 0.5rem 1rem;
-  background: none;
   border: none;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  background: #f2f2f2;
+  border-radius: 5px;
 }
-
 .filter-tab.active {
   background-color: #800000;
-  color: white;
+  color: #fff;
 }
-
-.content-area {
-  clear: both;
-  padding-top: 0.5rem;
-}
-
 .badges-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
 }
-
 .badge-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid #ddd;
   padding: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  background-color: white;
+  align-items: center;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .badge-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-
-.badge-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+.badge-image-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto 1rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid #eaeaea;
+}
+.badge-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.badge-image.loaded {
+  opacity: 1;
+}
+.badge-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #c8a45e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem;
   color: white;
-  font-size: 1.5rem;
 }
-
 .badge-icon.career {
-  background-color: #4169E1; /* Royal blue for career */
+  background: #5e81c8;
 }
-
 .badge-icon.achievement {
-  background-color: #FFA500; /* Orange for achievement */
+  background: #c85e5e;
 }
-
 .badge-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  margin-bottom: 0.25rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
-
 .badge-date {
   color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
-
 .badge-description {
-  flex-grow: 1;
+  font-size: 0.9rem;
+  text-align: center;
   margin-bottom: 1rem;
+  color: #333;
 }
-
+.badge-description a {
+  color: #0066cc;
+  text-decoration: none;
+}
+.badge-description a:hover {
+  text-decoration: underline;
+}
 .badge-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  margin-top: 1rem;
 }
-
-.badge-type {
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.badge-type.career {
-  background-color: #e6f0ff;
-  color: #0047AB;
-}
-
-.badge-type.achievement {
-  background-color: #fff4e6;
-  color: #FF8C00;
-}
-
-.badge-points {
-  font-weight: 500;
-  color: #FF8C00;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-}
-
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top: 4px solid #800000;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-container {
+.loading-container,
+.error-container,
+.no-badges {
   text-align: center;
   padding: 2rem;
-  background-color: #fff8f8;
-  border: 1px solid #ffcdd2;
-  border-radius: 8px;
-  margin: 2rem 0;
 }
-
-.retry-button {
-  background-color: #800000;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #eee;
+  border-top: 4px solid #800000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.debug-panel, .debug-link {
+  display: none;
+}
+.refresh-button {
+  margin-left: auto;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
-  margin-top: 1rem;
+  transition: background-color 0.3s;
 }
 
-.no-badges {
-  text-align: center;
-  padding: 3rem;
-  border: 1px dashed #ddd;
-  border-radius: 8px;
-  color: #777;
+.refresh-button:hover {
+  background-color: #388e3c;
 }
 
-.trophy-icon {
-  margin-bottom: 1rem;
-}
-
-.no-badges h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: #555;
+.refresh-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
+

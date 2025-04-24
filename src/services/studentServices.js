@@ -1,4 +1,3 @@
-// studentServices.js
 import apiClient from "./services";
 
 const API_BASE_URL = "/student";
@@ -6,7 +5,6 @@ const API_BASE_URL = "/student";
 export default {
   async getStudentById(studentId) {
     try {
-      // If no studentId is provided, get the current logged-in student
       const endpoint = studentId ? `${API_BASE_URL}/${studentId}` : `${API_BASE_URL}/current`;
       const response = await apiClient.get(endpoint);
       return response.data;
@@ -24,7 +22,6 @@ export default {
       const response = await apiClient.get(API_BASE_URL);
       return response.data;
     } catch (error) {
-      // Enhanced error logging
       console.error("❌ Error fetching students. Details:", {
         message: error.message,
         status: error.response?.status,
@@ -40,7 +37,7 @@ export default {
           } : "No headers"
         }
       });
-      
+
       if (error.response) {
         if (error.response.status === 404) {
           throw new Error("Student data not found - endpoint may have changed");
@@ -54,12 +51,24 @@ export default {
       } else if (error.request) {
         throw new Error("No response from server - please check your connection");
       }
-      
+
       throw new Error(`Failed to fetch student data: ${error.message}`);
     }
   },
 
-  // New method to create student profile
+  async searchStudentByEmail(email) {
+    try {
+      const response = await apiClient.get(`${API_BASE_URL}/email/${encodeURIComponent(email)}`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error searching student by email (${email}):`, error.response?.data || error.message);
+      if (error.response?.status === 404) {
+        throw new Error("No student found with that email address");
+      }
+      throw new Error("Failed to search for student by email");
+    }
+  },
+
   async createStudentProfile(profileData) {
     try {
       console.log("Sending student profile data:", JSON.stringify(profileData, null, 2));
@@ -71,19 +80,34 @@ export default {
         response: error.response ? JSON.stringify(error.response.data, null, 2) : 'No response',
         status: error.response ? error.response.status : 'No status'
       });
-      
-      // More comprehensive error handling
-      if (error.response) {
-        // If server responded with an error
-        const errorMessage = error.response.data.message || 
-                             error.response.data.error || 
-                             'Failed to create student profile';
-        
-        throw new Error(errorMessage);
-      }
-      
-      // Network error or other issues
-      throw new Error('Network error or unexpected issue creating student profile');
+
+      const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           'Failed to create student profile';
+      throw new Error(errorMessage);
     }
+  },
+
+  // Get student points by ID
+  getStudentPoints(studentId) {
+    console.log(`Getting points for student ID: ${studentId}`);
+    return apiClient.get(`/student/${studentId}/points`)
+      .then(response => {
+        console.log("Student points response:", response.data);
+        return response.data;
+      })
+      .catch(error => {
+        console.error("Error getting student points:", error);
+        // Try using the getStudentById as fallback
+        return this.getStudentById(studentId)
+          .then(student => {
+            console.log("Got student from fallback:", student);
+            return { points: student.points || 0 };
+          })
+          .catch(err => {
+            console.error("Failed to get student points from fallback:", err);
+            return { points: 0 };
+          });
+      });
   }
 };

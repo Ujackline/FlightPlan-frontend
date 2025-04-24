@@ -135,7 +135,19 @@
                 <span class="badge-name">{{ badge.name }}</span>
               </div>
             </td>
-            <td>{{ badge.description }}</td>
+            <td>
+              <div>
+                {{ badge.description }}
+                <div v-if="hasImageUrl(badge.description)" class="badge-description-image">
+                  <img 
+                    :src="extractImageUrl(badge.description)" 
+                    alt="Badge image" 
+                    @error="handleImageError" 
+                    referrerpolicy="no-referrer"
+                  />
+                </div>
+              </div>
+            </td>
             <td>
               <span class="badge-type-pill" :class="badge.badge_type ? badge.badge_type.toLowerCase() : 'default'">
                 {{ badge.badge_type || 'Unknown' }}
@@ -185,7 +197,21 @@
               v-model="badgeForm.description"
               required
               placeholder="Enter badge description"
+              @input="checkForImageUrl"
             ></textarea>
+            <div v-if="imageUrl" class="image-preview">
+              <img 
+                :src="imageUrl" 
+                alt="Badge preview image" 
+                @error="handleImageError" 
+                @load="onImageLoad"
+                referrerpolicy="no-referrer"
+              >
+              <button @click="removeImage" class="remove-image-btn">×</button>
+            </div>
+            <div class="description-hint" v-if="!imageUrl">
+              <small>Add an image URL to your description to display a badge image</small>
+            </div>
           </div>
           
           <div class="form-row">
@@ -347,6 +373,7 @@ export default {
       message: '',
       messageType: 'success',
       loading: false,
+      imageUrl: null,
       badgeForm: {
         name: '',
         description: '',
@@ -407,6 +434,23 @@ export default {
         this.loading = true;
         const response = await badgeServices.getAll();
         this.badges = response.data;
+        
+        // DEBUG: Log all badge descriptions to check URLs
+        console.log("All badges:", this.badges);
+        this.badges.forEach(badge => {
+          if (badge.description && badge.description.includes('http')) {
+            console.log("Badge with URL:", badge.name, badge.description);
+            const imgUrl = this.extractImageUrl(badge.description);
+            console.log("Extracted URL:", imgUrl);
+            
+            // Create a test image to verify URL works
+            const img = new Image();
+            img.onload = () => console.log("Image loaded successfully:", imgUrl);
+            img.onerror = () => console.error("Image failed to load:", imgUrl);
+            img.src = imgUrl;
+          }
+        });
+        
         this.filterBadges();
         this.loading = false;
       } catch (error) {
@@ -660,7 +704,51 @@ export default {
       studentSearch() {
         this.searchStudents();
       }
-    }
+    },
+    
+    // Check if description has an image URL (simplified)
+    hasImageUrl(description) {
+      if (!description) return false;
+      // Check for both standard image URLs and LinkedIn URLs
+      return /https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)/i.test(description) || 
+             /https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i.test(description);
+    },
+    
+    // Extract image URL from the description text
+    extractImageUrl(description) {
+      if (!description) return '';
+      
+      // Try to match standard image URLs
+      let match = description.match(/https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s]*)?/i);
+      if (match) return match[0];
+      
+      // Try to match LinkedIn media URLs even without file extension
+      match = description.match(/https?:\/\/(media\.licdn\.com|linkedin\.com)[^\s]+/i);
+      return match ? match[0] : '';
+    },
+    
+    // Check if description contains a URL and extract it
+    checkForImageUrl() {
+      this.imageUrl = this.extractImageUrl(this.badgeForm.description);
+    },
+    
+    // Handle image loading success
+    onImageLoad(event) {
+      console.log("Image loaded successfully");
+      event.target.style.opacity = 1;
+    },
+    
+    // Handle image loading error
+    handleImageError(event) {
+      console.error("Failed to load image");
+      event.target.style.display = 'none';
+      this.showMessage('Failed to load image. Please check the URL.', 'error');
+    },
+    
+    // Remove image preview
+    removeImage() {
+      this.imageUrl = null;
+    },
   }
 };
 </script>
@@ -1171,5 +1259,63 @@ textarea {
   overflow-y: auto;
   border: 1px solid #d5dfe7;
   border-radius: 6px;
+}
+
+.image-preview {
+  margin-top: 10px;
+  position: relative;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.remove-image-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.badge-description-image {
+  margin-top: 8px;
+  max-width: 120px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.badge-description-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.description-hint {
+  margin-top: 5px;
+  font-style: italic;
+  color: #708e9a;
 }
 </style>
