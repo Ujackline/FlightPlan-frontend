@@ -21,17 +21,14 @@
           </router-link>
 
           <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
-          <router-link to="/admin/events" class="nav-item" :class="{ active: currentRoute === 'events' }">
             <i class="fas fa-calendar-alt"></i> Event Management
           </router-link>
           <router-link to="/admin/students" class="nav-item" :class="{ active: currentRoute === 'students' }">
             <i class="fas fa-users"></i> Student Flight Plans
           </router-link>
           <router-link to="/admin/points" class="nav-item" :class="{ active: currentRoute === 'points' }">
-          <router-link to="/admin/points" class="nav-item" :class="{ active: currentRoute === 'points' }">
             <i class="fas fa-coins"></i> Point Redemption
           </router-link>
-          <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
           <router-link to="admin/settings" class="nav-item" :class="{ active: currentRoute === 'settings' }">
             <i class="fas fa-cog"></i> Settings
           </router-link>
@@ -51,11 +48,12 @@
            </router-link>
           <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
             <i class="fas fa-cog"></i> Manage Users
-
-
-          <router-link to="/manageusers" class="nav-item" :class="{ active: currentRoute === 'manageusers' }">
-            <i class="fas fa-cog"></i> Manage Users
           </router-link>
+
+          <div class="nav-item">
+          <v-icon color="white" class="nav-icon">mdi-pencil</v-icon>
+         <router-link to="/report" class="nav-text" style="color: white; text-decoration: none;">Need Help or Found a Bug?</router-link>
+        </div>
 
         </nav>
         <div class="sidebar-footer">
@@ -74,22 +72,90 @@
             <input type="text" placeholder="Search..." v-model="searchQuery" @input="handleSearch" />
         </div>
 
-        <!-- Notifications Section -->
-        <div class="notifications">
-            <div class="notification-icon">
-                <i class="fas fa-bell"></i>
-                <span class="badge" v-if="experienceNotifications && experienceNotifications.length > 0">
-                    {{ experienceNotifications.length }}
-                </span>
-            </div>
-        </div>
-    </header>
+         <!-- Task Notifications
+         <div class="task-notifications">
+            <h3>Task Completion Requests</h3>
+            <p v-if="successMessage" class="success-message">
+              ✅ {{ successMessage }}
+            </p> -->
+
+            <!-- <table v-if="taskNotifications.length > 0" class="task-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="note in taskNotifications" :key="note.id" class="notification-row">
+                  <td>{{ note.id }}</td>
+                  <td>
+                    <strong>{{ note.message }}</strong>
+                  </td>
+                  <td>{{ formatDate(note.createdAt) }}</td>
+                  <td class="notification-actions">
+                    <button @click="approveTask(note)" class="approve-btn">Approve</button>
+                    <button @click="rejectTask(note)" class="reject-btn">Reject</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p v-else>No task completion notifications.</p> -->
+          <!-- </div> -->
+
+                  <!-- Notifications Section -->
+                  <div class="notifications">
+                      <div class="notification-icon">
+                          <i class="fas fa-bell"></i>
+                          <span class="badge" v-if="experienceNotifications && experienceNotifications.length > 0">
+                              {{ experienceNotifications.length }}
+                          </span>
+                      </div>
+                  </div>
+              </header>
 
     <!-- Admin Dashboard Content -->
     <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
     <div v-if="currentRoute === 'AdminDashboard'" class="dashboard-content">
         <h2>Admin Dashboard</h2>
 
+        <!-- Task Notifications -->
+        <div class="task-notifications">
+            <h3>Task Completion Requests</h3>
+            <p v-if="successMessage" class="success-message">
+              ✅ {{ successMessage }}
+            </p>
+
+            <table v-if="taskNotifications.length > 0" class="task-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="note in taskNotifications" :key="note.id" class="notification-row">
+                  <td>{{ note.id }}</td>
+                  <td>
+                    <strong>{{ note.message }}</strong>
+                  </td>
+                  <td>{{ formatDate(note.createdAt) }}</td>
+                  <td class="notification-actions">
+                    <button @click="approveTask(note)" class="approve-btn">Approve</button>
+                    <button @click="rejectTask(note)" class="reject-btn">Reject</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p v-else>No task completion notifications.</p>
+          </div>
+          
         <!-- Experience Notifications -->
         <div class="experience-notifications">
   <h3>Experience Approval Requests</h3>
@@ -137,11 +203,13 @@
 </div>
 
   </div>
+  </div>
 </template>
 
 <script>
 import adminServices from "../services/adminServices";
 import experienceServices from "../services/experienceServices";
+import taskServices from "../services/taskServices";
 
 export default {
   name: "AdminDashboard",
@@ -170,6 +238,13 @@ export default {
       console.log("🔎 Filtered Experience Notifications:", filtered);
       return filtered;
     },
+
+    taskNotifications() {
+      console.log("Diella", this.notifications);
+      return this.notifications.filter(
+        (n) => n.type?.trim().toLowerCase() === "task_completion" && n.status === "unread"
+      );
+    },
   },
 
   mounted() {
@@ -179,15 +254,15 @@ export default {
 
   methods: {
     // ✅ Fetch Admin Info
-    async fetchAdminInfo() {
-  try {
-    const adminData = await adminServices.getAdminInfo();
-    console.log("✅ Admin info fetched:", adminData);
-    this.admin = adminData; // ✅ assign the actual data
-  } catch (error) {
-    console.error("❌ Error fetching admin info:", error);
-  }
-},
+        async fetchAdminInfo() {
+      try {
+        const adminData = await adminServices.getAdminInfo();
+        console.log("✅ Admin info fetched:", adminData);
+        this.admin = adminData; // ✅ assign the actual data
+      } catch (error) {
+        console.error("❌ Error fetching admin info:", error);
+      }
+    },
 
 
 
@@ -258,6 +333,86 @@ async rejectExperience(notification) {
   }
 },
 
+// async approveTask(notification) {
+//       try {
+//         const { studentId, taskId } = notification;
+//         await taskServices.approveTask({ studentId, taskId });
+//         await adminServices.deleteNotification(notification.id);
+//         this.successMessage = "Task approved successfully!";
+//         this.fetchNotifications();
+//         setTimeout(() => (this.successMessage = ""), 3000);
+//       } catch (error) {
+//         console.error("❌ Error approving task:", error);
+//       }
+//     },
+
+// async approveTask(notification) {
+//   try {
+//     console.log("Notification object:", notification);
+//     const { studentId, taskId } = notification;
+//     console.log("Extracted values:", { studentId, taskId });
+//     await taskServices.approveTask(taskId, studentId); // ✅ fixed
+//     await adminServices.deleteNotification(notification.id);
+//     this.successMessage = "Task approved successfully!";
+//     this.fetchNotifications();
+//     setTimeout(() => (this.successMessage = ""), 3000);
+//   } catch (error) {
+//     console.error("❌ Error approving task:", error);
+//   }
+// },
+
+async approveTask(notification) {
+  try {
+    console.log("Notification object:", notification);
+    const studentId = notification.studentId;
+    const taskId = notification.taskId;
+    
+    console.log("About to send:", { taskId, studentId });
+    
+    if (!taskId || !studentId) {
+      console.error("Missing required IDs", { taskId, studentId });
+      this.successMessage = "Error: Missing task or student ID";
+      return;
+    }
+    
+   // await taskServices.approveTask(taskId, studentId);
+  //  console.log("Attempting direct API call with hardcoded values");
+  //   const response = await apiClient.put(`${TASK_API}/approve`, {
+  //     taskId: 3,
+  //     studentId: 1,
+  //     approvedBy: "Admin"
+  //   });
+
+ //  console.log("Attempting service call with hardcoded values");
+    // const response = await taskServices.approveTask(3, 1, "Admin");
+   // console.log("Service call response:", response);
+    
+    // Comment out the original call temporarily
+     await taskServices.approveTask(taskId, studentId);
+
+    await adminServices.deleteNotification(notification.id);
+    this.successMessage = "Task approved successfully!";
+    this.fetchNotifications();
+    setTimeout(() => (this.successMessage = ""), 3000);
+  } catch (error) {
+    console.error("❌ Error approving task:", error, error.response?.data);
+    this.successMessage = `Error: ${error.response?.data?.message || error.message}`;
+    setTimeout(() => (this.successMessage = ""), 5000);
+  }
+},
+
+    async rejectTask(notification) {
+      try {
+        await adminServices.deleteNotification(notification.id);
+        this.successMessage = "Task rejected.";
+        this.fetchNotifications();
+        setTimeout(() => (this.successMessage = ""), 3000);
+      } catch (error) {
+        console.error("❌ Error rejecting task:", error);
+      }
+    },
+
+
     // ✅ Get Admin Initials
     getInitials() {
   const f = this.admin?.fName?.charAt(0) || '';
@@ -265,12 +420,13 @@ async rejectExperience(notification) {
   return `${f}${l}`.toUpperCase();
 },
 
+
+
 formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
-}
-
+},
 
   },
 };

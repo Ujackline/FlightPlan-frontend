@@ -33,6 +33,10 @@ const taskService = {
     return apiClient.delete(TASK_API);
   },
 
+  updateTask(id, updatedData) {
+    return apiClient.put(`/tasks/${id}`, updatedData);
+  },
+
   // ✅ Mark a task as complete (submitted for review)
   // markComplete(taskId) {
   //   return apiClient.patch(`${TASK_API}/${taskId}/markComplete`);
@@ -45,14 +49,27 @@ const taskService = {
 completeTask(taskId) {
   return apiClient.post("/task/complete", { studentId: 1, taskId }); // Fix the parameter name to taskId
 },
-  approveTask(taskId, approvedBy = "Admin") {
-    return apiClient.patch(`${TASK_API}/${taskId}/approve`, { approvedBy });
-  },
+approveTask(taskId, studentId) {
+  return apiClient.put(`${TASK_API}/approve`, {
+    taskId,
+    studentId,
+    // approvedBy
+  });
+},
+
+  // approveTask(taskId, approvedBy = "Admin") {
+  //   return apiClient.put(`${TASK_API}/approve`, { approvedBy });
+  // },
 
   // ✅ Reject a task (admin)
   rejectTask(taskId) {
     return apiClient.patch(`${TASK_API}/${taskId}/reject`);
-  }
+  },
+
+  getPendingTasks() {
+    return apiClient.get("/pending");
+  },
+  
 };
 
 export default taskService;

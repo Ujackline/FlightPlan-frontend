@@ -11,7 +11,7 @@ import StudentDashboard from "../views/StudentDashboard.vue"
 import Task from "../views/task.vue"
 import Badge from "../views/Badge.vue"
 import Experience from "../views/Experience.vue";
-import AdminDashboard from "../views/AdminDashboard.vue";
+import adminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
 import ManageUser from "../views/ManageUser.vue";
 import Events from "../views/Events.vue";
@@ -24,6 +24,10 @@ import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
+import Leaderboard from "../views/studentLeaderBoard.vue";
+import EditTask from "../views/EditTask.vue";
+import ReportView from "../views/ReportForm.vue"; // Create this view if needed
+
 
 
 const router = createRouter({
@@ -58,11 +62,29 @@ const router = createRouter({
       component: AfterNest
     },
     {
+      path: "/report",
+      name: "report",
+      component: ReportView,
+    },
+    
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: Leaderboard,
+      // meta: { requiresAuth: true } // or remove if public
+    },
+    {
       path: '/student/studentDashboard',
       name: 'studentDashboard',
       component: StudentDashboard
     },
 
+    {
+      path: "/admin/edit-task/:id",
+      name: "EditTask",
+      component: () => EditTask,
+    },
+    
 
     {
       path: '/Experience',
@@ -73,7 +95,7 @@ const router = createRouter({
     {
       path: '/admin/dashboard',
       name: 'adminDashboard',
-      component: AdminDashboard,
+      component: adminDashboard,
       meta: { requiresAdmin: true },
       children: [
         {

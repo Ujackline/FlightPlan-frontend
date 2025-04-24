@@ -423,10 +423,10 @@ import taskService from "../services/task";
               <input id="taskName" v-model="task.taskName" placeholder="Enter task name" required />
             </div>
             
-            <div class="form-field">
+            <!-- <div class="form-field">
               <label for="category">Category</label>
               <input id="category" v-model="task.category" placeholder="e.g., Academic, Personal" required />
-            </div>
+            </div> -->
             
             <div class="form-field full-width">
               <label for="description">Description</label>
@@ -458,6 +458,72 @@ import taskService from "../services/task";
               <textarea id="majors" v-model="task.majors" placeholder="List applicable majors..."></textarea>
             </div>
           </div>
+
+          <div class="form-field">
+          <label for="reflection_required">Reflection Required?</label>
+          <select id="reflection_required" v-model="task.reflection_required">
+            <option :value="true">Yes</option>
+            <option :value="false">No</option>
+          </select>
+        </div>
+
+        <!-- <div class="form-field">
+          <label for="scheduling_type">Scheduling Type</label>
+          <input id="scheduling_type" v-model="task.scheduling_type" placeholder="e.g., Every Semester" />
+        </div> -->
+
+        <div class="form-field full-width">
+          <label for="rationale">Rationale</label>
+          <textarea id="rationale" v-model="task.rationale" placeholder="Why is this task needed?"></textarea>
+        </div>
+
+        <!-- <div class="form-field">
+          <label for="completion_type">Completion Type</label>
+          <select id="completion_type" v-model="task.completion_type">
+            <option value="confirmed">Confirmed by Admin</option>
+            <option value="self-reported">Self-Reported</option>
+            <option value="automatic">Automatic</option>
+          </select>
+        </div> -->
+
+        <!-- <div class="form-field">
+          <label for="badge">Badge</label>
+          <input id="badge" v-model="task.badge" placeholder="Badge earned (if any)" />
+        </div> -->
+
+        <!-- Category Dropdown -->
+<div class="form-field">
+  <label for="category">Category</label>
+  <select id="category" v-model="task.category">
+    <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+  </select>
+</div>
+
+<!-- Scheduling Type -->
+<div class="form-field">
+  <label for="scheduling_type">Scheduling Type</label>
+  <select id="scheduling_type" v-model="task.scheduling_type">
+    <option v-for="option in schedulingOptions" :key="option" :value="option">{{ option }}</option>
+  </select>
+</div>
+
+<!-- Completion Type -->
+<div class="form-field">
+  <label for="completion_type">Completion Type</label>
+  <select id="completion_type" v-model="task.completion_type">
+    <option v-for="type in completionOptions" :key="type" :value="type">{{ type }}</option>
+  </select>
+</div>
+
+<!-- Badge -->
+<div class="form-field">
+  <label for="badge">Badge</label>
+  <select id="badge" v-model="task.badge">
+    <option v-for="b in badges" :key="b" :value="b">{{ b }}</option>
+  </select>
+</div>
+
+
           
           <button type="submit">
             <span class="icon">✓</span> Create Task
@@ -483,7 +549,16 @@ import taskService from "../services/task";
           CliftonStrengths: "",
           completed: "",
           majors: "",
-        }
+          reflection_required: false,
+          scheduling_type: "",
+          rationale: "",
+          completion_type: "confirmed", // Default for now
+          badge: "",
+        },
+        categories: ["Academic", "Leadership", "Networking", "Strengths", "Career Prep", "Mentoring", "Volunteer"],
+    schedulingOptions: ["One-time", "Every Semester", "Special Event"],
+    completionOptions: ["confirmed", "self-reported", "automatic"],
+    badges: ["Gold Star", "Growth Champion", "Service Leader", "Trailblazer", "No Badge"]
       };
     },
     methods: {

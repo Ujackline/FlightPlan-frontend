@@ -26,11 +26,16 @@
           <div class="gauge-container">
             <CircularPoints :points="points" :maxPoints="100" />
           </div>
+
+            
           
           <p class="points-subtitle">Total earned points</p>
       <center>
         <router-link to="/pointRedemption" class="redeem-button" style="color: white; text-decoration: none;">Redeem Rewards</router-link>
       </center>
+
+            
+
 
      
         </div>
@@ -132,7 +137,11 @@
           </div>
           <button class="view-button" @click="$router.push('/events')">View All Events</button>
         </div>
+        
       </div>
+
+    
+
     </div>
   </div>
 </template>
@@ -145,16 +154,24 @@ import eventServices from '../services/eventServices';
 
 // import task from '../services/taskServices';
 import taskService from "../services/taskServices"; // Rename to taskService instead of task
+import studentService from '../services/studentServices';
+import ReportForm from "../views/ReportForm.vue";
+
+
 
 
 export default {
   components: {
-    CircularPoints
+    CircularPoints,
+    ReportForm
+
   },
   setup() {
     const firstName = ref('');
     const progress = ref(10);
-    const points = ref(24);
+    const points = ref(0);
+    const students = ref([]);
+
     
     const tasks = ref([]);
     
@@ -193,7 +210,50 @@ export default {
       }
     };
 
+    
+  
 
+const fetchStudents = async () => {
+  try {
+    const studentList = await studentService.getStudents(); // ✅ correct method + with ()
+    const storedUser = Utils.getStore("user");
+
+    const currentStudent = studentList.find(s => s.id === storedUser.id);
+
+    if (currentStudent) {
+      points.value = currentStudent.point;
+    } else {
+      console.warn("Student not found for user:", storedUser.email);
+    }
+  } catch (error) {
+    console.error("Error fetching students:", error);
+  }
+};
+
+
+    // const fetchTasks = async () => {
+    //   try {
+    //     const response = await taskService.getAllTasks();
+    //     tasks.value = response.data;
+    //   } catch (err) {
+    //     error.value = err.response?.data?.message || "Failed to fetch tasks.";
+    //     console.error("Error fetching tasks:", err);
+    //   } finally {
+    //     loading.value = false;
+    //   }
+    // };
+
+    // const toggleCompletion = async (taskItem) => {
+    //   try {
+    //     const response = await taskService.completeTask(taskItem.id);
+    //     if (response.data.success) {
+    //       taskItem.completed = !taskItem.completed;
+    //       // Update points if needed
+    //     }
+    //   } catch (err) {
+    //     console.error("Error updating task completion:", err);
+    //   }
+    // };
 
     const fetchTasks = async () => {
       try {
@@ -225,6 +285,7 @@ export default {
       fetchUserData();
       fetchEvents();
       fetchTasks();
+      fetchStudents();
     });
     
     return {
@@ -351,6 +412,17 @@ export default {
   font-size: 14px;
   color: #666;
 }
+
+.report-form-container {
+  padding: 0;
+}
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 
 /* Task list */
 .task-list {

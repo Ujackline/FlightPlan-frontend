@@ -45,13 +45,15 @@
   <script>
   import { ref, onMounted } from "vue";
   import task from "../services/taskServices";
-  
+  import { useRouter } from 'vue-router';
+
   export default {
     setup() {
       const tasks = ref([]);
       const loading = ref(true);
       const error = ref(null);
-  
+      const router = useRouter();
+
       const fetchTasks = async () => {
         try {
           const response = await task.getAllTasks();
@@ -75,10 +77,19 @@
         }
       };
   
-      const editTask = (task) => {
-        // Placeholder: Replace with navigation or modal opening logic
-        alert(`Editing task: ${task.name}`);
-      };
+      // const editTask = (task) => {
+      //   // Placeholder: Replace with navigation or modal opening logic
+      //   alert(`Editing task: ${task.name}`);
+      // };
+
+//       const editTask = (task) => {
+//   router.push(`/admin/edit-task/${task.id}`);
+// };
+
+const editTask = (task) => {
+      router.push(`/admin/edit-task/${task.id}`);
+    };
+
   
       onMounted(fetchTasks);
   
