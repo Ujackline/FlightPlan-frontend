@@ -817,6 +817,7 @@ h1 {
   color: #383d41;
 }
 
+
 /* Action buttons */
 .actions {
   display: flex;
