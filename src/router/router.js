@@ -1,16 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Utils from '../config/utils'; 
+import Utils from '../config/utils.js'; 
 import Login from "../views/Login.vue";
-import Home from "../views/Home.vue"
+import Home from "../views/Home.vue";
 import AfterNest from "../views/AfterNest.vue";
-
-//import StudentDashboard from "../views/StudentDashboard.vue"
-// import Task from "../views/taskStudents.vue"
-
-import StudentDashboard from "../views/StudentDashboard.vue"
-import Task from "../views/task.vue"
-import Badge from "../views/Badge.vue"
-
+import StudentDashboard from "../views/StudentDashboard.vue";
+import Task from "../views/task.vue";
+import Badge from "../views/Badge.vue";
 import Experience from "../views/Experience.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import Adminsettings from "../views/Adminsettings.vue";
@@ -19,18 +14,14 @@ import Events from "../views/Events.vue";
 import Profile from "../views/profile.vue";
 import themeToggle from "../views/themeToggle.vue";
 import StudentSetup from "../views/StudentSetup.vue";
-
 import AdminCreateTask from "../views/AdminCreateTask.vue";
 import AdminViewTask from "../views/AdminViewTasks.vue"; 
 import AdminEvents from "../views/AdminEvents.vue";
-
 import PointRedemption from "../views/pointRedemption.vue";
 import Shop from "../views/Shop.vue";
 import Documents from "../views/Documents.vue";
 import AdminDocuments from "../views/AdminDocuments.vue";
-
-
-
+import AttendanceTracking from "../views/AttendanceTracking.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,20 +30,16 @@ const router = createRouter({
       path: '/',
       redirect: '/login'  
     },
-
-   
     {
       path: '/shop',
       name: 'shop',
       component: Shop
     },
-    
     {
       path: '/login',
       name: 'login',
       component: Login
     },
-
     {
       path: '/student/StudentSetup',
       name: 'StudentSetup',
@@ -62,11 +49,17 @@ const router = createRouter({
       path: '/admin/AdminEvents',
       name: 'AdminEvents',
       component: AdminEvents,
+      meta: { requiresAdmin: true }  // Added admin protection here
     },
-    // Add this additional route to catch the lowercase version
     {
       path: '/admin/events',
-      redirect: { name: 'AdminEvents' }  // Redirect to the main route
+      redirect: { name: 'AdminEvents' }
+    },
+    {
+      path: '/admin/attendance-tracking',
+      name: 'attendance-tracking',
+      component: AttendanceTracking,
+      meta: { requiresAdmin: true }  
     },
     {
       path: '/afternest',
@@ -78,14 +71,11 @@ const router = createRouter({
       name: 'studentDashboard',
       component: StudentDashboard
     },
-
-
     {
       path: '/Experience',
       name: 'Experience',
       component: Experience
     },
-
     {
       path: '/admin/dashboard',
       name: 'adminDashboard',
@@ -99,14 +89,6 @@ const router = createRouter({
           meta: { requiresAdmin: true }
         }
       ]
-    },
-
-    // Admin routes
-    {
-      path: '/experience',
-      name: 'experience',
-      component: Experience,
-      meta: { requiresAdmin: true }
     },
     {
       path: '/admin/students',
@@ -133,12 +115,6 @@ const router = createRouter({
       meta: { requiresAdmin: true }
     },
     {
-      path: '/tasks',
-      name: 'tasks',
-      component: Task,
-      meta: { requiresAdmin: true }
-    },
-    {
       path: '/admin/users',
       name: 'manageusers',
       component: ManageUser,
@@ -158,21 +134,20 @@ const router = createRouter({
     {
       path: "/admin/create-task",
       name: "create-task",
-      component: AdminCreateTask
+      component: AdminCreateTask,
+      meta: { requiresAdmin: true }
     },   
-    
     {
       path: "/admin/view-task",
       name: "view-task",
-      component: AdminViewTask
+      component: AdminViewTask,
+      meta: { requiresAdmin: true }
     }, 
-
     {
       path: '/themeToggle',
       name: 'themeToggle',
       component: themeToggle
     },
-
     {
       path: '/home',
       name: 'home',
@@ -184,19 +159,17 @@ const router = createRouter({
       name: 'Events',
       component: Events,
     },
-  
     {
       path: '/profile',
       name: 'profile',
       component: Profile,
     },
-
     {
       path: '/documents',
       name: 'documents',
       component: Documents,
       meta: { requiresAuth: true }
-    },
+    }
   ],
 });
 

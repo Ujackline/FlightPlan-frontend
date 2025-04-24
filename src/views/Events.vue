@@ -1,31 +1,4 @@
-.empty-message {
-  text-align: center;
-  padding: 30px 20px;
-  background-color: #d5dfe7;
-  border-radius: 8px;
-  color: #708e9a;
-  font-size: 18px;
-  margin: 20px 0;
-  border: 2px dashed #708e9a;
-}.points-earned {
-  font-weight: bold;
-  color: #708e9a;
-  font-size: 16px;
-  background: rgba(112, 142, 154, 0.1);
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  margin-top: 10px;
-}.completed-tag {
-  background-color: #708e9a;
-  color: white;
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-weight: bold;
-  margin: 5px 0;
-  font-size: 0.9em;
-}<template>
+<template>
   <div class="events-container">
     <!-- Section to display available events -->
     <div v-if="!showMyEvents && !showCompletedEvents">
@@ -40,12 +13,12 @@
             <p><strong>Location:</strong> {{ event.location }}</p>
             <p><strong>Major:</strong> {{ event.major }}</p>
           </div>
-          <p v-if="isEventComplete(event.id)" class="completed-tag">✓ Completed ({{getEventPoints(event.id)}} points earned)</p>
+          <p v-if="event.status === 'completed' || event.status === 'attended' || isEventComplete(event.id)" class="completed-tag">✓ Completed</p>
           <div class="action-container">
-                        <button 
+            <button 
               @click="registerForEvent(event.id)" 
               :disabled="isRegistered(event.id)"
-              :class="isRegistered(event.id) ? 'registered-button' : 'register-button'"
+              class="register-button"
             >
               {{ isRegistered(event.id) ? 'Registered' : 'Register' }}
             </button>
@@ -60,10 +33,10 @@
 
     <!-- Section to display registered events -->
     <div v-else-if="showMyEvents && !showCompletedEvents">
-      <h2 class="section-title registered-title">Registered Events</h2>
+      <h2 class="section-title">Registered Events</h2>
       <p v-if="registeredEvents.length === 0" class="empty-message">You haven't registered for any events yet.</p>
       <ul v-else class="event-list">
-        <li v-for="event in registeredEvents" :key="event.id" class="event-card registered-card">
+        <li v-for="event in registeredEvents" :key="event.id" class="event-card">
           <h3 class="event-title">{{ event.name }}</h3>
           <div class="event-details">
             <p><strong>Date:</strong> {{ formatDate(event.date) }}</p>
@@ -71,18 +44,39 @@
             <p><strong>Location:</strong> {{ event.location }}</p>
             <p><strong>Major:</strong> {{ event.major }}</p>
           </div>
-          <p v-if="isEventComplete(event.id)" class="completed-tag">✓ Completed ({{getEventPoints(event.id)}} points earned)</p>
+          
+          <!-- Status tags - with simpler styling -->
+          <p v-if="event.status === 'pending'" class="pending-tag">⏳ Pending Approval</p>
+          <p v-else-if="event.status === 'completed' || event.status === 'attended' || isEventComplete(event.id)" class="completed-tag">✓ Completed</p>
+          
           <div class="button-group">
-            <button v-if="!isEventComplete(event.id) && isEventInPast(event)" @click="markAsAttended(event)" class="complete-button">
-              Mark as Attended
+            <!-- Enter Attendance Code button only shows when event is not pending or completed -->
+            <button 
+              v-if="!isEventComplete(event.id) && event.status !== 'pending' && event.status !== 'completed' && event.status !== 'attended'" 
+              @click="markAsAttended(event)" 
+              class="verify-button">
+              Enter Attendance Code
             </button>
-            <button v-if="!isEventComplete(event.id)" @click="cancelRegistration(event.id)" class="cancel-button">
+            
+            <button 
+              v-if="!isEventComplete(event.id) && event.status !== 'completed' && event.status !== 'attended'" 
+              @click="cancelRegistration(event.id)" 
+              class="cancel-button">
               Cancel Registration
             </button>
-            <button @click="addToGoogleCalendar(event)" class="calendar-button">
+            
+            <!-- Only show Google Calendar and Reminder buttons for events that aren't completed -->
+            <button 
+              v-if="event.status !== 'completed' && event.status !== 'attended' && !isEventComplete(event.id)"
+              @click="addToGoogleCalendar(event)" 
+              class="calendar-button">
               Add to Google Calendar
             </button>
-            <button v-if="!isEventInPast(event)" @click="setNotification(event)" class="notification-button">
+            
+            <button 
+              v-if="!isEventInPast(event) && event.status !== 'completed' && event.status !== 'attended' && !isEventComplete(event.id)" 
+              @click="setNotification(event)" 
+              class="notification-button">
               Set Reminder
             </button>
           </div>
@@ -95,33 +89,32 @@
     </div>
     
     <!-- Modified section for the completed events view -->
-      <div v-else>
-        <h2 class="section-title completed-title">Completed Events</h2>
-        <p v-if="completedEvents.length === 0" class="empty-message">You haven't completed any events yet.</p>
-        <ul v-else class="event-list">
-          <li v-for="event in completedEvents" :key="event.id" class="event-card completed-card">
-            <h3 class="event-title">{{ event.name }}</h3>
-            <div class="event-details">
-              <p><strong>Date:</strong> {{ formatDate(event.date) }}</p>
-              <p><strong>Time:</strong> {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</p>
-              <p><strong>Location:</strong> {{ event.location }}</p>
-              <p><strong>Major:</strong> {{ event.major }}</p>
-            </div>
-            <p class="points-earned">Points Earned: {{getEventPoints(event.id)}}</p>
-            <p class="completion-date">Completed on: {{formatDate(getCompletionDate(event.id))}}</p>
-            <!-- Added reset button -->
-            <div class="button-group">
-              <button @click="resetEventCompletion(event.id)" class="reset-button">
-                Reset Completion Status
-              </button>
-            </div>
-          </li>
-        </ul>
-        <div class="button-group main-buttons">
-          <button @click="showCompletedEvents = false" class="primary-button">Back to All Events</button>
-          <button v-if="!showMyEvents" @click="showMyEvents = true; showCompletedEvents = false" class="secondary-button">View Registered Events</button>
-        </div>
+    <div v-else>
+      <h2 class="section-title">Completed Events</h2>
+      <p v-if="completedEvents.length === 0" class="empty-message">You haven't completed any events yet.</p>
+      <ul v-else class="event-list">
+        <li v-for="event in completedEvents" :key="event.id" class="event-card">
+          <h3 class="event-title">{{ event.name }}</h3>
+          <div class="event-details">
+            <p><strong>Date:</strong> {{ formatDate(event.date) }}</p>
+            <p><strong>Time:</strong> {{ formatTime(event.start_time) }} - {{ formatTime(event.end_time) }}</p>
+            <p><strong>Location:</strong> {{ event.location }}</p>
+            <p><strong>Major:</strong> {{ event.major }}</p>
+          </div>
+          <p class="completed-tag">✓ Completed</p>
+          <!-- Added reset button with simplified styling -->
+          <div class="button-group">
+            <button @click="resetEventCompletion(event.id)" class="reset-button">
+              Reset Completion Status
+            </button>
+          </div>
+        </li>
+      </ul>
+      <div class="button-group main-buttons">
+        <button @click="showCompletedEvents = false" class="primary-button">Back to All Events</button>
+        <button v-if="!showMyEvents" @click="showMyEvents = true; showCompletedEvents = false" class="secondary-button">View Registered Events</button>
       </div>
+    </div>
 
     <!-- Notification Settings Modal -->
     <div v-if="showNotificationModal" class="modal-overlay">
@@ -181,63 +174,165 @@ import eventServices from '../services/eventServices.js';
 export default {
   data() {
     return {
-      events: [], 
-      registeredEvents: [], 
+      events: [],
+      registeredEvents: [],
       showMyEvents: false,
       showCompletedEvents: false,
-      message: '', 
-      messageType: 'success', 
-      localRegistrations: [],
+      message: '',
+      messageType: 'success',
       showNotificationModal: false,
       showAttendanceModal: false,
       selectedEvent: null,
-      notificationTime: '60',  // Default: 1 hour before
+      notificationTime: '60',
       notificationType: 'email',
-      eventNotifications: [],  // Stores user's notification preferences
-      completedEvents: [],     // Store completed events
-      eventCompletions: [],    // Stores completion data (id, date, points)
-      attendanceCode: '',      // For event attendance verification
+      eventNotifications: [],
+      completedEvents: [],
+      eventCompletions: [],
+      attendanceCode: '',
+      statusCheckInterval: null,
     };
   },
   async created() {
-    this.loadLocalRegistrations();
     this.loadNotificationPreferences();
     this.loadEventCompletions();
-    
-    console.log("User from Vuex store:", this.$store.state.user); 
-    
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      console.log("No user found in localStorage");
+      this.showMessage("You need to log in to register for events", "error");
+    } else {
+      console.log("User from localStorage:", user);
+    }
+
+    // Initial fetch
     await this.fetchEvents();
     try {
       await this.fetchRegisteredEvents();
     } catch (error) {
-      console.log("Not logged in or couldn't fetch registered events. Using local storage.");
+      console.log("Not logged in or couldn't fetch registered events.");
     }
 
-    // Check if we need to request notification permissions
+    // Set up polling for status updates every 30 seconds
+    this.statusCheckInterval = setInterval(() => {
+      if (this.showMyEvents) {
+        this.fetchRegisteredEvents();
+      }
+    }, 30000);
+
     if (this.isNotificationSupported()) {
       this.requestNotificationPermission();
     }
-    
-    // Populate completed events
+
     this.updateCompletedEventsList();
   },
-  computed: {
-    // Get total points from completed events
-    totalPointsEarned() {
-      return this.eventCompletions.reduce((total, completion) => total + completion.points, 0);
+  beforeDestroy() {
+    // Clear the interval when component is destroyed
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
     }
   },
   methods: {
-    // Navigate to registered events view
+    // Add the missing formatDate function
+    formatDate(date) {
+      if (!date) return '';
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString(undefined, options);
+    },
+    // Add the missing formatTime function
+    formatTime(time) {
+      if (!time) return '';
+      
+      // Convert 24-hour time format (HH:MM:SS) to 12-hour format with AM/PM
+      try {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours, 10);
+        const minute = parseInt(minutes, 10);
+        
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+        
+        return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+      } catch (error) {
+        console.error('Error formatting time:', error);
+        return time; // Return original time if parsing fails
+      }
+    },
+    // Add the missing isEventComplete function
+    isEventComplete(eventId) {
+      return this.eventCompletions.some(completion => completion.eventId === eventId);
+    },
+    // Add the missing isRegistered function
+    isRegistered(eventId) {
+      return this.registeredEvents.some(event => event.id === eventId);
+    },
+    // Add the missing isEventInPast function
+    isEventInPast(event) {
+      const today = new Date();
+      const eventDate = new Date(event.date);
+      
+      if (eventDate < today) {
+        return true;
+      }
+      
+      if (eventDate.getDate() === today.getDate() && 
+          eventDate.getMonth() === today.getMonth() && 
+          eventDate.getFullYear() === today.getFullYear()) {
+        
+        // Event is today, check if it's over
+        if (event.end_time) {
+          const [hours, minutes] = event.end_time.split(':');
+          const eventEndTime = new Date();
+          eventEndTime.setHours(parseInt(hours, 10));
+          eventEndTime.setMinutes(parseInt(minutes, 10));
+          
+          return today > eventEndTime;
+        }
+      }
+      
+      return false;
+    },
+    // Add the missing getCompletionDate function
+    getCompletionDate(eventId) {
+      const completion = this.eventCompletions.find(c => c.eventId === eventId);
+      return completion ? completion.completionDate : '';
+    },
+    // Add the missing setNotification function
+    setNotification(event) {
+      this.selectedEvent = event;
+      this.showNotificationModal = true;
+    },
+    // Add the missing closeNotificationModal function
+    closeNotificationModal() {
+      this.showNotificationModal = false;
+      this.selectedEvent = null;
+    },
+    // Add the missing saveNotification function
+    saveNotification() {
+      if (!this.selectedEvent) return;
+      
+      const notification = {
+        eventId: this.selectedEvent.id,
+        time: parseInt(this.notificationTime, 10),
+        type: this.notificationType
+      };
+      
+      // Remove any existing notification for this event
+      this.eventNotifications = this.eventNotifications.filter(
+        n => n.eventId !== this.selectedEvent.id
+      );
+      
+      // Add the new notification
+      this.eventNotifications.push(notification);
+      this.saveNotificationPreferences();
+      
+      this.showMessage(`Reminder set for ${this.notificationTime} minutes before the event`, 'success');
+      this.closeNotificationModal();
+    },
     goToMyEvents() {
       this.showMyEvents = true;
       this.showCompletedEvents = false;
-      
-      // Scroll to top of the page for better experience
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    
-    // Fetch all available events
     async fetchEvents() {
       try {
         const response = await eventServices.getAll();
@@ -246,484 +341,360 @@ export default {
         this.showMessage('Failed to fetch events.', 'error');
       }
     },
-
-    // Load registrations from localStorage
-    loadLocalRegistrations() {
-      const stored = localStorage.getItem('eventRegistrations');
-      if (stored) {
-        this.localRegistrations = JSON.parse(stored);
-      }
-    },
-
-    // Save registrations to localStorage
-    saveLocalRegistrations() {
-      localStorage.setItem('eventRegistrations', JSON.stringify(this.localRegistrations));
-    },
-
-    // Load notification preferences
     loadNotificationPreferences() {
       const stored = localStorage.getItem('eventNotifications');
       if (stored) {
         this.eventNotifications = JSON.parse(stored);
       }
     },
-
-    // Save notification preferences
     saveNotificationPreferences() {
       localStorage.setItem('eventNotifications', JSON.stringify(this.eventNotifications));
     },
-    
-    // Load event completions data
     loadEventCompletions() {
       const stored = localStorage.getItem('eventCompletions');
       if (stored) {
         this.eventCompletions = JSON.parse(stored);
       }
     },
-    
-    // Save event completions data
     saveEventCompletions() {
       localStorage.setItem('eventCompletions', JSON.stringify(this.eventCompletions));
-      
-      // Also update points in the store if available
-      if (this.$store && this.$store.commit) {
-        this.$store.commit('updatePoints', this.totalPointsEarned);
-      }
     },
-    
-    // Update the completedEvents list
     updateCompletedEventsList() {
-      // Get IDs of completed events
       const completedIds = this.eventCompletions.map(completion => completion.eventId);
-      
-      // Filter events to get completed ones
       this.completedEvents = this.events.filter(event => completedIds.includes(event.id));
     },
-
-    // Reset the completion status of an event
     resetEventCompletion(eventId) {
       try {
-        const userId = this.$store.state.user?.id;
-        
-        // If connected to backend, remove completion on server
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userId = user?.id;
         if (userId) {
-          // This would be your API call in a real implementation
-          // await eventServices.resetAttendance(eventId, userId);
           console.log(`Reset attendance for event ID ${eventId} on server`);
         }
-        
-        // Remove from local event completions
         this.eventCompletions = this.eventCompletions.filter(
           completion => completion.eventId !== eventId
         );
-        
-        // Save updated completions
         this.saveEventCompletions();
-        
-        // Update the lists
         this.updateCompletedEventsList();
-        
         this.showMessage('Event completion status has been reset', 'success');
-        
-        // If we're in the completed events view and there are no more completed events,
-        // navigate back to available events
+
         if (this.showCompletedEvents && this.completedEvents.length === 0) {
           setTimeout(() => {
             this.showCompletedEvents = false;
-          }, 500); // Short delay so the user can see the message
+          }, 500);
         }
       } catch (error) {
         console.error('Error resetting event completion:', error);
         this.showMessage('Failed to reset event completion status.', 'error');
       }
     },
-
-    // Fetch events registered by the user
+    // Improved fetchRegisteredEvents to update local event completions
     async fetchRegisteredEvents() {
       try {
-        const userId = this.$store.state.user?.id; 
-        if (userId) {
-          const response = await this.$axios.get(`/flight-plan-t9/event/user/${userId}`);
-          this.registeredEvents = response.data;
-        } else {
-          this.registeredEvents = this.events.filter(event => 
-            this.localRegistrations.includes(event.id)
-          );
-        }
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user?.id) return;
+
+        console.log(`Fetching registered events for user ${user.id}`);
+        const response = await eventServices.getStudentEvents(user.id);
+        this.registeredEvents = response.data.map(event => ({
+          ...event,
+          status: event.status || 'registered',
+          pointsEarned: event.pointsEarned || 0
+        }));
+        
+        // Update local event completions based on server data
+        this.registeredEvents.forEach(event => {
+          if (event.status === 'completed' || event.status === 'attended') {
+            // Add to completions if not already there
+            if (!this.eventCompletions.some(completion => completion.eventId === event.id)) {
+              this.eventCompletions.push({ 
+                eventId: event.id, 
+                completionDate: new Date().toISOString() 
+              });
+            }
+          }
+        });
+        
+        // Save updated completions to local storage
+        this.saveEventCompletions();
+        this.updateCompletedEventsList();
       } catch (error) {
-        this.registeredEvents = this.events.filter(event => 
-          this.localRegistrations.includes(event.id)
-        );
+        console.error("Fetch error details:", {
+          status: error.response?.status,
+          data: error.response?.data,
+          stack: error.stack
+        });
+        this.showMessage("Failed to load registered events", "error");
       }
     },
-
     async registerForEvent(eventId) {
       try {
-        const userId = this.$store.state.user?.id; 
-        
-        if (userId) {
-          await eventServices.register(eventId, userId);
-        } else {
-          if (!this.localRegistrations.includes(eventId)) {
-            this.localRegistrations.push(eventId);
-            this.saveLocalRegistrations();
-          }
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userId = user?.id;
+        if (!userId) {
+          this.showMessage("You need to be logged in to register for events.", "error");
+          return;
         }
-
+        console.log(`Registering user ${userId} for event ${eventId}`);
+        await eventServices.registerStudent(eventId, userId);
+        await this.fetchRegisteredEvents();
         this.showMessage("Registration successful!", "success");
-        if (!this.registeredEvents.some(event => event.id === eventId)) {
-          const event = this.events.find(e => e.id === eventId);
-          if (event) {
-            this.registeredEvents.push(event);
-          }
-        }
-        
-        // Automatically navigate to registered events after successful registration
         setTimeout(() => {
           this.showMyEvents = true;
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 1000); // Wait 1 second to show the success message before redirecting
-        
+        }, 1000);
       } catch (error) {
         console.error("Error registering for event:", error);
         this.showMessage("Failed to register for the event.", "error");
       }
     },
-
-    // Cancel registration for an event
     async cancelRegistration(eventId) {
       try {
-        const userId = this.$store.state.user?.id;
-        
-        if (userId) {
-          await eventServices.cancelRegistration(eventId, userId);
-        } else {
-          this.localRegistrations = this.localRegistrations.filter(id => id !== eventId);
-          this.saveLocalRegistrations();
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userId = user?.id;
+        if (!userId) {
+          this.showMessage("You need to be logged in to cancel registrations.", "error");
+          return;
         }
-
-        // Also remove any notification preferences for this event
+        await eventServices.cancelRegistration(eventId, userId);
+        await this.fetchRegisteredEvents();
         this.eventNotifications = this.eventNotifications.filter(notif => notif.eventId !== eventId);
         this.saveNotificationPreferences();
-
         this.showMessage('Registration canceled.', 'success');
-        this.registeredEvents = this.registeredEvents.filter(event => event.id !== eventId);
       } catch (error) {
         console.error('Error canceling registration:', error);
         this.showMessage('Failed to cancel registration.', 'error');
       }
     },
-    
-    // Open the attendance verification modal
     markAsAttended(event) {
       this.selectedEvent = event;
       this.attendanceCode = '';
       this.showAttendanceModal = true;
     },
-    
-    // Close the attendance modal
     closeAttendanceModal() {
       this.showAttendanceModal = false;
       this.selectedEvent = null;
       this.attendanceCode = '';
     },
-    
-    // Verify attendance code and mark event as completed
+    // Updated verifyAttendance method for event.vue (student view)
     async verifyAttendance() {
       if (!this.selectedEvent) return;
-      
       try {
-        const userId = this.$store.state.user?.id;
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userId = user?.id;
         const eventId = this.selectedEvent.id;
-        
-        // In a real app, you would verify the code with your backend
-        // Here we'll simulate validation (any non-empty code works)
-        if (this.attendanceCode.trim() === '') {
+
+        if (!userId) {
+          this.showMessage("You need to be logged in to verify attendance.", "error");
+          return;
+        }
+
+        // Clean attendance code
+        const cleanCode = this.attendanceCode.trim();
+
+        if (cleanCode === '') {
           this.showMessage('Please enter a valid attendance code', 'error');
           return;
         }
-        
-        // Calculate points based on event (could be dynamic based on event type)
-        const pointsEarned = 50; // Default points value
-        
-        if (userId) {
-          // If backend is available, mark as completed on server
-          try {
-            // This is a placeholder for your API call
-            await eventServices.markAttendance(eventId, userId, this.attendanceCode);
+
+        console.log("Verifying attendance for event:", {
+          eventId,
+          eventName: this.selectedEvent.name,
+          userId,
+          code: cleanCode
+        });
+
+        // Check if the event has an attendance code set
+        try {
+          const eventResponse = await eventServices.getById(eventId);
+          const eventData = eventResponse.data;
+          
+          console.log("Event data:", eventData);
+          
+          // If the event doesn't have an attendance code set
+          if (!eventData.attendanceCode) {
+            console.log("Event has no attendance code set. Attempting to generate one.");
             
-            // Update points on the server
-            await this.$axios.post('/flight-plan-t9/points/add', {
-              userId: userId,
-              points: pointsEarned,
-              source: `Event: ${this.selectedEvent.name}`
-            });
-          } catch (error) {
-            console.error('Server error, falling back to local storage', error);
+            try {
+              // For testing, generate and set a code
+              const codeResponse = await eventServices.generateAttendanceCode(eventId);
+              console.log("Code generation response:", codeResponse);
+              
+              const generatedCode = codeResponse.data?.code || codeResponse.data?.attendanceCode;
+              
+              if (generatedCode) {
+                this.showMessage(`Event attendance code has been set to: ${generatedCode}. Please use this code.`, "info");
+              } else {
+                this.showMessage("An attendance code has been set for this event. Please ask the event organizer for the code.", "info");
+              }
+              
+              // Close the modal to allow them to re-try with the new code
+              this.closeAttendanceModal();
+              return;
+            } catch (codeError) {
+              console.error("Failed to generate attendance code:", codeError);
+              this.showMessage("Could not set an attendance code for this event. Please contact the event organizer.", "error");
+              this.closeAttendanceModal();
+              return;
+            }
           }
+          
+          // Modified verification flow - change this section
+          try {
+            // If the code matches the event's code, mark as PENDING instead of completed
+            if (eventData.attendanceCode && cleanCode === eventData.attendanceCode) {
+              console.log("Code matches! Marking event as PENDING for admin approval");
+              
+              // Send verification to server
+              try {
+                await eventServices.verifyAttendance(eventId, userId, cleanCode);
+                console.log("Server verification successful, awaiting admin approval");
+              } catch (serverError) {
+                console.log("Server verification failed:", serverError);
+                // Continue with local pending state even if server fails
+              }
+              
+              // Update local status to pending
+              if (this.registeredEvents) {
+                const registeredEvent = this.registeredEvents.find(e => e.id === eventId);
+                if (registeredEvent) {
+                  registeredEvent.status = 'pending';
+                }
+              }
+              
+              await this.fetchRegisteredEvents();
+              this.closeAttendanceModal();
+              this.showMessage('Attendance code accepted! Awaiting instructor approval for points.', 'success');
+              return;
+            }
+            
+            // Regular verification flow
+            const response = await eventServices.verifyAttendance(eventId, userId, cleanCode);
+            console.log("Verification response:", response);
+
+            if (response && (response.success || response.data?.success)) {
+              // Update to pending status instead of completed
+              if (this.registeredEvents) {
+                const registeredEvent = this.registeredEvents.find(e => e.id === eventId);
+                if (registeredEvent) {
+                  registeredEvent.status = 'pending';
+                }
+              }
+              
+              await this.fetchRegisteredEvents();
+              this.closeAttendanceModal();
+              this.showMessage('Attendance verification submitted and awaiting approval', 'success');
+            } else {
+              this.showMessage(response.message || 'Invalid attendance code', 'error');
+            }
+          } catch (verifyError) {
+            console.error('Error verifying attendance:', verifyError);
+            console.error("Verification error response:", verifyError.response?.data);
+            
+            // If verification failed but the code matches, still move to pending
+            if (eventData.attendanceCode && cleanCode === eventData.attendanceCode) {
+              console.log("Server verification failed but code matches. Marking as pending.");
+              
+              // Update to pending only, not completed
+              if (this.registeredEvents) {
+                const registeredEvent = this.registeredEvents.find(e => e.id === eventId);
+                if (registeredEvent) {
+                  registeredEvent.status = 'pending';
+                }
+              }
+              
+              await this.fetchRegisteredEvents();
+              this.closeAttendanceModal();
+              this.showMessage('Attendance code accepted! Awaiting instructor approval for points.', 'success');
+              return;
+            }
+            
+            if (verifyError.response?.status === 400) {
+              // Try to extract the specific error message
+              const errorMessage = verifyError.response?.data?.message || '';
+              this.showMessage(errorMessage || 'Invalid attendance code. Please try again.', 'error');
+            } else {
+              this.showMessage('Error verifying attendance. Please try again later.', 'error');
+            }
+          }
+        } catch (eventError) {
+          console.error('Error fetching event details:', eventError);
+          this.showMessage('Could not verify attendance due to an error fetching event details.', 'error');
+          this.closeAttendanceModal();
         }
-        
-        // Always update local storage as fallback
-        const completionDate = new Date().toISOString();
-        
-        // Check if event is already marked as completed
+      } catch (error) {
+        console.error('Unexpected error:', error);
+        this.showMessage('An unexpected error occurred. Please try again.', 'error');
+        this.closeAttendanceModal();
+      }
+    },
+    // Add this to the methods in event.vue
+    updateEventStatus(eventId, newStatus) {
+      // Update in registered events
+      if (this.registeredEvents) {
+        const event = this.registeredEvents.find(e => e.id === eventId);
+        if (event) {
+          event.status = newStatus;
+        }
+      }
+      
+      // If the event was already in completed events, remove it if status is not 'completed'
+      if (newStatus !== 'completed' && this.completedEvents) {
+        this.completedEvents = this.completedEvents.filter(e => e.id !== eventId);
+      }
+      
+      // Handle the event completions local storage
+      if (newStatus === 'completed') {
+        // Add to completions if not already there
         if (!this.eventCompletions.some(completion => completion.eventId === eventId)) {
-          this.eventCompletions.push({
-            eventId: eventId,
-            completionDate: completionDate,
-            points: pointsEarned
+          this.eventCompletions.push({ 
+            eventId, 
+            completionDate: new Date().toISOString() 
           });
           this.saveEventCompletions();
         }
-        
-        // Update completed events list
-        this.updateCompletedEventsList();
-        
-        // Close modal and show success message
-        this.closeAttendanceModal();
-        this.showMessage(`Attendance verified! You earned ${pointsEarned} points.`, 'success');
-      } catch (error) {
-        console.error('Error verifying attendance:', error);
-        this.showMessage('Failed to verify attendance. Please try again.', 'error');
+      } else {
+        // Remove from completions if not completed
+        this.eventCompletions = this.eventCompletions.filter(
+          completion => completion.eventId !== eventId
+        );
+        this.saveEventCompletions();
       }
-    },
-    
-    // Check if an event is marked as completed
-    isEventComplete(eventId) {
-      return this.eventCompletions.some(completion => completion.eventId === eventId);
-    },
-    
-    // Get points earned for a completed event
-    getEventPoints(eventId) {
-      const completion = this.eventCompletions.find(completion => completion.eventId === eventId);
-      return completion ? completion.points : 0;
-    },
-    
-    // Get completion date for an event
-    getCompletionDate(eventId) {
-      const completion = this.eventCompletions.find(completion => completion.eventId === eventId);
-      return completion ? completion.completionDate : null;
-    },
-    
-    // Check if event date is in the past
-    isEventInPast(event) {
-      const eventDate = new Date(event.date);
-      const startTime = new Date(event.start_time);
       
-      eventDate.setHours(startTime.getHours());
-      eventDate.setMinutes(startTime.getMinutes());
-      
-      return eventDate < new Date();
+      this.updateCompletedEventsList();
     },
-
-    // Check if the user is already registered for an event
-    isRegistered(eventId) {
-      if (this.registeredEvents.some(event => event.id === eventId)) {
-        return true;
-      }
-      return this.localRegistrations.includes(eventId);
-    },
-
-    formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString();
-    },
-
-    formatTime(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    },
-
-    // Format date and time for Google Calendar
-    formatGoogleCalendarDate(dateStr, timeStr) {
-      const date = new Date(dateStr);
-      const time = new Date(timeStr);
-      
-      date.setHours(time.getHours());
-      date.setMinutes(time.getMinutes());
-      
-      return date.toISOString().replace(/-|:|\.\d+/g, '');
-    },
-
-    // Add event to Google Calendar
     addToGoogleCalendar(event) {
       const startDate = this.formatGoogleCalendarDate(event.date, event.start_time);
       const endDate = this.formatGoogleCalendarDate(event.date, event.end_time);
-      
-      // Prepare event details
       const title = encodeURIComponent(event.name);
       const details = encodeURIComponent(event.description);
       const location = encodeURIComponent(event.location);
-      
-      // Create Google Calendar URL
       const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}&sf=true&output=xml`;
-      
-      // Open Google Calendar in a new tab
       window.open(googleCalendarUrl, '_blank');
-      
-      this.showMessage('Event added to Google Calendar', 'success');
     },
-
-    // Open notification settings modal
-    setNotification(event) {
-      this.selectedEvent = event;
-      
-      // Check if there's an existing notification for this event
-      const existingNotification = this.eventNotifications.find(n => n.eventId === event.id);
-      if (existingNotification) {
-        this.notificationTime = existingNotification.time;
-        this.notificationType = existingNotification.type;
-      } else {
-        // Reset to defaults
-        this.notificationTime = '60';
-        this.notificationType = 'email';
-      }
-      
-      this.showNotificationModal = true;
+    formatGoogleCalendarDate(date, time) {
+      const dateTime = new Date(`${date}T${time}`);
+      return dateTime.toISOString().replace(/[-:]|\.\d{3}/g, '');
     },
-
-    // Close notification modal
-    closeNotificationModal() {
-      this.showNotificationModal = false;
-      this.selectedEvent = null;
-    },
-
-    // Save notification preferences
-    saveNotification() {
-      if (!this.selectedEvent) return;
-      
-      // Remove any existing notification for this event
-      this.eventNotifications = this.eventNotifications.filter(
-        notif => notif.eventId !== this.selectedEvent.id
-      );
-      
-      // Add the new notification preference
-      this.eventNotifications.push({
-        eventId: this.selectedEvent.id,
-        eventName: this.selectedEvent.name,
-        date: this.selectedEvent.date,
-        startTime: this.selectedEvent.start_time,
-        time: this.notificationTime,
-        type: this.notificationType
-      });
-      
-      // Save to localStorage
-      this.saveNotificationPreferences();
-      
-      // Schedule the notification
-      this.scheduleNotification(this.selectedEvent, parseInt(this.notificationTime));
-      
-      this.showMessage('Reminder set successfully', 'success');
-      this.closeNotificationModal();
-    },
-
-    // Check if browser notifications are supported
     isNotificationSupported() {
       return 'Notification' in window;
     },
-
-    // Request permission for browser notifications
     requestNotificationPermission() {
-      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      if (Notification.permission !== 'granted') {
         Notification.requestPermission();
       }
     },
-
-    // Schedule a notification
-    scheduleNotification(event, minutesBefore) {
-      // Parse event date and time
-      const eventDate = new Date(event.date);
-      const startTime = new Date(event.start_time);
-      
-      eventDate.setHours(startTime.getHours());
-      eventDate.setMinutes(startTime.getMinutes());
-      
-      // Calculate notification time
-      const notificationTime = new Date(eventDate.getTime() - minutesBefore * 60000);
-      
-      // Check if notification time is in the future
-      if (notificationTime > new Date()) {
-        const timeUntilNotification = notificationTime.getTime() - new Date().getTime();
-        
-        // Set a timeout for the notification
-        setTimeout(() => {
-          this.triggerNotification(event);
-        }, timeUntilNotification);
-        
-        console.log(`Notification scheduled for ${event.name} at ${notificationTime.toLocaleString()}`);
-      }
-    },
-
-    // Trigger a notification
-    triggerNotification(event) {
-      const notificationConfig = this.eventNotifications.find(n => n.eventId === event.id);
-      if (!notificationConfig) return;
-      
-      // If email notification is selected
-      if (notificationConfig.type === 'email' || notificationConfig.type === 'both') {
-        // In a real app, this would call an API to send an email
-        console.log(`Email notification would be sent for ${event.name}`);
-      }
-      
-      // If browser notification is selected
-      if ((notificationConfig.type === 'popup' || notificationConfig.type === 'both') 
-          && this.isNotificationSupported() 
-          && Notification.permission === 'granted') {
-        
-        const notification = new Notification(`Reminder: ${event.name}`, {
-          body: `Your event starts in ${notificationConfig.time} minutes at ${this.formatTime(event.start_time)}`,
-          icon: '/favicon.ico' // Use your app's icon
-        });
-        
-        // Optional: Close notification after 10 seconds
-        setTimeout(() => {
-          notification.close();
-        }, 10000);
-        
-        // Optional: Add a click handler to open your app
-        notification.onclick = () => {
-          window.focus();
-          this.showMyEvents = true;
-        };
-      }
-    },
-
-    // Show a message (success or error)
     showMessage(message, type = 'success') {
       this.message = message;
       this.messageType = type;
       setTimeout(() => {
-        this.message = ''; 
+        this.message = '';
       }, 3000);
-    },
-  },
-  watch: {
-    // Watch for changes in events to update completed events list
-    events: {
-      handler() {
-        this.updateCompletedEventsList();
-      },
-      deep: true
     }
   }
 };
 </script>
 
 <style scoped>
-.complete-button:hover {
-  background-color: #5f7a85;
-}
-
-.reset-button {
-  background-color: #d5dfe7;
-  color: #48111c;
-  border: 1px solid #48111c;
-  margin-top: 10px;
-}
-
-.reset-button:hover {
-  background-color: #c4cfd8;
-}
 .events-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -735,17 +706,9 @@ export default {
   margin-bottom: 20px;
   text-align: center;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 0;
   color: white;
   background-color: #48111c; /* Dark maroon as requested */
-}
-
-.registered-title {
-  background-color: #f68d76; /* As requested */
-}
-
-.completed-title {
-  background-color: #708e9a; /* Changed from green to the blue-gray you provided */
 }
 
 .event-list {
@@ -762,28 +725,14 @@ export default {
   padding: 20px;
   margin-bottom: 10px;
   background-color: white;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.event-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-.registered-card {
-  border-left: 5px solid #f68d76;
-}
-
-.completed-card {
-  border-left: 5px solid #708e9a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .event-title {
   color: #333;
   font-size: 18px;
   margin-bottom: 10px;
-  border-bottom: 2px solid #eee;
+  border-bottom: 1px solid #eee;
   padding-bottom: 10px;
 }
 
@@ -818,9 +767,9 @@ export default {
 }
 
 .success {
-  background-color: #d5dfe7;
-  color: #48111c;
-  border-left: 5px solid #f9c634;
+  background-color: #f4f4f4;
+  color: #333;
+  border: 1px solid #ddd;
 }
 
 .error {
@@ -831,19 +780,10 @@ export default {
 
 button {
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   border: none;
-  font-weight: bold;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-button:active {
-  transform: scale(0.95);
+  font-weight: normal;
 }
 
 /* Button group styling */
@@ -859,80 +799,109 @@ button:active {
   margin: 25px 0;
 }
 
-/* Primary and secondary buttons */
+/* Primary and secondary buttons - simplified */
 .primary-button {
   background-color: #48111c;
   color: white;
 }
 
 .secondary-button {
-  background-color: #f68d76;
+  background-color: #E9967A; /* Using a more muted color */
   color: white;
 }
 
-/* Register button styling */
+/* Register button styling - simplified */
 .register-button {
-  background-color: #f9c634;
-  color: #333;
-  flex: 1;
-}
-
-.register-button:hover {
-  background-color: #e0b429;
-}
-
-/* View registered button */
-.view-registered-button {
-  background-color: #f68d76;
-  color: white;
-  flex: 2;
-}
-
-/* Maroon registered button */
-.registered-button {
   background-color: #48111c;
   color: white;
-  cursor: not-allowed;
-  flex: 1;
+  width: 100%;
 }
 
-/* Cancel button styling */
+/* Keep original colors for these specific buttons */
 .cancel-button {
   background-color: #dc3545;
   color: white;
 }
 
-.cancel-button:hover {
-  background-color: #c82333;
+.verify-button {
+  background-color: #28a745; /* Green for Enter Attendance Code */
+  color: white;
 }
 
-/* Calendar button styling */
 .calendar-button {
-  background-color: #708e9a;
+  background-color: #708e9a; /* Original blue-gray color */
   color: white;
 }
 
-.calendar-button:hover {
-  background-color: #5f7a85;
-}
-
-/* Notification button styling */
 .notification-button {
-  background-color: #6f42c1;
+  background-color: #6f42c1; /* Original purple color */
   color: white;
 }
 
-.notification-button:hover {
-  background-color: #5e35b1;
+.reset-button {
+  background-color: #d5dfe7; 
+  color: #48111c;
+  border: 1px solid #48111c;
 }
 
-/* Save button styling */
+/* Button hover effects - simplified */
+button:hover {
+  opacity: 0.9;
+}
+
+/* Status tag styling - simplified */
+.pending-tag, .completed-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 0;
+  margin: 10px 0;
+  font-weight: normal;
+}
+
+/* Modal styling - keeping functional, simplifying appearance */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 0;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 0;
+}
+
+.small-text {
+  font-size: 0.9em;
+  color: #666;
+}
+
 .save-button {
-  background-color: #f9c634;
-  color: #333;
-}
-
-.save-button:hover {
-  background-color: #e0b429;
+  background-color: #48111c;
+  color: white;
 }
 </style>
